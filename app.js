@@ -1,10 +1,14 @@
-/* v1.4 — unified theme UI polish + logos
-   - Keeps v1.3 behavior: details hidden until open, sections gated, month start, PDF export, scrollIntoView
+/* v1.4 — Theme system + logos + UX polish
+   - Theme toggle (light/dark) + accent palette (green/blue/purple/gold), saved in localStorage
+   - Member chip with initials avatar
+   - All prior logic preserved
 */
 
-const $ = (s, p=document) => p.querySelector(s);
+const $  = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
 const SKEY = "jamiyati:v02";
+const THEME_KEY = "jamiyati:theme";
+const ACCENT_KEY = "jamiyati:accent";
 
 const state = {
   jamiyahs: loadAll(),
@@ -60,15 +64,7 @@ function hasStarted(j){ const today=new Date().setHours(0,0,0,0); const start=ne
 function currentJamiyah(){ return state.jamiyahs.find(x=>x.id===state.currentId); }
 function toast(msg){ const box=$('#toasts'); const el=document.createElement('div'); el.className='toast'; el.textContent=msg; box.appendChild(el); setTimeout(()=>el.remove(),2200); }
 function setError(id,text){ const el=$(`#${id}`); if(el) el.textContent=text||''; }
-
-function monthToFirstDay(monthStr){
-  if(!monthStr) return "";
-  const [y,m]=monthStr.split('-');
-  if(!y||!m) return "";
-  return `${y}-${String(m).padStart(2,'0')}-01`;
-}
-
-/* Show/Hide helpers */
+function monthToFirstDay(monthStr){ if(!monthStr) return ""; const [y,m]=monthStr.split('-'); if(!y||!m) return ""; return `${y}-${String(m).padStart(2,'0')}-01`; }
 function show(el){ el.classList.remove('hidden'); }
 function hide(el){ el.classList.add('hidden'); }
 function toggle(id, showIt){ const el=document.getElementById(id); if(!el) return; showIt?show(el):hide(el); }
@@ -79,40 +75,64 @@ function setDetailsSectionsVisible(hasOpen){
   toggle('scheduleBlock', hasOpen);
 }
 
+/* ---------- Theme ---------- */
+function loadTheme(){
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  const savedAccent = localStorage.getItem(ACCENT_KEY) || 'green';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.documentElement.setAttribute('data-accent', savedAccent);
+  $('#accentSelect').value = savedAccent;
+}
+function toggleTheme(){
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem(THEME_KEY, next);
+}
+function setAccent(value){
+  document.documentElement.setAttribute('data-accent', value);
+  localStorage.setItem(ACCENT_KEY, value);
+}
+
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', () => {
-  /* Details off by default */
+  // Theme init
+  loadTheme();
+  $('#themeToggle').addEventListener('click', toggleTheme);
+  $('#accentSelect').addEventListener('change', (e)=> setAccent(e.target.value));
+
+  // Force details hidden on load
   hide($('#details'));
 
-  /* Create */
+  // Create
   $('#jamiyahForm').addEventListener('submit', onCreateJamiyah);
 
-  /* Member add */
+  // Member add
   $('#memberForm').addEventListener('submit', onAddMember);
 
-  /* Nav */
+  // Nav
   $('#deleteJamiyah').addEventListener('click', onDeleteJamiyah);
   $('#backBtn').addEventListener('click', showList);
 
-  /* Edit */
+  // Edit
   $('#editForm').addEventListener('submit', onSaveEdit);
   $('#cancelEdit').addEventListener('click', (e)=>{ e.preventDefault(); $('#editBlock').open=false; });
 
-  /* Search (list) */
+  // Search (list)
   $('#search').addEventListener('input', (e)=>{ state.filter=(e.target.value||'').trim(); renderList(); });
 
-  /* Export PDF */
+  // Export PDF
   $('#exportBtn').addEventListener('click', ()=> exportPdf(currentJamiyah()));
 
-  /* Live hints for add-member */
+  // Live hints for add-member
   $('#m-month').addEventListener('change', updateMonthHint);
   $('#m-pay').addEventListener('input', updateMonthHint);
 
-  /* Members toolbar */
+  // Members toolbar
   $('#memberSearch').addEventListener('input', (e)=>{ state.memberSearch=(e.target.value||'').trim(); renderMembers(currentJamiyah()); });
   $('#memberSort').addEventListener('change', (e)=>{ state.memberSort=e.target.value; renderMembers(currentJamiyah()); });
 
-  /* Schedule filter */
+  // Schedule filter
   $('#scheduleFilter').addEventListener('change', (e)=>{ state.scheduleFilter=e.target.value; renderSchedule(currentJamiyah()); });
 
   setDetailsSectionsVisible(false);
@@ -148,7 +168,7 @@ function onCreateJamiyah(e){
   renderList();
 }
 
-/* ---------- List Jamiyahs ---------- */
+/* ---------- List ---------- */
 function renderList(){
   const list=$('#jamiyahList'); const empty=$('#emptyList'); const pill=$('#jamiyahCountPill');
   const items=state.jamiyahs.filter(j=>!state.filter||j.name.includes(state.filter)).sort((a,b)=>a.name.localeCompare(b.name));
@@ -161,7 +181,10 @@ function renderList(){
     row.className='item';
     row.innerHTML=`
       <div>
-        <div><strong>${j.name}</strong></div>
+        <div class="chip">
+          <span class="avatar" aria-hidden="true">${(j.name||'?').trim().charAt(0).toUpperCase()}</span>
+          <strong>${j.name}</strong>
+        </div>
         <div class="meta">
           <span>من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر</span>
           <span class="badge">الهدف الشهري: ${fmtMoney(j.goal)}</span>
@@ -194,8 +217,7 @@ function openDetails(id){
   $('#memberForm').querySelectorAll('input,button,select').forEach(el=>{ el.disabled=started; });
 
   // Edit
-  $('#e-name').value=j.name;
-  $('#e-goal').value=j.goal;
+  $('#e-name').value=j.name; $('#e-goal').value=j.goal;
   $('#e-start').value=j.startDate.slice(0,7);
   $('#e-duration').value=j.duration;
   $('#e-start').disabled=started; $('#e-duration').disabled=started;
@@ -223,7 +245,7 @@ function maxMonthlyForMonth(j,month){
   return Math.floor(remaining/j.duration);
 }
 function colorForMonth(i){
-  const colors=["#10b981","#059669","#2dd4bf","#60a5fa","#a78bfa","#f472b6","#f59e0b"];
+  const colors = ["var(--accent-500)","#16a34a","#2dd4bf","#60a5fa","#a78bfa","#f472b6","#f59e0b"];
   return colors[(i-1)%colors.length];
 }
 
@@ -307,10 +329,23 @@ function renderMembers(j){
     empty.classList.add('hidden');
     rows.forEach((m,idx)=>{
       totalPay+=Number(m.pay||0); totalEnt+=Number(m.entitlement||0);
+
       const tr=document.createElement('tr'); tr.className='row-accent'; tr.style.borderInlineStartColor=colorForMonth(m.month);
+
+      const nameCell = `
+        <span class="chip">
+          <span class="avatar" aria-hidden="true">${(m.name||'?').trim().charAt(0).toUpperCase()}</span>
+          <span>${m.name}</span>
+        </span>
+      `;
+
       const cells=[
-        ['#',fmtInt(idx+1)],['الاسم',m.name],['المساهمة',fmtMoney(m.pay)],
-        ['الاستحقاق الكلي',fmtMoney(m.entitlement)],['شهر الاستلام',monthLabel(j.startDate,m.month)],['','']
+        ['#',fmtInt(idx+1)],
+        ['الاسم', nameCell],
+        ['المساهمة',fmtMoney(m.pay)],
+        ['الاستحقاق الكلي',fmtMoney(m.entitlement)],
+        ['شهر الاستلام',monthLabel(j.startDate,m.month)],
+        ['', '']
       ];
       cells.forEach(([label,val],i)=>{
         const td=document.createElement('td'); td.setAttribute('data-col',label); td.innerHTML=val;
@@ -402,16 +437,6 @@ function renderSchedule(j){
   updateScheduleSummary(j);
 }
 
-/* ---------- Hint ---------- */
-function updateMonthHint(){
-  const j=currentJamiyah(); const hint=$('#monthHint'); const sel=$('#m-month');
-  if(!j||!sel||!sel.value){ hint.textContent=''; return; }
-  const monthVal=parseInt(sel.value); const maxMonthly=maxMonthlyForMonth(j,monthVal); const pay=parseInt($('#m-pay').value||'0');
-  let line=`Max monthly in ${monthLabel(j.startDate,monthVal)}: ${fmtMoney(maxMonthly)} SAR`;
-  if(pay){ line += pay>maxMonthly ? ` · Your input (${fmtMoney(pay)}) is above max` : ` · Your input (${fmtMoney(pay)}) is within max`; }
-  hint.textContent=line;
-}
-
 /* ---------- Delete ---------- */
 function onDeleteJamiyah(){
   const j=currentJamiyah(); if(!j) return;
@@ -420,7 +445,7 @@ function onDeleteJamiyah(){
   showList(); renderList(); toast('تم حذف الجمعية');
 }
 
-/* ---------- Export PDF (includes logo) ---------- */
+/* ---------- Export PDF ---------- */
 function exportPdf(j){
   if(!j) return;
   const css=`
@@ -462,8 +487,10 @@ function exportPdf(j){
         <header>
           <div class="brand">
             <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-              <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#10b981"/><stop offset="1" stop-color="#059669"/></linearGradient></defs>
-              <circle cx="64" cy="56" r="18" fill="url(#lg)"></circle>
+              <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
+              <rect x="8" y="8" width="112" height="112" rx="22" fill="#0b1220"></rect>
+              <circle cx="64" cy="54" r="22" fill="url(#lg)"></circle>
+              <path d="M28 100c9-16 25-26 36-26s27 10 36 26" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"></path>
             </svg>
             <h1>جمعيتي</h1>
           </div>
