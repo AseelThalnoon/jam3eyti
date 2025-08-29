@@ -3,84 +3,83 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>جمعيّتي البسيطة</title>
+  <title>جمعيّتي | إدارة الجمعية الشهرية</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="bar">
   <h1>جمعيّتي</h1>
-  <button id="addToHome" class="ghost">أضف للشاشة الرئيسية</button>
+  <small class="muted">إدارة جمعية شهرية، بلا إضافة أعضاء بعد البداية</small>
 </header>
 
 <main class="wrap">
+  <!-- إعدادات -->
   <section class="card">
     <h2>إعدادات الجمعية</h2>
     <div class="grid">
       <label>اسم الجمعية
         <input id="assocName" type="text" placeholder="مثال: جمعية العائلة">
       </label>
-      <label>الدورية
-        <select id="frequency">
-          <option value="monthly">شهري</option>
-          <option value="weekly">أسبوعي</option>
-          <option value="daily">يومي</option>
-        </select>
+      <label>هدف الجمعية (SAR)
+        <input id="goal" type="number" min="0" step="1" placeholder="مثال: 50000">
       </label>
-      <label>تاريخ البداية
+      <label>تاريخ البداية (يوم الاستحقاق الشهري)
         <input id="startDate" type="date">
       </label>
+      <label>تاريخ النهاية
+        <input id="endDate" type="date" disabled>
+      </label>
     </div>
+
+    <div class="progress">
+      <div class="progress-bar" id="goalBar" style="width:0%"></div>
+    </div>
+    <div class="muted tiny" id="goalInfo">التقدّم: 0% • موزّع: 0 • الهدف: 0</div>
+
+    <div class="actions">
+      <button id="lockBuild" class="primary">قفل الإعدادات وبناء الجدول</button>
+      <button id="unlock" class="ghost">إلغاء القفل (للاختبار فقط)</button>
+    </div>
+    <div id="lockMsg" class="muted tiny"></div>
   </section>
 
+  <!-- الأعضاء -->
   <section class="card">
-    <h2>الأعضاء ومبالغ الدفع</h2>
+    <h2>الأعضاء والمبالغ الشهرية</h2>
     <div class="row">
       <input id="memberName" class="grow" type="text" placeholder="اسم العضو">
-      <input id="memberPay" type="number" min="1" step="1" placeholder="المبلغ لكل دورة (SAR)">
+      <input id="memberPay" type="number" min="1" step="1" placeholder="المبلغ الشهري (SAR)">
       <button id="addMember">إضافة</button>
     </div>
 
     <table id="membersTable">
       <thead>
-        <tr>
-          <th>#</th><th>العضو</th><th>يدفع/دورة</th><th>أدواره المحسوبة</th><th>إجمالي استلامه</th><th></th>
-        </tr>
+        <tr><th>#</th><th>العضو</th><th>يدفع/شهر</th><th>عدد الأدوار المحسوبة</th><th>إجمالي استلامه</th><th></th></tr>
       </thead>
       <tbody></tbody>
       <tfoot>
-        <tr>
-          <td colspan="2"><b>إجمالي المساهمات (قيمة الصندوق/الدورة)</b></td>
-          <td id="sumPay" colspan="4">0</td>
-        </tr>
+        <tr><td colspan="2"><b>قيمة الصندوق الشهري (مجموع المساهمات)</b></td><td id="pot" colspan="4">0</td></tr>
       </tfoot>
     </table>
-
-    <div class="muted tiny">
-      ملاحظة: نحسب الأدوار تلقائيًا بنسبة المساهمة. أقل مساهمة تصبح «وحدة» ونحوّل الباقي تلقائيًا.
-    </div>
-    <div class="actions">
-      <button id="buildRota" class="primary">توليد جدول الاستلام</button>
-      <button id="clearMembers" class="danger">مسح الأعضاء</button>
-    </div>
   </section>
 
+  <!-- الجدول -->
   <section class="card">
-    <h2>الجدول (ترتيب الاستلام)</h2>
+    <h2>جدول الاستلام (متى كل عضو يستلم)</h2>
     <div class="row">
       <button id="shuffle">خلط الترتيب</button>
       <button id="sortByPay">ترتيب حسب الأعلى دفعًا</button>
-      <button id="goToday">انتقال لدورة اليوم</button>
+      <button id="goToday">انتقال لدورة الشهر الحالي</button>
     </div>
     <table id="rotaTable">
-      <thead>
-        <tr><th>الدورة</th><th>التاريخ</th><th>المستلم</th><th>قيمة الاستلام</th></tr>
-      </thead>
+      <thead><tr><th>الدورة</th><th>التاريخ</th><th>المستلم</th><th>قيمة الاستلام</th></tr></thead>
       <tbody></tbody>
     </table>
   </section>
 
+  <!-- المدفوعات -->
   <section class="card">
-    <h2>مدفوعات الدورة الحالية</h2>
+    <h2>مدفوعات الدورة</h2>
     <div class="row">
       <label>الدورة:
         <select id="cycleSelect"></select>
@@ -89,27 +88,27 @@
       <button id="resetCycle" class="danger">مسح مدفوعات الدورة</button>
     </div>
     <table id="paymentsTable">
-      <thead><tr><th>العضو</th><th>مستحق عليه</th><th>دفع؟</th><th>التاريخ</th></tr></thead>
+      <thead><tr><th>العضو</th><th>المطلوب (شهري)</th><th>دفع؟</th><th>تاريخ الدفع</th></tr></thead>
       <tbody></tbody>
     </table>
   </section>
 
+  <!-- نسخ احتياطي -->
   <section class="card">
     <h2>نسخ احتياطي وتصدير</h2>
     <div class="row wrap">
       <button id="backupJSON">نسخ احتياطي JSON</button>
-      <label class="file">
-        استعادة من JSON
+      <label class="file">استعادة من JSON
         <input id="importJSON" type="file" accept="application/json">
       </label>
       <button id="exportCSV">تصدير CSV</button>
       <button id="printView">طباعة</button>
     </div>
-    <div class="muted tiny">كل البيانات محليًا في المتصفح (LocalStorage).</div>
+    <div class="muted tiny">كل البيانات محفوظة محليًا في المتصفح. لا يوجد إضافة أعضاء بعد القفل.</div>
   </section>
 </main>
 
-<footer class="muted center tiny">© 2025 — يعمل بدون خادم.</footer>
+<footer class="muted center tiny">© 2025 — Jam3eyti</footer>
 
 <script src="app.js"></script>
 </body>
