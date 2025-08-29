@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="dark" data-accent="green">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
@@ -7,32 +7,21 @@
   <title>جمعيتي</title>
 
   <!-- Favicon (inline SVG) -->
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2311a34b"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="app-bar">
     <div class="brand">
-      <!-- App Logo -->
       <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true">
-        <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="var(--accent-500)"/><stop offset="1" stop-color="var(--accent-600)"/></linearGradient></defs>
-        <rect x="8" y="8" width="112" height="112" rx="22" fill="var(--logo-bg)"></rect>
-        <circle cx="64" cy="54" r="22" fill="url(#lg)"></circle>
-        <path d="M28 100c9-16 25-26 36-26s27 10 36 26" stroke="var(--accent-500)" stroke-width="8" fill="none" stroke-linecap="round"></path>
+        <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
+        <circle cx="64" cy="50" r="22" fill="url(#lg)"></circle>
+        <path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"></path>
       </svg>
       <h1 class="h1">جمعيتي</h1>
     </div>
 
     <div class="actions-right">
-      <div class="theme-controls">
-        <button id="themeToggle" class="btn ghost" title="تبديل الوضع (فاتح/داكن)">🌓</button>
-        <select id="accentSelect" class="select small" title="اختيار لون المظهر">
-          <option value="green">Green</option>
-          <option value="blue">Blue</option>
-          <option value="purple">Purple</option>
-          <option value="gold">Gold</option>
-        </select>
-      </div>
       <input id="search" class="search" placeholder="ابحث عن جمعية بالاسم…" />
     </div>
   </header>
@@ -41,10 +30,7 @@
     <!-- Create (collapsible) -->
     <section class="card stack-3">
       <details id="createBlock" class="collapsible" open>
-        <summary class="caret section-title">
-          <span class="section-icon">✨</span>
-          إنشاء جمعية جديدة
-        </summary>
+        <summary class="caret section-title">إنشاء جمعية جديدة</summary>
         <div class="content">
           <form id="jamiyahForm" class="stack-2" novalidate>
             <div class="grid">
@@ -79,11 +65,10 @@
       </details>
     </section>
 
-    <!-- List Jamiyahs -->
+    <!-- List Jamiyahs (collapsible) -->
     <section class="card stack-3">
       <details id="listBlock" class="collapsible" open>
         <summary class="caret section-title">
-          <span class="section-icon">📦</span>
           <span>الجمعيات</span>
           <span class="pill" id="jamiyahCountPill">0</span>
         </summary>
@@ -97,7 +82,7 @@
       </details>
     </section>
 
-    <!-- Jamiyah Details (hidden by default) -->
+    <!-- Jamiyah Details (ALWAYS hidden by default) -->
     <section id="details" class="card hidden stack-3">
       <div class="details-header stack-1">
         <div class="stack-0">
@@ -109,7 +94,7 @@
           </div>
         </div>
         <div class="details-ops">
-          <button class="btn secondary" id="exportBtn" title="تصدير PDF">تصدير PDF</button>
+          <button class="btn secondary" id="exportBtn">تصدير PDF</button>
         </div>
       </div>
 
@@ -117,7 +102,7 @@
         بدأت الجمعية. لا يمكن إضافة أعضاء جدد.
       </div>
 
-      <!-- Edit -->
+      <!-- Edit (collapsible) -->
       <details id="editBlock" class="elevated collapsible hidden">
         <summary class="caret section-title">تعديل الجمعية</summary>
         <div class="content">
@@ -150,7 +135,7 @@
         </div>
       </details>
 
-      <!-- Add Member -->
+      <!-- Add Member (collapsible) -->
       <details id="addMemberBlock" class="collapsible hidden">
         <summary class="caret section-title">إضافة عضو</summary>
         <div class="content">
@@ -179,7 +164,7 @@
         </div>
       </details>
 
-      <!-- Members -->
+      <!-- Members (collapsible with toolbar) -->
       <details id="membersBlock" class="collapsible hidden">
         <summary class="caret section-title">
           <span class="section-icon">👥</span>
@@ -215,7 +200,7 @@
         </div>
       </details>
 
-      <!-- Schedule -->
+      <!-- Schedule (collapsible with filter) -->
       <details id="scheduleBlock" class="collapsible hidden">
         <summary class="caret section-title">
           <span class="section-icon">🗓️</span>
@@ -249,7 +234,7 @@
   <!-- Toasts -->
   <div id="toasts" class="toasts"></div>
 
-  <footer class="footer">v1.4 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
+  <footer class="footer">v1.3 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoون</footer>
   <script src="app.js"></script>
 </body>
 </html>
