@@ -26,11 +26,11 @@
           </label>
 
           <label>المدة (أشهر)
-            <input required id="j-duration" type="number" min="1" max="60" value="12" />
+            <input required id="j-duration" type="number" min="1" max="60" value="6" />
           </label>
 
-          <label>المبلغ الهدف (اختياري)
-            <input id="j-goal" type="number" min="0" step="1" placeholder="مثال: 50000" />
+          <label>الهدف (سقف الصرف الشهري)
+            <input required id="j-goal" type="number" min="1" step="1" placeholder="مثال: 30000" />
           </label>
         </div>
 
@@ -61,15 +61,16 @@
       <h3>إضافة عضو</h3>
       <form id="memberForm" class="grid">
         <label>اسم العضو
-          <input id="m-name" required placeholder="مثال: خالد" />
+          <input id="m-name" required placeholder="مثال: أحمد" />
         </label>
 
-        <label>المساهمة الشهرية
+        <label>المساهمة الشهرية (ريال)
           <input id="m-pay" required type="number" min="1" step="1" placeholder="مثال: 1000" />
         </label>
 
         <label>شهر الاستلام
           <input id="m-month" required type="number" min="1" step="1" placeholder="1 إلى عدد الشهور" />
+          <small id="monthHint" class="hint"></small>
         </label>
 
         <button class="btn">إضافة</button>
@@ -79,7 +80,7 @@
       <table class="table" id="memberTable">
         <thead>
           <tr>
-            <th>#</th><th>الاسم</th><th>المساهمة</th><th>شهر الاستلام</th><th></th>
+            <th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>شهر الاستلام</th><th></th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -89,7 +90,7 @@
       <table class="table" id="scheduleTable">
         <thead>
           <tr>
-            <th>الشهر</th><th>التاريخ</th><th>المستلم</th><th>مجموع المساهمات</th>
+            <th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -102,7 +103,7 @@
     </section>
   </main>
 
-  <footer class="footer">v0.1 · يخزن البيانات محليًا على جهازك</footer>
+  <footer class="footer">v0.2 · البيانات تُخزن محليًا على جهازك</footer>
   <script src="app.js"></script>
 </body>
 </html>
