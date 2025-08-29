@@ -1,6 +1,6 @@
-/* v1.5.1 — Fix: openDetails shows #details reliably + sections visibility
-   - Payments tracking (modal) + dashboard actuals + schedule ✓/✗ + PDF summary
-   - Smooth scroll; unified spacing kept in CSS
+/* v1.5.2 — Hot-fix: guaranteed openDetails
+   - Event delegation on list, open after create, #details guard
+   - Payments tracking + dashboard actuals + schedule ✓/✗ + PDF summary
 */
 
 const $ = (s, p=document) => p.querySelector(s);
@@ -69,7 +69,7 @@ function monthToFirstDay(monthStr){
   return `${y}-${String(m).padStart(2,'0')}-01`;
 }
 
-/* ---------- Show/Hide helpers (fixed) ---------- */
+/* ---------- Show/Hide helpers ---------- */
 function show(el){ if(el) el.classList.remove('hidden'); }
 function hide(el){ if(el) el.classList.add('hidden'); }
 function toggle(id, on){ const el=document.getElementById(id); if(!el) return; on?show(el):hide(el); }
@@ -125,11 +125,10 @@ function renderDashboard(){
 
   items.forEach(j => {
     const membersCount = j.members.length;
-    const collected = collectedActual(j); // actual payments
+    const collected = collectedActual(j); // actual
     const allowedSoFar = j.goal * monthsElapsedFromStart(j); // plan baseline
     const denom = Math.max(allowedSoFar, 1);
     const pct = Math.min(100, Math.round((collected / denom) * 100));
-
     const nextIdx = nextPayoutIndex(j);
     const nextText = nextIdx ? monthLabel(j.startDate, nextIdx) : '—';
 
@@ -140,14 +139,12 @@ function renderDashboard(){
         <div class="dash-card__title">${j.name}</div>
         <span class="badge">${hasStarted(j) ? 'Started' : 'Not started'}</span>
       </div>
-
       <div class="dash-row">
         <span class="badge">المدة: ${fmtInt(j.duration)} شهر</span>
         <span class="badge">الأعضاء: ${fmtInt(membersCount)}</span>
         <span class="badge">الهدف الشهري: ${fmtMoney(j.goal)} SAR</span>
         <span class="badge">التالي: ${nextText}</span>
       </div>
-
       <div>
         <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;">
           <span>Actual collected</span>
@@ -155,20 +152,18 @@ function renderDashboard(){
         </div>
         <div class="progress"><div class="progress__bar" style="width:${pct}%;"></div></div>
       </div>
-
       <div class="dash-actions">
-        <button class="btn secondary">فتح</button>
+        <button class="btn secondary" data-id="${j.id}">فتح</button>
         <button class="btn ghost">تصدير</button>
       </div>
     `;
-    const [openBtn, exportBtn] = card.querySelectorAll('button');
-    openBtn.addEventListener('click', () => openDetails(j.id));
+    const exportBtn = card.querySelector('.btn.ghost');
     exportBtn.addEventListener('click', () => exportPdf(j));
     grid.appendChild(card);
   });
 }
 
-/* ---------- Init ---------- */
+/* ---------- DOM Ready ---------- */
 document.addEventListener('DOMContentLoaded', () => {
   hide($('#details'));
   setDetailsSectionsVisible(false);
@@ -190,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Search (list) */
   $('#search').addEventListener('input', (e)=>{ state.filter=(e.target.value||'').trim(); renderList(); renderDashboard(); });
 
-  /* Export PDF */
+  /* Export PDF (details header) */
   $('#exportBtn').addEventListener('click', ()=> exportPdf(currentJamiyah()));
 
   /* Live hints for add-member */
@@ -204,8 +199,22 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Schedule filter */
   $('#scheduleFilter').addEventListener('change', (e)=>{ state.scheduleFilter=e.target.value; renderSchedule(currentJamiyah()); });
 
+  /* HOT-FIX: event delegation for any "فتح" in the list */
+  document.getElementById('jamiyahList').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-id]');
+    if (!btn) return;
+    e.preventDefault();
+    try { openDetails(btn.dataset.id); }
+    catch (err) { console.error('openDetails failed:', err); alert('Error opening jamiyah. Check console.'); }
+  });
+
   renderList();
   renderDashboard();
+
+  /* Optional: auto-open if exactly one jamiyah */
+  try {
+    if (state.jamiyahs.length === 1) { openDetails(state.jamiyahs[0].id); }
+  } catch(e){ console.error(e); }
 });
 
 /* ---------- Create Jamiyah ---------- */
@@ -236,6 +245,9 @@ function onCreateJamiyah(e){
   toast('تم إنشاء الجمعية');
   renderList();
   renderDashboard();
+
+  /* HOT-FIX: open immediately */
+  try { openDetails(jamiyah.id); } catch(e){ console.error(e); }
 }
 
 /* ---------- List Jamiyahs ---------- */
@@ -261,44 +273,54 @@ function renderList(){
       </div>
       <button class="btn secondary" data-id="${j.id}">فتح</button>
     `;
-    row.querySelector('button').addEventListener('click', ()=> openDetails(j.id));
-    list.appendChild(row);
+    list.appendChild(row); // click handled by delegated listener
   });
 
   if(!state.currentId){ hide($('#details')); setDetailsSectionsVisible(false); }
 }
 
-/* ---------- OPEN DETAILS (fixed) ---------- */
+/* ---------- Guard: require #details ---------- */
+function _requireDetails(){
+  const el = document.getElementById('details');
+  if (!el) { throw new Error('#details not found in DOM'); }
+  return el;
+}
+window._debugOpenFirst = function(){
+  if (!state.jamiyahs.length) { alert('No jamiyahs yet'); return; }
+  openDetails(state.jamiyahs[0].id);
+};
+
+/* ---------- OPEN DETAILS (uses guard) ---------- */
 function openDetails(id){
   state.currentId = id;
   const j = currentJamiyah();
 
   if(!j){
-    hide(document.getElementById('details'));
+    hide($('#details'));
     setDetailsSectionsVisible(false);
     toast('تعذّر فتح الجمعية');
     return;
   }
 
   // Header
-  document.getElementById('d-title').textContent  = j.name;
-  document.getElementById('d-period').textContent = `من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر`;
-  document.getElementById('d-goal').textContent   = `الهدف الشهري: ${fmtMoney(j.goal)}`;
-  document.getElementById('d-status').textContent = startedStatus(j);
+  $('#d-title').textContent  = j.name;
+  $('#d-period').textContent = `من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر`;
+  $('#d-goal').textContent   = `الهدف الشهري: ${fmtMoney(j.goal)}`;
+  $('#d-status').textContent = startedStatus(j);
 
   // Started guard
   const started = hasStarted(j);
-  document.getElementById('startedAlert').hidden = !started;
+  $('#startedAlert').hidden = !started;
   document.querySelectorAll('#memberForm input, #memberForm button, #memberForm select')
     .forEach(el => { el.disabled = started; });
 
   // Edit form
-  document.getElementById('e-name').value     = j.name;
-  document.getElementById('e-goal').value     = j.goal;
-  document.getElementById('e-start').value    = j.startDate.slice(0,7);
-  document.getElementById('e-duration').value = j.duration;
-  document.getElementById('e-start').disabled    = started;
-  document.getElementById('e-duration').disabled = started;
+  $('#e-name').value     = j.name;
+  $('#e-goal').value     = j.goal;
+  $('#e-start').value    = j.startDate.slice(0,7);
+  $('#e-duration').value = j.duration;
+  $('#e-start').disabled    = started;
+  $('#e-duration').disabled = started;
 
   // Options / filters
   populateMonthOptions(j);
@@ -313,10 +335,9 @@ function openDetails(id){
 
   // Show details & inner sections
   setDetailsSectionsVisible(true);
-  show(document.getElementById('details'));
-
-  // Smooth scroll to details
-  document.getElementById('details').scrollIntoView({ behavior:'smooth', block:'start' });
+  const detailsEl = _requireDetails();
+  show(detailsEl);
+  detailsEl.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 /* ---------- Helpers ---------- */
@@ -503,7 +524,7 @@ function onAddMember(e){
   if(entitlement>remaining){ setError('err-m-pay',`exceeds by ${fmtMoney(entitlement-remaining)}`); return; }
 
   const newMember = { id:uid(), name, pay, month, entitlement };
-  ensurePayments(j, newMember); // init payments [false..]
+  ensurePayments(j, newMember); // init payments
   j.members.push(newMember);
   saveAll();
 
@@ -744,7 +765,7 @@ function exportPdf(j){
 
 /* ---------- Back ---------- */
 function showList(){
-  hide(document.getElementById('details'));
+  hide($('#details'));
   state.currentId=null;
   setDetailsSectionsVisible(false);
 }
