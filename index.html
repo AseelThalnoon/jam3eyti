@@ -1,45 +1,33 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="auto">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="%230b1220"/><path d="M40 62c0-13 11-24 24-24s24 11 24 24-11 24-24 24S40 75 40 62Z" fill="%2322c55e"/><path d="M24 102c10-18 28-28 40-28s30 10 40 28" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
+
+  <!-- Favicon -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="52" r="20" fill="url(%23g)"/><path d="M28 98c7-14 24-24 36-24s29 10 36 24" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <!-- SVG sprite -->
-  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-    <symbol id="logo" viewBox="0 0 128 128">
-      <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
-      <rect width="128" height="128" rx="26" fill="currentColor" opacity=".08"></rect>
-      <circle cx="64" cy="52" r="22" fill="url(#g)"></circle>
-      <path d="M24 100c10-18 28-28 40-28s30 10 40 28" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"/>
-    </symbol>
-    <symbol id="ic-search" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-    <symbol id="ic-open" viewBox="0 0 24 24"><path d="M8 12h8M12 16l4-4-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-    <symbol id="ic-pdf" viewBox="0 0 24 24"><path d="M6 2h8l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
-    <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
-    <symbol id="ic-user" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zM3 22a9 9 0 0 1 18 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-    <symbol id="ic-calendar" viewBox="0 0 24 24"><path d="M7 3v4M17 3v4M3 9h18M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-    <symbol id="ic-theme" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9 6 6 0 0 1-9-9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-    <symbol id="ic-delete" viewBox="0 0 24 24"><path d="M3 6h18M8 6v14m8-14v14M5 6l1 16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-16M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-  </svg>
-
+<body class="theme-emerald">
   <header class="app-bar">
     <div class="brand">
-      <svg class="logo"><use href="#logo"/></svg>
-      <h1 class="h1">جمعيتي</h1>
-    </div>
-    <div class="actions-right">
-      <div class="search-wrap">
-        <svg class="i"><use href="#ic-search"/></svg>
-        <input id="search" class="search" placeholder="ابحث عن جمعية…" />
+      <!-- App Logo -->
+      <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
+        <rect width="128" height="128" rx="22" fill="#0b1220"></rect>
+        <circle cx="64" cy="52" r="20" fill="url(#lg)"></circle>
+        <path d="M28 98c7-14 24-24 36-24s29 10 36 24" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"></path>
+      </svg>
+      <div class="wordmark">
+        <span class="title">جمعيتي</span>
+        <span class="subtitle">إدارة جمعياتك ببساطة</span>
       </div>
-      <button id="themeToggle" class="btn ghost icon-btn" aria-label="Toggle theme">
-        <svg class="i"><use href="#ic-theme"/></svg>
-      </button>
+    </div>
+
+    <div class="actions-right">
+      <input id="search" class="search" placeholder="ابحث عن جمعية بالاسم…" />
     </div>
   </header>
 
@@ -47,9 +35,7 @@
     <!-- Create -->
     <section class="card stack-3">
       <details id="createBlock" class="collapsible" open>
-        <summary class="caret section-title">
-          <svg class="i"><use href="#ic-edit"/></svg><span>إنشاء جمعية جديدة</span>
-        </summary>
+        <summary class="caret section-title">إنشاء جمعية جديدة</summary>
         <div class="content">
           <form id="jamiyahForm" class="stack-2" novalidate>
             <div class="grid">
@@ -57,23 +43,27 @@
                 <input required id="j-name" placeholder="مثال: جمعية رمضان" />
                 <span class="error" id="err-j-name"></span>
               </label>
+
               <label>شهر البداية
                 <input required id="j-start" type="month" />
                 <small class="hint">يُحفظ تلقائيًا كـ YYYY-MM-01</small>
                 <span class="error" id="err-j-start"></span>
               </label>
+
               <label>المدة (أشهر)
                 <input required id="j-duration" type="number" inputmode="numeric" min="1" max="60" value="6" />
                 <span class="error" id="err-j-duration"></span>
               </label>
+
               <label>الهدف (سقف الصرف الشهري) · SAR
                 <input required id="j-goal" type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 30000" />
                 <span class="error" id="err-j-goal"></span>
               </label>
             </div>
+
             <div class="actions">
-              <button type="submit" class="btn primary"><svg class="i"><use href="#ic-open"/></svg>إنشاء</button>
-              <button type="reset" class="btn ghost">مسح</button>
+              <button type="submit" class="btn primary">إنشاء</button>
+              <button type="reset" class="btn ghost">مسح الحقول</button>
             </div>
           </form>
         </div>
@@ -84,14 +74,14 @@
     <section class="card stack-3">
       <details id="listBlock" class="collapsible" open>
         <summary class="caret section-title">
-          <svg class="i"><use href="#logo"/></svg><span>الجمعيات</span>
+          <span>الجمعيات</span>
           <span class="pill" id="jamiyahCountPill">0</span>
         </summary>
         <div class="content">
           <div id="jamiyahList" class="list"></div>
           <div id="emptyList" class="empty hidden">
             <div class="empty-illustration">🙂</div>
-            <div>ابدأ بإنشاء أول جمعية من الأعلى.</div>
+            <div>ابدأ بإنشاء أول جمعية لك من الأعلى.</div>
           </div>
         </div>
       </details>
@@ -99,12 +89,9 @@
 
     <!-- Details (hidden until open) -->
     <section id="details" class="card hidden stack-3">
-      <div class="details-header sticky">
+      <div class="details-header stack-1">
         <div class="stack-0">
-          <div class="titleline">
-            <svg class="i"><use href="#logo"/></svg>
-            <h2 id="d-title" class="h2"></h2>
-          </div>
+          <h2 id="d-title" class="h2"></h2>
           <div class="meta">
             <span id="d-period" class="badge"></span>
             <span id="d-goal" class="badge"></span>
@@ -112,25 +99,18 @@
           </div>
         </div>
         <div class="details-ops">
-          <button class="btn secondary" id="exportBtn">
-            <svg class="i"><use href="#ic-pdf"/></svg>تصدير PDF
-          </button>
+          <button class="btn secondary" id="exportBtn">تصدير PDF</button>
         </div>
       </div>
 
-      <div class="alert" id="startedAlert" hidden>بدأت الجمعية. لا يمكن إضافة أعضاء جدد.</div>
+      <div class="alert" id="startedAlert" hidden>
+        بدأت الجمعية. لا يمكن إضافة أعضاء جدد.
+      </div>
 
-      <!-- TABS -->
-      <div id="detailsTabs" class="tabs hidden">
-        <div id="tabsList" class="tablist" role="tablist" aria-label="تفاصيل الجمعية">
-          <button class="tab" role="tab" aria-selected="true" tabindex="0" aria-controls="editBlock" id="tab-edit">تعديل الجمعية</button>
-          <button class="tab" role="tab" aria-selected="false" tabindex="-1" aria-controls="addMemberBlock" id="tab-add">إضافة عضو</button>
-          <button class="tab" role="tab" aria-selected="false" tabindex="-1" aria-controls="membersBlock" id="tab-members">الأعضاء</button>
-          <button class="tab" role="tab" aria-selected="false" tabindex="-1" aria-controls="scheduleBlock" id="tab-schedule">الجدول الشهري</button>
-        </div>
-
-        <!-- Panels -->
-        <section id="editBlock" class="tab-panel" role="tabpanel" tabindex="0">
+      <!-- Edit -->
+      <details id="editBlock" class="elevated collapsible hidden">
+        <summary class="caret section-title">تعديل الجمعية</summary>
+        <div class="content">
           <form id="editForm" class="grid" novalidate>
             <label>اسم الجمعية
               <input id="e-name" required />
@@ -153,9 +133,13 @@
               <button class="btn ghost" id="cancelEdit" type="button">إلغاء</button>
             </div>
           </form>
-        </section>
+        </div>
+      </details>
 
-        <section id="addMemberBlock" class="tab-panel" role="tabpanel" tabindex="0" hidden>
+      <!-- Add Member -->
+      <details id="addMemberBlock" class="collapsible hidden">
+        <summary class="caret section-title">إضافة عضو</summary>
+        <div class="content">
           <form id="memberForm" class="grid" novalidate>
             <label>اسم العضو
               <input id="m-name" required placeholder="مثال: Ahmed" />
@@ -175,51 +159,80 @@
               <button type="reset" class="btn ghost">مسح</button>
             </div>
           </form>
-        </section>
+        </div>
+      </details>
 
-        <section id="membersBlock" class="tab-panel" role="tabpanel" tabindex="0" hidden>
+      <!-- Members -->
+      <details id="membersBlock" class="collapsible hidden">
+        <summary class="caret section-title">
+          <span class="section-icon">👥</span>
+          <span id="mSummaryText">الأعضاء</span>
+          <span class="pill" id="mCountPill">0</span>
+        </summary>
+        <div class="content">
           <div class="subtoolbar">
-            <div class="search-wrap small">
-              <svg class="i"><use href="#ic-search"/></svg>
-              <input id="memberSearch" class="search small" placeholder="بحث بالاسم…" />
-            </div>
+            <input id="memberSearch" class="search small" placeholder="بحث بالاسم…" />
             <select id="memberSort" class="select small">
-              <option value="month">بالشهر</option>
-              <option value="name">بالاسم</option>
-              <option value="pay">بالمساهمة</option>
+              <option value="month">ترتيب: بالشهر</option>
+              <option value="name">ترتيب: بالاسم</option>
+              <option value="pay">ترتيب: بالمساهمة</option>
             </select>
           </div>
           <table class="table table--cards">
-            <thead><tr><th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>شهر الاستلام</th><th></th></tr></thead>
+            <thead>
+              <tr>
+                <th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>شهر الاستلام</th><th></th>
+              </tr>
+            </thead>
             <tbody id="memberTableBody"></tbody>
-            <tfoot><tr><td colspan="2">الإجمالي</td><td id="totPay">0</td><td id="totEnt">0</td><td colspan="2"></td></tr></tfoot>
+            <tfoot>
+              <tr>
+                <td colspan="2">الإجمالي</td>
+                <td id="totPay">0</td>
+                <td id="totEnt">0</td>
+                <td colspan="2"></td>
+              </tr>
+            </tfoot>
           </table>
           <div id="emptyMembers" class="empty hidden">لا يوجد أعضاء بعد.</div>
-        </section>
+        </div>
+      </details>
 
-        <section id="scheduleBlock" class="tab-panel" role="tabpanel" tabindex="0" hidden>
+      <!-- Schedule -->
+      <details id="scheduleBlock" class="collapsible hidden">
+        <summary class="caret section-title">
+          <span class="section-icon">🗓️</span>
+          <span id="sSummaryText">الجدول الشهري</span>
+          <span class="pill" id="sCountPill">0</span>
+        </summary>
+        <div class="content">
           <div class="subtoolbar">
             <select id="scheduleFilter" class="select small">
               <option value="all">عرض: كل الشهور</option>
             </select>
           </div>
           <table class="table table--cards">
-            <thead><tr><th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th></tr></thead>
+            <thead>
+              <tr>
+                <th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th>
+              </tr>
+            </thead>
             <tbody id="scheduleTableBody"></tbody>
           </table>
-        </section>
-      </div>
+        </div>
+      </details>
 
       <div class="actions">
-        <button class="btn danger" id="deleteJamiyah"><svg class="i"><use href="#ic-delete"/></svg>حذف الجمعية</button>
+        <button class="btn danger" id="deleteJamiyah">حذف الجمعية</button>
         <button class="btn secondary" id="backBtn">رجوع</button>
       </div>
     </section>
   </main>
 
+  <!-- Toasts -->
   <div id="toasts" class="toasts"></div>
-  <footer class="footer">v1.5 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
 
+  <footer class="footer">v1.4 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
   <script src="app.js"></script>
 </body>
 </html>
