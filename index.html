@@ -37,9 +37,9 @@
             <span class="error" id="err-j-name"></span>
           </label>
 
-          <label>شهر البداية (يثبّت على يوم 01)
-            <!-- type month لضمان أول يوم -->
-            <input required id="j-start" type="month" />
+          <label>تاريخ البداية
+            <input required id="j-start" type="date" />
+            <small class="hint">يتم ضبطه تلقائيًا ليوم 01 من الشهر</small>
             <span class="error" id="err-j-start"></span>
           </label>
 
@@ -60,10 +60,10 @@
 
     <!-- List Jamiyahs (collapsible) -->
     <section class="card">
-      <details id="listBlock" open class="collapsible">
+      <details id="listBlock" class="collapsible" open>
         <summary class="caret section-title">
           <span>الجمعيات</span>
-          <span class="pill" id="listCount">0</span>
+          <span class="pill" id="jamiyahCountPill">0</span>
         </summary>
         <div class="content">
           <div id="jamiyahList" class="list"></div>
@@ -87,8 +87,8 @@
           </div>
         </div>
         <div class="details-ops">
-          <!-- استيراد مخفي بالكامل حسب طلبك -->
           <button class="btn" id="exportBtn">تصدير PDF</button>
+          <!-- تم إخفاء الاستيراد حسب طلبك -->
         </div>
       </div>
 
@@ -110,9 +110,9 @@
             <span class="error" id="err-e-goال"></span>
           </label>
 
-          <label>شهر البداية (يثبّت على يوم 01)
-            <input id="e-start" type="month" />
-            <small class="hint">لا يمكن تعديله بعد بدء الجمعية</small>
+          <label>تاريخ البداية
+            <input id="e-start" type="date" />
+            <small class="hint">يُضبط تلقائيًا على يوم 01 · لا يمكن تعديله بعد البدء</small>
           </label>
 
           <label>المدة (أشهر)
