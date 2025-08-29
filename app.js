@@ -1,8 +1,8 @@
-/* جمعيتي v0.4 - English digits + month names + "remaining for your contribution" */
+/* جمعيتي v0.5 - English digits + month names + "max monthly contribution" per month */
 
 const $ = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
-const SKEY = "jamiyati:v02"; // keep same key to reuse existing data
+const SKEY = "jamiyati:v02"; // reuse existing storage
 
 const state = {
   jamiyahs: loadAll(),
@@ -15,7 +15,7 @@ function fmtInt(n){ return Number(n||0).toLocaleString('en-US'); }
 function monthLabel(startDate, offset){
   const d = new Date(startDate);
   d.setMonth(d.getMonth() + (offset - 1));
-  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); // e.g., March 2025
+  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
 /* ---------- Migration v0.1 -> v0.2 ---------- */
@@ -61,12 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#backBtn').addEventListener('click', () => showList());
 
   // dynamic updates
-  $('#m-month').addEventListener('change', () => { updateMonthHint(); });
-  $('#m-pay').addEventListener('input', () => {
-    const j = currentJamiyah();
-    if (j) populateMonthOptions(j); // recompute "remaining for your contribution"
-    updateMonthHint();
-  });
+  $('#m-month').addEventListener('change', updateMonthHint);
+  $('#m-pay').addEventListener('input', updateMonthHint);
 
   renderList();
 });
@@ -156,25 +152,25 @@ function monthAssignedTotal(j, month){
                   .reduce((s,m)=>s+Number(m.entitlement||0),0);
 }
 
-/* Build month options with "remaining for your contribution" */
+/* الحد الأعلى للمساهمة الشهرية في شهر معيّن */
+function maxMonthlyForMonth(j, month){
+  const remaining = Math.max(0, j.goal - monthAssignedTotal(j, month));
+  // entitlement = monthly * duration  <= remaining
+  return Math.floor(remaining / j.duration);
+}
+
+/* Build month options with "max monthly contribution" */
 function populateMonthOptions(j){
   const select = $('#m-month');
   const current = select.value;
   select.innerHTML = '';
 
-  const pay = parseInt($('#m-pay').value || '0');
-  const ent = pay && j.duration ? pay * j.duration : 0;
-
   for (let i=1; i<=j.duration; i++){
-    const already = monthAssignedTotal(j, i);
-    const remaining = Math.max(0, j.goal - already);
-
-    // remaining for THIS contribution (how much room would be left after adding you)
-    const remainingForThis = Math.max(0, remaining - ent);
-
+    const maxMonthly = maxMonthlyForMonth(j, i);
     const option = document.createElement('option');
     option.value = i;
-    option.textContent = `${monthLabel(j.startDate, i)} · المتبقي لمساهمتك: ${fmtMoney(remainingForThis)}`;
+    option.textContent = `${monthLabel(j.startDate, i)} · الحد الأعلى للمساهمة الشهرية: ${fmtMoney(maxMonthly)}`;
+    if (maxMonthly <= 0) option.disabled = true;
     select.appendChild(option);
   }
 
@@ -232,12 +228,19 @@ function onAddMember(e){
     return;
   }
 
+  // تحقق أولاً من الحد الأعلى للمساهمة الشهرية
+  const maxMonthly = maxMonthlyForMonth(j, month);
+  if (pay > maxMonthly) {
+    alert(`المساهمة الشهرية المقترحة (${fmtMoney(pay)}) تتجاوز الحد الأعلى في ${monthLabel(j.startDate, month)}: ${fmtMoney(maxMonthly)}.`);
+    return;
+  }
+
+  // شرط السقف الشهري بالاستحقاق الإجمالي (يبقى لضمان السلامة)
   const entitlement = pay * j.duration;
   const already = monthAssignedTotal(j, month);
   const remaining = j.goal - already;
-
   if (entitlement > remaining) {
-    alert(`السقف الشهري (${fmtMoney(j.goal)}) لا يكفي لهذا الاستحقاق.\nالمتبقي في ${monthLabel(j.startDate, month)}: ${fmtMoney(Math.max(0, remaining))}.\nاختر شهرًا آخر أو خفّض المساهمة.`);
+    alert(`الاستحقاق الكلي (${fmtMoney(entitlement)}) يتجاوز المتبقي في ${monthLabel(j.startDate, month)}: ${fmtMoney(Math.max(0, remaining))}.`);
     return;
   }
 
@@ -290,15 +293,16 @@ function updateMonthHint(){
   if (!j || !sel || !sel.value) { hint.textContent = ''; return; }
 
   const monthVal = parseInt(sel.value);
-  const already = monthAssignedTotal(j, monthVal);
-  const remaining = Math.max(0, j.goal - already);
+  const maxMonthly = maxMonthlyForMonth(j, monthVal);
   const pay = parseInt($('#m-pay').value || '0');
-  const ent = pay && j.duration ? pay * j.duration : 0;
 
-  // show remaining FOR THIS contribution
-  const remainingForThis = Math.max(0, remaining - ent);
+  let line = `الحد الأعلى للمساهمة الشهرية في ${monthLabel(j.startDate, monthVal)}: ${fmtMoney(maxMonthly)}`;
+  if (pay) {
+    if (pay > maxMonthly) line += ` · مساهمتك الحالية (${fmtMoney(pay)}) أعلى من الحد`;
+    else line += ` · مساهمتك الحالية (${fmtMoney(pay)}) ضمن الحد`;
+  }
 
-  hint.textContent = `المتبقي لمساهمتك في ${monthLabel(j.startDate, monthVal)}: ${fmtMoney(remainingForThis)}`;
+  hint.textContent = line;
 }
 
 /* ---------- Delete ---------- */
