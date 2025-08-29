@@ -5,13 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
-
-  <!-- App Icons (inline SVG + favicon) -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="%230b1220"/><path d="M40 62c0-13 11-24 24-24s24 11 24 24-11 24-24 24S40 75 40 62Z" fill="%2322c55e"/><path d="M24 102c10-18 28-28 40-28s30 10 40 28" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- SVG Sprite (logos & icons) -->
+  <!-- SVG sprite -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
     <symbol id="logo" viewBox="0 0 128 128">
       <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
@@ -19,33 +17,14 @@
       <circle cx="64" cy="52" r="22" fill="url(#g)"></circle>
       <path d="M24 100c10-18 28-28 40-28s30 10 40 28" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"/>
     </symbol>
-
-    <symbol id="ic-search" viewBox="0 0 24 24">
-      <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </symbol>
-    <symbol id="ic-open" viewBox="0 0 24 24">
-      <path d="M8 12h8M12 16l4-4-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </symbol>
-    <symbol id="ic-pdf" viewBox="0 0 24 24">
-      <path d="M6 2h8l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2"/>
-      <path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="2"/>
-    </symbol>
-    <symbol id="ic-edit" viewBox="0 0 24 24">
-      <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-    </symbol>
-    <symbol id="ic-user" viewBox="0 0 24 24">
-      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zM3 22a9 9 0 0 1 18 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </symbol>
-    <symbol id="ic-calendar" viewBox="0 0 24 24">
-      <path d="M7 3v4M17 3v4M3 9h18M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </symbol>
-    <symbol id="ic-theme" viewBox="0 0 24 24">
-      <path d="M12 3a9 9 0 1 0 9 9 6 6 0 0 1-9-9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </symbol>
-    <symbol id="ic-delete" viewBox="0 0 24 24">
-      <path d="M3 6h18M8 6v14m8-14v14M5 6l1 16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-16M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </symbol>
+    <symbol id="ic-search" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-open" viewBox="0 0 24 24"><path d="M8 12h8M12 16l4-4-4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-pdf" viewBox="0 0 24 24"><path d="M6 2h8l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-user" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zM3 22a9 9 0 0 1 18 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-calendar" viewBox="0 0 24 24"><path d="M7 3v4M17 3v4M3 9h18M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-theme" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9 6 6 0 0 1-9-9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-delete" viewBox="0 0 24 24"><path d="M3 6h18M8 6v14m8-14v14M5 6l1 16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-16M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   </svg>
 
   <header class="app-bar">
@@ -53,7 +32,6 @@
       <svg class="logo"><use href="#logo"/></svg>
       <h1 class="h1">جمعيتي</h1>
     </div>
-
     <div class="actions-right">
       <div class="search-wrap">
         <svg class="i"><use href="#ic-search"/></svg>
@@ -70,8 +48,7 @@
     <section class="card stack-3">
       <details id="createBlock" class="collapsible" open>
         <summary class="caret section-title">
-          <svg class="i"><use href="#ic-edit"/></svg>
-          <span>إنشاء جمعية جديدة</span>
+          <svg class="i"><use href="#ic-edit"/></svg><span>إنشاء جمعية جديدة</span>
         </summary>
         <div class="content">
           <form id="jamiyahForm" class="stack-2" novalidate>
@@ -80,29 +57,22 @@
                 <input required id="j-name" placeholder="مثال: جمعية رمضان" />
                 <span class="error" id="err-j-name"></span>
               </label>
-
               <label>شهر البداية
                 <input required id="j-start" type="month" />
                 <small class="hint">يُحفظ تلقائيًا كـ YYYY-MM-01</small>
                 <span class="error" id="err-j-start"></span>
               </label>
-
               <label>المدة (أشهر)
                 <input required id="j-duration" type="number" inputmode="numeric" min="1" max="60" value="6" />
                 <span class="error" id="err-j-duration"></span>
               </label>
-
               <label>الهدف (سقف الصرف الشهري) · SAR
                 <input required id="j-goal" type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 30000" />
                 <span class="error" id="err-j-goal"></span>
               </label>
             </div>
-
             <div class="actions">
-              <button type="submit" class="btn primary">
-                <svg class="i"><use href="#ic-open"/></svg>
-                إنشاء
-              </button>
+              <button type="submit" class="btn primary"><svg class="i"><use href="#ic-open"/></svg>إنشاء</button>
               <button type="reset" class="btn ghost">مسح</button>
             </div>
           </form>
@@ -114,8 +84,7 @@
     <section class="card stack-3">
       <details id="listBlock" class="collapsible" open>
         <summary class="caret section-title">
-          <svg class="i"><use href="#logo"/></svg>
-          <span>الجمعيات</span>
+          <svg class="i"><use href="#logo"/></svg><span>الجمعيات</span>
           <span class="pill" id="jamiyahCountPill">0</span>
         </summary>
         <div class="content">
@@ -143,94 +112,72 @@
           </div>
         </div>
         <div class="details-ops">
-          <button class="btn secondary">
-            <svg class="i"><use href="#ic-pdf"/></svg>
-            <span id="exportBtnLabel">تصدير PDF</span>
+          <button class="btn secondary" id="exportBtn">
+            <svg class="i"><use href="#ic-pdf"/></svg>تصدير PDF
           </button>
-          <button class="btn ghost icon-btn" id="exportBtn" aria-label="Export PDF" hidden></button>
         </div>
       </div>
 
-      <div class="alert" id="startedAlert" hidden>
-        بدأت الجمعية. لا يمكن إضافة أعضاء جدد.
-      </div>
+      <div class="alert" id="startedAlert" hidden>بدأت الجمعية. لا يمكن إضافة أعضاء جدد.</div>
 
-      <!-- Edit -->
-      <details id="editBlock" class="elevated collapsible hidden">
-        <summary class="caret section-title">
-          <svg class="i"><use href="#ic-edit"/></svg>
-          <span>تعديل الجمعية</span>
-        </summary>
-        <div class="content">
+      <!-- TABS -->
+      <div id="detailsTabs" class="tabs hidden">
+        <div id="tabsList" class="tablist" role="tablist" aria-label="تفاصيل الجمعية">
+          <button class="tab" role="tab" aria-selected="true" tabindex="0" aria-controls="editBlock" id="tab-edit">تعديل الجمعية</button>
+          <button class="tab" role="tab" aria-selected="false" tabindex="-1" aria-controls="addMemberBlock" id="tab-add">إضافة عضو</button>
+          <button class="tab" role="tab" aria-selected="false" tabindex="-1" aria-controls="membersBlock" id="tab-members">الأعضاء</button>
+          <button class="tab" role="tab" aria-selected="false" tabindex="-1" aria-controls="scheduleBlock" id="tab-schedule">الجدول الشهري</button>
+        </div>
+
+        <!-- Panels -->
+        <section id="editBlock" class="tab-panel" role="tabpanel" tabindex="0">
           <form id="editForm" class="grid" novalidate>
             <label>اسم الجمعية
               <input id="e-name" required />
               <span class="error" id="err-e-name"></span>
             </label>
-
             <label>الهدف (سقف الصرف الشهري) · SAR
               <input id="e-goal" type="number" min="1" step="1" required />
               <span class="error" id="err-e-goal"></span>
             </label>
-
             <label>شهر البداية
               <input id="e-start" type="month" />
               <small class="hint">يُحفظ كـ YYYY-MM-01 · لا يمكن تعديله بعد البدء</small>
             </label>
-
             <label>المدة (أشهر)
               <input id="e-duration" type="number" min="1" max="60" />
               <small class="hint">لا يمكن تعديلها بعد بدء الجمعية</small>
             </label>
-
             <div class="actions">
               <button class="btn primary" id="saveEdit" type="submit">حفظ</button>
               <button class="btn ghost" id="cancelEdit" type="button">إلغاء</button>
             </div>
           </form>
-        </div>
-      </details>
+        </section>
 
-      <!-- Add Member -->
-      <details id="addMemberBlock" class="collapsible hidden">
-        <summary class="caret section-title">
-          <svg class="i"><use href="#ic-user"/></svg>
-          <span>إضافة عضو</span>
-        </summary>
-        <div class="content">
+        <section id="addMemberBlock" class="tab-panel" role="tabpanel" tabindex="0" hidden>
           <form id="memberForm" class="grid" novalidate>
             <label>اسم العضو
               <input id="m-name" required placeholder="مثال: Ahmed" />
               <span class="error" id="err-m-name"></span>
             </label>
-
             <label>المساهمة الشهرية (SAR)
               <input id="m-pay" required type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 1000" />
               <span class="error" id="err-m-pay"></span>
             </label>
-
             <label>شهر الاستلام
               <select id="m-month" required></select>
               <small id="monthHint" class="hint"></small>
               <span class="error" id="err-m-month"></span>
             </label>
-
             <div class="actions">
               <button class="btn primary">إضافة</button>
               <button type="reset" class="btn ghost">مسح</button>
             </div>
           </form>
-        </div>
-      </details>
+        </section>
 
-      <!-- Members -->
-      <details id="membersBlock" class="collapsible hidden">
-        <summary class="caret section-title">
-          <svg class="i"><use href="#ic-user"/></svg>
-          <span id="mSummaryText">الأعضاء</span>
-          <span class="pill" id="mCountPill">0</span>
-        </summary>
-        <div class="content">
+        <section id="membersBlock" class="tab-panel" role="tabpanel" tabindex="0" hidden>
           <div class="subtoolbar">
             <div class="search-wrap small">
               <svg class="i"><use href="#ic-search"/></svg>
@@ -243,64 +190,35 @@
             </select>
           </div>
           <table class="table table--cards">
-            <thead>
-              <tr>
-                <th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>شهر الاستلام</th><th></th>
-              </tr>
-            </thead>
+            <thead><tr><th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>شهر الاستلام</th><th></th></tr></thead>
             <tbody id="memberTableBody"></tbody>
-            <tfoot>
-              <tr>
-                <td colspan="2">الإجمالي</td>
-                <td id="totPay">0</td>
-                <td id="totEnt">0</td>
-                <td colspan="2"></td>
-              </tr>
-            </tfoot>
+            <tfoot><tr><td colspan="2">الإجمالي</td><td id="totPay">0</td><td id="totEnt">0</td><td colspan="2"></td></tr></tfoot>
           </table>
           <div id="emptyMembers" class="empty hidden">لا يوجد أعضاء بعد.</div>
-        </div>
-      </details>
+        </section>
 
-      <!-- Schedule -->
-      <details id="scheduleBlock" class="collapsible hidden">
-        <summary class="caret section-title">
-          <svg class="i"><use href="#ic-calendar"/></svg>
-          <span id="sSummaryText">الجدول الشهري</span>
-          <span class="pill" id="sCountPill">0</span>
-        </summary>
-        <div class="content">
+        <section id="scheduleBlock" class="tab-panel" role="tabpanel" tabindex="0" hidden>
           <div class="subtoolbar">
             <select id="scheduleFilter" class="select small">
               <option value="all">عرض: كل الشهور</option>
             </select>
           </div>
           <table class="table table--cards">
-            <thead>
-              <tr>
-                <th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th>
-              </tr>
-            </thead>
+            <thead><tr><th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th></tr></thead>
             <tbody id="scheduleTableBody"></tbody>
           </table>
-        </div>
-      </details>
+        </section>
+      </div>
 
       <div class="actions">
-        <button class="btn danger">
-          <svg class="i"><use href="#ic-delete"/></svg>
-          <span id="deleteJamiyahLabel">حذف الجمعية</span>
-        </button>
+        <button class="btn danger" id="deleteJamiyah"><svg class="i"><use href="#ic-delete"/></svg>حذف الجمعية</button>
         <button class="btn secondary" id="backBtn">رجوع</button>
-        <!-- Hidden real action buttons so JS keeps existing handlers -->
-        <button id="deleteJamiyah" class="btn danger" hidden></button>
-        <button id="exportBtn" class="btn secondary" hidden></button>
       </div>
     </section>
   </main>
 
   <div id="toasts" class="toasts"></div>
-  <footer class="footer">v1.4 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
+  <footer class="footer">v1.5 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
 
   <script src="app.js"></script>
 </body>
