@@ -1,5 +1,6 @@
-/* v1.5 — Payments tracking + dashboard actuals + schedule status + PDF summary
-   - Details hidden until open; smooth scroll; unified spacing kept in CSS
+/* v1.5.1 — Fix: openDetails shows #details reliably + sections visibility
+   - Payments tracking (modal) + dashboard actuals + schedule ✓/✗ + PDF summary
+   - Smooth scroll; unified spacing kept in CSS
 */
 
 const $ = (s, p=document) => p.querySelector(s);
@@ -68,19 +69,18 @@ function monthToFirstDay(monthStr){
   return `${y}-${String(m).padStart(2,'0')}-01`;
 }
 
-/* Show/Hide helpers */
-function show(el){ el.classList.remove('hidden'); }
-function hide(el){ el.classList.add('hidden'); }
-function toggle(id, showIt){ const el=document.getElementById(id); if(!el) return; showIt?show(el):hide(el); }
-function setDetailsSectionsVisible(hasOpen){
-  toggle('editBlock', hasOpen);
-  toggle('addMemberBlock', hasOpen);
-  toggle('membersBlock', hasOpen);
-  toggle('scheduleBlock', hasOpen);
+/* ---------- Show/Hide helpers (fixed) ---------- */
+function show(el){ if(el) el.classList.remove('hidden'); }
+function hide(el){ if(el) el.classList.add('hidden'); }
+function toggle(id, on){ const el=document.getElementById(id); if(!el) return; on?show(el):hide(el); }
+function setDetailsSectionsVisible(on){
+  toggle('editBlock', on);
+  toggle('addMemberBlock', on);
+  toggle('membersBlock', on);
+  toggle('scheduleBlock', on);
 }
 
 /* ---------- Payments helpers ---------- */
-/** Ensure m.payments exists and has length == j.duration (booleans) */
 function ensurePayments(j, m){
   if (!Array.isArray(m.payments)) m.payments = [];
   for (let i = 0; i < j.duration; i++){
@@ -89,16 +89,13 @@ function ensurePayments(j, m){
   if (m.payments.length > j.duration) m.payments = m.payments.slice(0, j.duration);
   return m.payments;
 }
-/** Count paid months for member */
 function paidMonthsCount(j, m){
   ensurePayments(j, m);
   return m.payments.reduce((s, p) => s + (p ? 1 : 0), 0);
 }
-/** Amount paid so far by member */
 function memberPaidAmount(j, m){
   return paidMonthsCount(j, m) * Number(m.pay || 0);
 }
-/** Total collected (actual) across members */
 function collectedActual(j){
   return j.members.reduce((s, m) => s + memberPaidAmount(j, m), 0);
 }
@@ -271,40 +268,55 @@ function renderList(){
   if(!state.currentId){ hide($('#details')); setDetailsSectionsVisible(false); }
 }
 
-/* ---------- Open details ---------- */
+/* ---------- OPEN DETAILS (fixed) ---------- */
 function openDetails(id){
-  state.currentId=id;
-  const j=currentJamiyah();
-  if(!j){ hide($('#details')); setDetailsSectionsVisible(false); return; }
+  state.currentId = id;
+  const j = currentJamiyah();
 
-  $('#d-title').textContent=j.name;
-  $('#d-period').textContent=`من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر`;
-  $('#d-goal').textContent=`الهدف الشهري: ${fmtMoney(j.goal)}`;
-  $('#d-status').textContent=startedStatus(j);
+  if(!j){
+    hide(document.getElementById('details'));
+    setDetailsSectionsVisible(false);
+    toast('تعذّر فتح الجمعية');
+    return;
+  }
 
-  const started=hasStarted(j);
-  $('#startedAlert').hidden=!started;
-  $('#memberForm').querySelectorAll('input,button,select').forEach(el=>{ el.disabled=started; });
+  // Header
+  document.getElementById('d-title').textContent  = j.name;
+  document.getElementById('d-period').textContent = `من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر`;
+  document.getElementById('d-goal').textContent   = `الهدف الشهري: ${fmtMoney(j.goal)}`;
+  document.getElementById('d-status').textContent = startedStatus(j);
 
-  // Edit
-  $('#e-name').value=j.name;
-  $('#e-goal').value=j.goal;
-  $('#e-start').value=j.startDate.slice(0,7);
-  $('#e-duration').value=j.duration;
-  $('#e-start').disabled=started; $('#e-duration').disabled=started;
+  // Started guard
+  const started = hasStarted(j);
+  document.getElementById('startedAlert').hidden = !started;
+  document.querySelectorAll('#memberForm input, #memberForm button, #memberForm select')
+    .forEach(el => { el.disabled = started; });
 
+  // Edit form
+  document.getElementById('e-name').value     = j.name;
+  document.getElementById('e-goal').value     = j.goal;
+  document.getElementById('e-start').value    = j.startDate.slice(0,7);
+  document.getElementById('e-duration').value = j.duration;
+  document.getElementById('e-start').disabled    = started;
+  document.getElementById('e-duration').disabled = started;
+
+  // Options / filters
   populateMonthOptions(j);
   populateScheduleFilter(j);
   updateMonthHint();
 
+  // Tables
   renderMembers(j);
   renderSchedule(j);
   updateMembersSummary(j);
   updateScheduleSummary(j);
 
+  // Show details & inner sections
   setDetailsSectionsVisible(true);
-  show($('#details'));
-  document.getElementById('details')?.scrollIntoView({ behavior:'smooth', block:'start' });
+  show(document.getElementById('details'));
+
+  // Smooth scroll to details
+  document.getElementById('details').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 /* ---------- Helpers ---------- */
@@ -657,7 +669,6 @@ function exportPdf(j){
   const totPay=members.reduce((s,m)=>s+Number(m.pay||0),0);
   const totEnt=members.reduce((s,m)=>s+Number(m.entitlement||0),0);
 
-  // Payments summary table
   const paymentsRows = j.members.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(m=>{
     ensurePayments(j, m);
     const pc = paidMonthsCount(j, m);
@@ -733,7 +744,7 @@ function exportPdf(j){
 
 /* ---------- Back ---------- */
 function showList(){
-  hide($('#details'));
+  hide(document.getElementById('details'));
   state.currentId=null;
   setDetailsSectionsVisible(false);
 }
