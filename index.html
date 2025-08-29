@@ -3,33 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>جمعيّتي | إدارة الجمعيات المالية</title>
+  <title>جمعيّتي البسيطة</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
+<header class="bar">
   <h1>جمعيّتي</h1>
-  <div class="active-assoc">
-    <label for="assocSelect">الجمعية:</label>
-    <select id="assocSelect"></select>
-    <button id="newAssocBtn">+ جمعية جديدة</button>
-  </div>
+  <button id="addToHome" class="ghost">أضف للشاشة الرئيسية</button>
 </header>
 
-<main>
-  <nav class="tabs">
-    <button data-tab="assoc">إعدادات الجمعية</button>
-    <button data-tab="members">الأعضاء والأسهم</button>
-    <button data-tab="rota">الجدول/الأدوار</button>
-    <button data-tab="payments">المدفوعات</button>
-    <button data-tab="export">تصدير/نسخ احتياطي</button>
-  </nav>
-
-  <section id="assoc" class="tab">
+<main class="wrap">
+  <section class="card">
     <h2>إعدادات الجمعية</h2>
     <div class="grid">
-      <label>اسم الجمعية<input id="assocName" type="text" placeholder="مثال: جمعية البيت"></label>
-      <label>قيمة السهم (لكل فترة)<input id="baseAmount" type="number" min="1" step="1" placeholder="مثال: 1000"></label>
+      <label>اسم الجمعية
+        <input id="assocName" type="text" placeholder="مثال: جمعية العائلة">
+      </label>
       <label>الدورية
         <select id="frequency">
           <option value="monthly">شهري</option>
@@ -37,75 +26,90 @@
           <option value="daily">يومي</option>
         </select>
       </label>
-      <label>تاريخ البداية<input id="startDate" type="date"></label>
+      <label>تاريخ البداية
+        <input id="startDate" type="date">
+      </label>
     </div>
-    <div class="actions">
-      <button id="saveAssoc">حفظ الإعدادات</button>
-      <button id="deleteAssoc" class="danger">حذف الجمعية</button>
-    </div>
-    <p class="hint">ملاحظة: «عدد الأسهم» يساوي عدد مرات ظهور العضو في جدول الأدوار.</p>
   </section>
 
-  <section id="members" class="tab">
-    <h2>الأعضاء والأسهم</h2>
+  <section class="card">
+    <h2>الأعضاء ومبالغ الدفع</h2>
     <div class="row">
-      <input id="memberName" type="text" placeholder="اسم العضو">
-      <input id="memberShares" type="number" min="1" value="1" placeholder="الأسهم">
+      <input id="memberName" class="grow" type="text" placeholder="اسم العضو">
+      <input id="memberPay" type="number" min="1" step="1" placeholder="المبلغ لكل دورة (SAR)">
       <button id="addMember">إضافة</button>
     </div>
+
     <table id="membersTable">
-      <thead><tr><th>#</th><th>العضو</th><th>الأسهم</th><th>ترتيب الدور</th><th>إجراءات</th></tr></thead>
+      <thead>
+        <tr>
+          <th>#</th><th>العضو</th><th>يدفع/دورة</th><th>أدواره المحسوبة</th><th>إجمالي استلامه</th><th></th>
+        </tr>
+      </thead>
       <tbody></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2"><b>إجمالي المساهمات (قيمة الصندوق/الدورة)</b></td>
+          <td id="sumPay" colspan="4">0</td>
+        </tr>
+      </tfoot>
     </table>
+
+    <div class="muted tiny">
+      ملاحظة: نحسب الأدوار تلقائيًا بنسبة المساهمة. أقل مساهمة تصبح «وحدة» ونحوّل الباقي تلقائيًا.
+    </div>
     <div class="actions">
-      <button id="regenRota">إعادة بناء جدول الأدوار</button>
+      <button id="buildRota" class="primary">توليد جدول الاستلام</button>
+      <button id="clearMembers" class="danger">مسح الأعضاء</button>
     </div>
   </section>
 
-  <section id="rota" class="tab">
-    <h2>الجدول/الأدوار</h2>
+  <section class="card">
+    <h2>الجدول (ترتيب الاستلام)</h2>
+    <div class="row">
+      <button id="shuffle">خلط الترتيب</button>
+      <button id="sortByPay">ترتيب حسب الأعلى دفعًا</button>
+      <button id="goToday">انتقال لدورة اليوم</button>
+    </div>
     <table id="rotaTable">
-      <thead><tr><th>الدورة</th><th>التاريخ المستحق</th><th>المستلم</th></tr></thead>
+      <thead>
+        <tr><th>الدورة</th><th>التاريخ</th><th>المستلم</th><th>قيمة الاستلام</th></tr>
+      </thead>
       <tbody></tbody>
     </table>
   </section>
 
-  <section id="payments" class="tab">
-    <h2>المدفوعات</h2>
+  <section class="card">
+    <h2>مدفوعات الدورة الحالية</h2>
     <div class="row">
       <label>الدورة:
         <select id="cycleSelect"></select>
       </label>
-      <button id="todayCycle">انتقل إلى دورة اليوم</button>
+      <button id="markAllPaid">تحديد الجميع مدفوع</button>
+      <button id="resetCycle" class="danger">مسح مدفوعات الدورة</button>
     </div>
     <table id="paymentsTable">
-      <thead><tr><th>العضو</th><th>المبلغ المستحق</th><th>دفع؟</th><th>تاريخ الدفع</th></tr></thead>
+      <thead><tr><th>العضو</th><th>مستحق عليه</th><th>دفع؟</th><th>التاريخ</th></tr></thead>
       <tbody></tbody>
     </table>
-    <div class="actions">
-      <button id="markAllPaid">تحديد الجميع كمدفوع</button>
-      <button id="clearPayments" class="danger">مسح مدفوعات الدورة</button>
-    </div>
   </section>
 
-  <section id="export" class="tab">
-    <h2>تصدير/نسخ احتياطي</h2>
+  <section class="card">
+    <h2>نسخ احتياطي وتصدير</h2>
     <div class="row wrap">
-      <button id="exportCSV">تصدير CSV (الأعضاء/الجدول/المدفوعات)</button>
       <button id="backupJSON">نسخ احتياطي JSON</button>
-      <label class="import-label">
+      <label class="file">
         استعادة من JSON
-        <input type="file" id="importJSON" accept="application/json">
+        <input id="importJSON" type="file" accept="application/json">
       </label>
-      <button id="printView">طباعة ملخص</button>
+      <button id="exportCSV">تصدير CSV</button>
+      <button id="printView">طباعة</button>
     </div>
-    <p class="hint">التطبيق يعمل محليًا ويخزن البيانات في المتصفح (LocalStorage).</p>
+    <div class="muted tiny">كل البيانات محليًا في المتصفح (LocalStorage).</div>
   </section>
 </main>
 
-<footer>
-  <small>© 2025 Jam3eyti. يعمل محليًا بدون خادم.</small>
-</footer>
+<footer class="muted center tiny">© 2025 — يعمل بدون خادم.</footer>
 
 <script src="app.js"></script>
 </body>
