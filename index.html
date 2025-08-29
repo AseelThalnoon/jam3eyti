@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
+
+  <!-- Favicon (inline SVG) -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2311a34b"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -16,33 +18,30 @@
         <circle cx="64" cy="50" r="22" fill="url(#lg)"></circle>
         <path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"></path>
       </svg>
-      <h1>جمعيتي</h1>
+      <h1 class="h1">جمعيتي</h1>
     </div>
 
     <div class="actions-right">
-      <input id="search" class="search" placeholder="ابحث عن جمعية…" />
+      <input id="search" class="search" placeholder="ابحث عن جمعية بالاسم…" />
     </div>
   </header>
 
-  <main class="container">
-    <!-- Create Jamiyah (collapsible) -->
-    <section class="card">
+  <main class="container stack-4">
+    <!-- Create (collapsible) -->
+    <section class="card stack-3">
       <details id="createBlock" class="collapsible" open>
-        <summary class="caret section-title">
-          <span class="section-icon">➕</span>
-          <span>إنشاء جمعية</span>
-        </summary>
+        <summary class="caret section-title">إنشاء جمعية جديدة</summary>
         <div class="content">
-          <form id="jamiyahForm" novalidate>
+          <form id="jamiyahForm" class="stack-2" novalidate>
             <div class="grid">
               <label>اسم الجمعية
                 <input required id="j-name" placeholder="مثال: جمعية رمضان" />
                 <span class="error" id="err-j-name"></span>
               </label>
 
-              <label>تاريخ البداية
-                <input required id="j-start" type="date" />
-                <small class="hint">يثبّت تلقائيًا على يوم 01</small>
+              <label>شهر البداية
+                <input required id="j-start" type="month" />
+                <small class="hint">يُحفظ تلقائيًا كـ YYYY-MM-01</small>
                 <span class="error" id="err-j-start"></span>
               </label>
 
@@ -51,7 +50,7 @@
                 <span class="error" id="err-j-duration"></span>
               </label>
 
-              <label>مبلغ الجمعية (SAR)
+              <label>الهدف (سقف الصرف الشهري) · SAR
                 <input required id="j-goal" type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 30000" />
                 <span class="error" id="err-j-goal"></span>
               </label>
@@ -59,7 +58,7 @@
 
             <div class="actions">
               <button type="submit" class="btn primary">إنشاء</button>
-              <button type="reset" class="btn secondary">مسح</button>
+              <button type="reset" class="btn ghost">مسح الحقول</button>
             </div>
           </form>
         </div>
@@ -67,10 +66,9 @@
     </section>
 
     <!-- List Jamiyahs (collapsible) -->
-    <section class="card">
+    <section class="card stack-3">
       <details id="listBlock" class="collapsible" open>
         <summary class="caret section-title">
-          <span class="section-icon">📚</span>
           <span>الجمعيات</span>
           <span class="pill" id="jamiyahCountPill">0</span>
         </summary>
@@ -78,17 +76,17 @@
           <div id="jamiyahList" class="list"></div>
           <div id="emptyList" class="empty hidden">
             <div class="empty-illustration">🙂</div>
-            <div>ابدأ بإنشاء أول جمعية من القسم الأعلى.</div>
+            <div>ابدأ بإنشاء أول جمعية لك من الأعلى.</div>
           </div>
         </div>
       </details>
     </section>
 
-    <!-- Jamiyah Details (collapsible sections inside) -->
-    <section id="details" class="card hidden">
-      <div class="details-header">
-        <div>
-          <h2 id="d-title"></h2>
+    <!-- Jamiyah Details (ALWAYS hidden by default) -->
+    <section id="details" class="card hidden stack-3">
+      <div class="details-header stack-1">
+        <div class="stack-0">
+          <h2 id="d-title" class="h2"></h2>
           <div class="meta">
             <span id="d-period" class="badge"></span>
             <span id="d-goal" class="badge"></span>
@@ -96,15 +94,17 @@
           </div>
         </div>
         <div class="details-ops">
-          <button class="btn info" id="exportBtn">📄 تصدير PDF</button>
+          <button class="btn secondary" id="exportBtn">تصدير PDF</button>
         </div>
       </div>
 
-      <div class="alert" id="startedAlert" hidden>بدأت الجمعية. لا يمكن إضافة أعضاء جدد.</div>
+      <div class="alert" id="startedAlert" hidden>
+        بدأت الجمعية. لا يمكن إضافة أعضاء جدد.
+      </div>
 
-      <!-- Edit Jamiyah -->
-      <details id="editBlock" class="collapsible elevated">
-        <summary class="caret section-title"><span class="section-icon">✏️</span><span>تعديل الجمعية</span></summary>
+      <!-- Edit (collapsible) -->
+      <details id="editBlock" class="elevated collapsible hidden">
+        <summary class="caret section-title">تعديل الجمعية</summary>
         <div class="content">
           <form id="editForm" class="grid" novalidate>
             <label>اسم الجمعية
@@ -112,31 +112,32 @@
               <span class="error" id="err-e-name"></span>
             </label>
 
-            <label>الهدف الشهري (SAR)
+            <label>الهدف (سقف الصرف الشهري) · SAR
               <input id="e-goal" type="number" min="1" step="1" required />
               <span class="error" id="err-e-goal"></span>
             </label>
 
-            <label>تاريخ البداية
-              <input id="e-start" type="date" />
-              <small class="hint">يثبّت على يوم 01 · يُقفل بعد البدء</small>
+            <label>شهر البداية
+              <input id="e-start" type="month" />
+              <small class="hint">يُحفظ كـ YYYY-MM-01 · لا يمكن تعديله بعد البدء</small>
             </label>
 
             <label>المدة (أشهر)
               <input id="e-duration" type="number" min="1" max="60" />
-              <small class="hint">يُقفل بعد البدء</small>
+              <small class="hint">لا يمكن تعديلها بعد بدء الجمعية</small>
             </label>
 
             <div class="actions">
               <button class="btn primary" id="saveEdit" type="submit">حفظ</button>
-              <button class="btn secondary" id="cancelEdit" type="button">إلغاء</button>
+              <button class="btn ghost" id="cancelEdit" type="button">إلغاء</button>
             </div>
           </form>
         </div>
       </details>
 
-      <details id="addMemberBlock" class="collapsible" open>
-        <summary class="caret section-title"><span class="section-icon">🧩</span><span>إضافة عضو</span></summary>
+      <!-- Add Member (collapsible) -->
+      <details id="addMemberBlock" class="collapsible hidden">
+        <summary class="caret section-title">إضافة عضو</summary>
         <div class="content">
           <form id="memberForm" class="grid" novalidate>
             <label>اسم العضو
@@ -156,14 +157,15 @@
             </label>
 
             <div class="actions">
-              <button class="btn success">إضافة</button>
+              <button class="btn primary">إضافة</button>
+              <button type="reset" class="btn ghost">مسح</button>
             </div>
           </form>
         </div>
       </details>
 
-      <!-- Members -->
-      <details id="membersBlock" class="collapsible" open>
+      <!-- Members (collapsible with toolbar) -->
+      <details id="membersBlock" class="collapsible hidden">
         <summary class="caret section-title">
           <span class="section-icon">👥</span>
           <span id="mSummaryText">الأعضاء</span>
@@ -173,18 +175,18 @@
           <div class="subtoolbar">
             <input id="memberSearch" class="search small" placeholder="بحث بالاسم…" />
             <select id="memberSort" class="select small">
-              <option value="month">بالشهر</option>
-              <option value="name">بالاسم</option>
-              <option value="pay">بالمساهمة</option>
+              <option value="month">ترتيب: بالشهر</option>
+              <option value="name">ترتيب: بالاسم</option>
+              <option value="pay">ترتيب: بالمساهمة</option>
             </select>
           </div>
-          <table class="table table--cards" id="memberTable">
+          <table class="table table--cards">
             <thead>
               <tr>
-                <th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق</th><th>شهر الاستلام</th><th></th>
+                <th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>شهر الاستلام</th><th></th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="memberTableBody"></tbody>
             <tfoot>
               <tr>
                 <td colspan="2">الإجمالي</td>
@@ -198,8 +200,8 @@
         </div>
       </details>
 
-      <!-- Schedule -->
-      <details id="scheduleBlock" class="collapsible" open>
+      <!-- Schedule (collapsible with filter) -->
+      <details id="scheduleBlock" class="collapsible hidden">
         <summary class="caret section-title">
           <span class="section-icon">🗓️</span>
           <span id="sSummaryText">الجدول الشهري</span>
@@ -208,30 +210,31 @@
         <div class="content">
           <div class="subtoolbar">
             <select id="scheduleFilter" class="select small">
-              <option value="all">كل الشهور</option>
+              <option value="all">عرض: كل الشهور</option>
             </select>
           </div>
-          <table class="table table--cards" id="scheduleTable">
+          <table class="table table--cards">
             <thead>
               <tr>
                 <th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="scheduleTableBody"></tbody>
           </table>
         </div>
       </details>
 
       <div class="actions">
-        <button class="btn danger" id="deleteJamiyah">🗑️ حذف الجمعية</button>
+        <button class="btn danger" id="deleteJamiyah">حذف الجمعية</button>
         <button class="btn secondary" id="backBtn">رجوع</button>
       </div>
     </section>
   </main>
 
+  <!-- Toasts -->
   <div id="toasts" class="toasts"></div>
 
-  <footer class="footer">v1.1 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
+  <footer class="footer">v1.3 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoون</footer>
   <script src="app.js"></script>
 </body>
 </html>
