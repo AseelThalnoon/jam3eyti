@@ -1,8 +1,8 @@
-/* جمعيتي v0.5 - English digits + month names + "max monthly contribution" per month */
+/* جمعيتي v0.6 - English digits + month names + max monthly per month + Edit Jamiyah */
 
 const $ = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
-const SKEY = "jamiyati:v02"; // reuse existing storage
+const SKEY = "jamiyati:v02"; // reuse storage
 
 const state = {
   jamiyahs: loadAll(),
@@ -60,7 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#deleteJamiyah').addEventListener('click', onDeleteJamiyah);
   $('#backBtn').addEventListener('click', () => showList());
 
-  // dynamic updates
+  // Edit handlers
+  $('#editForm').addEventListener('submit', onSaveEdit);
+  $('#cancelEdit').addEventListener('click', (e)=> {
+    e.preventDefault();
+    $('#editBlock').open = false;
+  });
+
+  // dynamic updates for member section
   $('#m-month').addEventListener('change', updateMonthHint);
   $('#m-pay').addEventListener('input', updateMonthHint);
 
@@ -136,6 +143,16 @@ function openDetails(id){
   $('#startedAlert').hidden = !started;
   $('#memberForm').querySelectorAll('input,button,select').forEach(el => { el.disabled = started; });
 
+  // Pre-fill edit form
+  $('#e-name').value = j.name;
+  $('#e-goal').value = j.goal;
+  $('#e-start').value = j.startDate;
+  $('#e-duration').value = j.duration;
+
+  // Lock start/duration if started
+  $('#e-start').disabled = started;
+  $('#e-duration').disabled = started;
+
   populateMonthOptions(j);
   updateMonthHint();
 
@@ -152,14 +169,13 @@ function monthAssignedTotal(j, month){
                   .reduce((s,m)=>s+Number(m.entitlement||0),0);
 }
 
-/* الحد الأعلى للمساهمة الشهرية في شهر معيّن */
+/* Max monthly allowed for a month */
 function maxMonthlyForMonth(j, month){
   const remaining = Math.max(0, j.goal - monthAssignedTotal(j, month));
-  // entitlement = monthly * duration  <= remaining
   return Math.floor(remaining / j.duration);
 }
 
-/* Build month options with "max monthly contribution" */
+/* Build month options with "max monthly" */
 function populateMonthOptions(j){
   const select = $('#m-month');
   const current = select.value;
@@ -177,6 +193,59 @@ function populateMonthOptions(j){
   if (current && Number(current) >= 1 && Number(current) <= j.duration) {
     select.value = current;
   }
+}
+
+/* ---------- Edit Jamiyah ---------- */
+function onSaveEdit(e){
+  e.preventDefault();
+  const j = currentJamiyah();
+  if (!j) return;
+
+  const newName = $('#e-name').value.trim();
+  const newGoal = parseInt($('#e-goal').value);
+  const newStart = $('#e-start').value;
+  const newDuration = parseInt($('#e-duration').value);
+
+  // name unique
+  if (!newName) { alert('اكتب اسم الجمعية.'); return; }
+  if (state.jamiyahs.some(x=>x.id!==j.id && x.name===newName)) {
+    alert('يوجد جمعية بنفس الاسم. اختر اسماً مختلفاً.');
+    return;
+  }
+  if (!newGoal || newGoal <= 0) { alert('الهدف الشهري يجب أن يكون أكبر من صفر.'); return; }
+
+  const started = hasStarted(j);
+
+  // If not started, allow changing start/duration with safety checks
+  if (!started){
+    if (!newStart) { alert('حدد تاريخ البداية.'); return; }
+    if (!newDuration || newDuration < 1) { alert('المدة غير صحيحة.'); return; }
+
+    // If duration changes, recompute each member's entitlement = pay * newDuration
+    if (newDuration !== j.duration){
+      j.members = j.members.map(m => ({
+        ...m,
+        entitlement: Number(m.pay || 0) * newDuration,
+        // keep assigned month if still valid, else clamp to last month
+        month: Math.min(m.month, newDuration)
+      }));
+    }
+
+    j.startDate = newStart;
+    j.duration = newDuration;
+  }
+
+  // goal can change anytime (even after start)
+  j.name = newName;
+  j.goal = newGoal;
+
+  saveAll();
+
+  // refresh UI
+  openDetails(j.id);   // re-render details with updated data
+  renderList();
+  $('#editBlock').open = false;
+  alert('تم حفظ التعديلات.');
 }
 
 /* ---------- Render members ---------- */
@@ -228,14 +297,12 @@ function onAddMember(e){
     return;
   }
 
-  // تحقق أولاً من الحد الأعلى للمساهمة الشهرية
   const maxMonthly = maxMonthlyForMonth(j, month);
   if (pay > maxMonthly) {
-    alert(`المساهمة الشهرية المقترحة (${fmtMoney(pay)}) تتجاوز الحد الأعلى في ${monthLabel(j.startDate, month)}: ${fmtMoney(maxMonthly)}.`);
+    alert(`المساهمة الشهرية (${fmtMoney(pay)}) تتجاوز الحد الأعلى في ${monthLabel(j.startDate, month)}: ${fmtMoney(maxMonthly)}.`);
     return;
   }
 
-  // شرط السقف الشهري بالاستحقاق الإجمالي (يبقى لضمان السلامة)
   const entitlement = pay * j.duration;
   const already = monthAssignedTotal(j, month);
   const remaining = j.goal - already;
