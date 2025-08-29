@@ -37,8 +37,9 @@
             <span class="error" id="err-j-name"></span>
           </label>
 
-          <label>تاريخ البداية
-            <input required id="j-start" type="date" />
+          <label>شهر البداية (يثبّت على يوم 01)
+            <!-- type month لضمان أول يوم -->
+            <input required id="j-start" type="month" />
             <span class="error" id="err-j-start"></span>
           </label>
 
@@ -57,17 +58,21 @@
       </form>
     </section>
 
-    <!-- List Jamiyahs -->
+    <!-- List Jamiyahs (collapsible) -->
     <section class="card">
-      <div class="card-head">
-        <h2>الجمعيات</h2>
-        <span class="muted" id="listCount"></span>
-      </div>
-      <div id="jamiyahList" class="list"></div>
-      <div id="emptyList" class="empty hidden">
-        <div class="empty-illustration">🙂</div>
-        <div>ابدأ بإنشاء أول جمعية لك من الأعلى.</div>
-      </div>
+      <details id="listBlock" open class="collapsible">
+        <summary class="caret section-title">
+          <span>الجمعيات</span>
+          <span class="pill" id="listCount">0</span>
+        </summary>
+        <div class="content">
+          <div id="jamiyahList" class="list"></div>
+          <div id="emptyList" class="empty hidden">
+            <div class="empty-illustration">🙂</div>
+            <div>ابدأ بإنشاء أول جمعية لك من الأعلى.</div>
+          </div>
+        </div>
+      </details>
     </section>
 
     <!-- Jamiyah Details -->
@@ -82,11 +87,8 @@
           </div>
         </div>
         <div class="details-ops">
-          <button class="btn" id="exportBtn">تصدير</button>
-          <label class="btn">
-            استيراد
-            <input id="importInput" type="file" accept="application/json" hidden />
-          </label>
+          <!-- استيراد مخفي بالكامل حسب طلبك -->
+          <button class="btn" id="exportBtn">تصدير PDF</button>
         </div>
       </div>
 
@@ -105,11 +107,11 @@
 
           <label>الهدف (سقف الصرف الشهري) · SAR
             <input id="e-goal" type="number" min="1" step="1" required />
-            <span class="error" id="err-e-goal"></span>
+            <span class="error" id="err-e-goال"></span>
           </label>
 
-          <label>تاريخ البداية
-            <input id="e-start" type="date" />
+          <label>شهر البداية (يثبّت على يوم 01)
+            <input id="e-start" type="month" />
             <small class="hint">لا يمكن تعديله بعد بدء الجمعية</small>
           </label>
 
@@ -146,7 +148,7 @@
         <button class="btn">إضافة</button>
       </form>
 
-      <!-- Members (collapsible with toolbar) -->
+      <!-- Members -->
       <details id="membersBlock" class="collapsible" open>
         <summary class="caret section-title">
           <span class="section-icon">👥</span>
@@ -182,7 +184,7 @@
         </div>
       </details>
 
-      <!-- Schedule (collapsible with filter) -->
+      <!-- Schedule -->
       <details id="scheduleBlock" class="collapsible" open>
         <summary class="caret section-title">
           <span class="section-icon">🗓️</span>
@@ -193,7 +195,6 @@
           <div class="subtoolbar">
             <select id="scheduleFilter" class="select small">
               <option value="all">عرض: كل الشهور</option>
-              <!-- يتم تعبئتها ديناميكياً -->
             </select>
           </div>
           <table class="table table--cards" id="scheduleTable">
@@ -217,7 +218,7 @@
   <!-- Toasts -->
   <div id="toasts" class="toasts"></div>
 
-  <footer class="footer">v0.9 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
+  <footer class="footer">v1.0 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
   <script src="app.js"></script>
 </body>
 </html>
