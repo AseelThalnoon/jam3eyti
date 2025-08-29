@@ -3,26 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1220" />
+  <meta name="theme-color" content="#07120e" />
   <title>جمعيتي</title>
 
-  <!-- Favicon -->
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="52" r="20" fill="url(%23g)"/><path d="M28 98c7-14 24-24 36-24s29 10 36 24" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
+  <!-- Favicon (inline SVG, matches theme) -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2310b981"/><stop offset="1" stop-color="%23059b70"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%2307120e"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2310b981" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="theme-emerald">
+<body>
   <header class="app-bar">
     <div class="brand">
-      <!-- App Logo -->
+      <!-- Brand logo (inline, theme-driven) -->
       <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true">
-        <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
-        <rect width="128" height="128" rx="22" fill="#0b1220"></rect>
-        <circle cx="64" cy="52" r="20" fill="url(#lg)"></circle>
-        <path d="M28 98c7-14 24-24 36-24s29 10 36 24" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"></path>
+        <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#10b981"/><stop offset="1" stop-color="#059669"/></linearGradient></defs>
+        <rect x="14" y="14" width="100" height="100" rx="20" fill="#07120e"></rect>
+        <circle cx="64" cy="56" r="20" fill="url(#lg)"></circle>
+        <path d="M30 98c8-16 24-26 34-26s26 10 34 26" stroke="#10b981" stroke-width="8" fill="none" stroke-linecap="round"></path>
       </svg>
-      <div class="wordmark">
-        <span class="title">جمعيتي</span>
-        <span class="subtitle">إدارة جمعياتك ببساطة</span>
+      <div class="brand-text">
+        <h1 class="h1">جمعيتي</h1>
+        <div class="tagline">جمعيات منظمة بواجهة واضحة</div>
       </div>
     </div>
 
@@ -32,10 +32,12 @@
   </header>
 
   <main class="container stack-4">
-    <!-- Create -->
+    <!-- Create (collapsible) -->
     <section class="card stack-3">
       <details id="createBlock" class="collapsible" open>
-        <summary class="caret section-title">إنشاء جمعية جديدة</summary>
+        <summary class="caret section-title">
+          <span class="section-icon">✨</span> إنشاء جمعية جديدة
+        </summary>
         <div class="content">
           <form id="jamiyahForm" class="stack-2" novalidate>
             <div class="grid">
@@ -70,11 +72,11 @@
       </details>
     </section>
 
-    <!-- List -->
+    <!-- List Jamiyahs (collapsible) -->
     <section class="card stack-3">
       <details id="listBlock" class="collapsible" open>
         <summary class="caret section-title">
-          <span>الجمعيات</span>
+          <span class="section-icon">📚</span> الجمعيات
           <span class="pill" id="jamiyahCountPill">0</span>
         </summary>
         <div class="content">
@@ -87,11 +89,17 @@
       </details>
     </section>
 
-    <!-- Details (hidden until open) -->
+    <!-- Jamiyah Details (hidden until open) -->
     <section id="details" class="card hidden stack-3">
       <div class="details-header stack-1">
         <div class="stack-0">
-          <h2 id="d-title" class="h2"></h2>
+          <div class="title-line">
+            <svg class="logo-mini" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true">
+              <defs><linearGradient id="lg2" x1="0" x2="1"><stop stop-color="#10b981"/><stop offset="1" stop-color="#059669"/></linearGradient></defs>
+              <circle cx="64" cy="56" r="18" fill="url(#lg2)"></circle>
+            </svg>
+            <h2 id="d-title" class="h2"></h2>
+          </div>
           <div class="meta">
             <span id="d-period" class="badge"></span>
             <span id="d-goal" class="badge"></span>
@@ -109,25 +117,29 @@
 
       <!-- Edit -->
       <details id="editBlock" class="elevated collapsible hidden">
-        <summary class="caret section-title">تعديل الجمعية</summary>
+        <summary class="caret section-title"><span class="section-icon">🛠️</span> تعديل الجمعية</summary>
         <div class="content">
           <form id="editForm" class="grid" novalidate>
             <label>اسم الجمعية
               <input id="e-name" required />
               <span class="error" id="err-e-name"></span>
             </label>
+
             <label>الهدف (سقف الصرف الشهري) · SAR
               <input id="e-goal" type="number" min="1" step="1" required />
               <span class="error" id="err-e-goal"></span>
             </label>
+
             <label>شهر البداية
               <input id="e-start" type="month" />
               <small class="hint">يُحفظ كـ YYYY-MM-01 · لا يمكن تعديله بعد البدء</small>
             </label>
+
             <label>المدة (أشهر)
               <input id="e-duration" type="number" min="1" max="60" />
               <small class="hint">لا يمكن تعديلها بعد بدء الجمعية</small>
             </label>
+
             <div class="actions">
               <button class="btn primary" id="saveEdit" type="submit">حفظ</button>
               <button class="btn ghost" id="cancelEdit" type="button">إلغاء</button>
@@ -138,22 +150,25 @@
 
       <!-- Add Member -->
       <details id="addMemberBlock" class="collapsible hidden">
-        <summary class="caret section-title">إضافة عضو</summary>
+        <summary class="caret section-title"><span class="section-icon">➕</span> إضافة عضو</summary>
         <div class="content">
           <form id="memberForm" class="grid" novalidate>
             <label>اسم العضو
               <input id="m-name" required placeholder="مثال: Ahmed" />
               <span class="error" id="err-m-name"></span>
             </label>
+
             <label>المساهمة الشهرية (SAR)
               <input id="m-pay" required type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 1000" />
               <span class="error" id="err-m-pay"></span>
             </label>
+
             <label>شهر الاستلام
               <select id="m-month" required></select>
               <small id="monthHint" class="hint"></small>
               <span class="error" id="err-m-month"></span>
             </label>
+
             <div class="actions">
               <button class="btn primary">إضافة</button>
               <button type="reset" class="btn ghost">مسح</button>
