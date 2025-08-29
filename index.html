@@ -1,44 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ROSCA App</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
 <body>
-  <div class="container">
-    <h1>جمعية مالية</h1>
+  <div class="container" id="main">
+    <h1>إدارة الجمعيات</h1>
 
     <div class="section">
-      <h2>معلومات الجمعية</h2>
+      <h2>إنشاء جمعية جديدة</h2>
+      <label>اسم الجمعية:</label>
+      <input type="text" id="groupName" />
+
       <label>تاريخ البداية:</label>
       <input type="date" id="startDate" />
-      
+
       <label>المدة (بالأشهر):</label>
       <input type="number" id="duration" min="1" />
+
+      <button onclick="createGroup()">إنشاء الجمعية</button>
     </div>
 
     <div class="section">
-      <h2>إضافة عضو</h2>
+      <h2>الجمعيات المتوفرة</h2>
+      <ul id="groupsList"></ul>
+    </div>
+  </div>
+
+  <div class="container" id="groupView" style="display:none;">
+    <button onclick="goBack()">← رجوع</button>
+    <h2 id="groupTitle"></h2>
+    
+    <div class="section">
+      <h3>إضافة عضو</h3>
       <label>اسم العضو:</label>
       <input type="text" id="memberName" />
-      
       <label>المساهمة الشهرية (ر.س):</label>
       <input type="number" id="contribution" />
-      
       <label>الشهر المفضل للاستلام:</label>
       <input type="number" id="preferredMonth" min="1" />
-      
       <button onclick="addMember()">إضافة</button>
     </div>
 
     <div class="section">
-      <h2>الأعضاء</h2>
+      <h3>الأعضاء</h3>
       <ul id="membersList"></ul>
+    </div>
+
+    <div class="section">
+      <h3>جدول التوزيع الشهري</h3>
+      <table id="scheduleTable">
+        <thead>
+          <tr>
+            <th>الشهر</th>
+            <th>اسم العضو</th>
+            <th>المبلغ المستلم (ر.س)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 
   <script src="app.js"></script>
 </body>
-</html>
