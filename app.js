@@ -1,4 +1,4 @@
-/* جمعيتي v0.9 — clearer Members & Schedule: toolbars, filters, mobile cards, totals */
+/* جمعيتي v1.0 — Import hidden, Export PDF (printable), collapsible list, start date pinned to day 01 */
 
 const $ = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
@@ -59,10 +59,26 @@ function currentJamiyah(){ return state.jamiyahs.find(x=>x.id===state.currentId)
 function toast(msg){ const box = $('#toasts'); const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg; box.appendChild(el); setTimeout(()=>{ el.remove(); }, 2500); }
 function setError(id, text){ const el = $(`#${id}`); if (el) el.textContent = text || ''; }
 
+/* Normalize any date string to YYYY-MM-01 */
+function normalizeToMonthStart(dateStr){
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d)) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  return `${y}-${m}-01`;
+}
+
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', () => {
   // Create
   $('#jamiyahForm').addEventListener('submit', onCreateJamiyah);
+
+  // Force start date to day 01 on change (create)
+  $('#j-start').addEventListener('change', (e)=>{
+    const v = normalizeToMonthStart(e.target.value);
+    if (v) e.target.value = v;
+  });
 
   // Member add
   $('#memberForm').addEventListener('submit', onAddMember);
@@ -74,13 +90,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Edit
   $('#editForm').addEventListener('submit', onSaveEdit);
   $('#cancelEdit').addEventListener('click', (e)=> { e.preventDefault(); $('#editBlock').open = false; });
+  // Force start date day 01 on edit input
+  $('#e-start').addEventListener('change', (e)=>{
+    const v = normalizeToMonthStart(e.target.value);
+    if (v) e.target.value = v;
+  });
 
   // Search (list)
   $('#search').addEventListener('input', (e)=>{ state.filter = (e.target.value||'').trim(); renderList(); });
 
-  // Import / Export
-  $('#exportBtn').addEventListener('click', onExport);
-  $('#importInput').addEventListener('change', onImport);
+  // Export PDF
+  $('#exportBtn').addEventListener('click', ()=> exportPdf(currentJamiyah()));
 
   // Live hints for add-member
   $('#m-month').addEventListener('change', updateMonthHint);
@@ -102,7 +122,7 @@ function onCreateJamiyah(e){
   setError('err-j-name'); setError('err-j-start'); setError('err-j-duration'); setError('err-j-goal');
 
   const name = $('#j-name').value.trim();
-  const startDate = $('#j-start').value;
+  let startDate = $('#j-start').value;
   const duration = parseInt($('#j-duration').value);
   const goal = parseInt($('#j-goal').value);
 
@@ -112,6 +132,10 @@ function onCreateJamiyah(e){
   if (!duration || duration<1){ setError('err-j-duration','min 1'); ok = false; }
   if (!goal || goal<=0){ setError('err-j-goal','> 0'); ok = false; }
   if (!ok) return;
+
+  // Pin to day 01 always
+  startDate = normalizeToMonthStart(startDate);
+  $('#j-start').value = startDate;
 
   if (state.jamiyahs.some(j=>j.name === name)){
     setError('err-j-name','name already exists'); return;
@@ -126,23 +150,23 @@ function onCreateJamiyah(e){
   toast('تم إنشاء الجمعية');
 }
 
-/* ---------- List Jamiyahs ---------- */
+/* ---------- List Jamiyahs (collapsible) ---------- */
 function renderList(){
   const list = $('#jamiyahList');
   const empty = $('#emptyList');
-  const count = $('#listCount');
+  const pill = $('#jamiyahCountPill');
 
   const items = state.jamiyahs
     .filter(j => !state.filter || j.name.includes(state.filter))
     .sort((a,b)=> a.name.localeCompare(b.name));
 
   list.innerHTML = '';
+  pill.textContent = fmtInt(items.length);
+
   if (items.length === 0){
     empty.classList.remove('hidden');
-    count.textContent = '';
   } else {
     empty.classList.add('hidden');
-    count.textContent = `(${fmtInt(items.length)})`;
   }
 
   items.forEach(j=>{
@@ -186,7 +210,7 @@ function openDetails(id){
   // Edit form
   $('#e-name').value = j.name;
   $('#e-goal').value = j.goal;
-  $('#e-start').value = j.startDate;
+  $('#e-start').value = j.startDate;   // already pinned to 01
   $('#e-duration').value = j.duration;
   $('#e-start').disabled = started;
   $('#e-duration').disabled = started;
@@ -201,7 +225,7 @@ function openDetails(id){
   updateMembersSummary(j);
   updateScheduleSummary(j);
 
-  // Collapse defaults: open على الديسكتوب، مغلق على الجوال (اختياري)
+  // Collapse defaults responsive
   const isMobile = window.matchMedia('(max-width: 640px)').matches;
   $('#membersBlock').open = !isMobile;
   $('#scheduleBlock').open = !isMobile;
@@ -220,7 +244,6 @@ function maxMonthlyForMonth(j, month){
   return Math.floor(remaining / j.duration);
 }
 function colorForMonth(i){
-  // سبعة ألوان تدويرية خفيفة للخط الجانبي
   const colors = ["#22c55e","#16a34a","#2dd4bf","#60a5fa","#a78bfa","#f472b6","#f59e0b"];
   return colors[(i-1)%colors.length];
 }
@@ -269,7 +292,7 @@ function onSaveEdit(e){
 
   const newName = $('#e-name').value.trim();
   const newGoal = parseInt($('#e-goal').value);
-  const newStart = $('#e-start').value;
+  let newStart = $('#e-start').value;
   const newDuration = parseInt($('#e-duration').value);
   const started = hasStarted(j);
 
@@ -280,6 +303,10 @@ function onSaveEdit(e){
   if (!started){
     if (!newStart){ toast('حدد تاريخ البداية'); return; }
     if (!newDuration || newDuration<1){ toast('المدة غير صحيحة'); return; }
+
+    // Pin to day 01 always
+    newStart = normalizeToMonthStart(newStart);
+    $('#e-start').value = newStart;
 
     if (newDuration !== j.duration){
       j.members = j.members.map(m => ({
@@ -441,7 +468,7 @@ function renderSchedule(j){
   const body = $('#scheduleTable tbody');
   body.innerHTML = '';
 
-  const filter = state.scheduleFilter; // "all" or numeric string
+  const filter = state.scheduleFilter;
   const months = [];
   for (let i=1;i<=j.duration;i++){
     if (filter === 'all' || String(i) === filter) months.push(i);
@@ -512,39 +539,116 @@ function onDeleteJamiyah(){
   toast('تم حذف الجمعية');
 }
 
-/* ---------- Export / Import ---------- */
-function onExport(){
-  const j = currentJamiyah(); if (!j) return;
-  const data = JSON.stringify(j, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${j.name.replace(/\s+/g,'_')}.jamiyati.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove(); URL.revokeObjectURL(url);
-  toast('تم تصدير الجمعية');
-}
-function onImport(e){
-  const file = e.target.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try{
-      const obj = JSON.parse(reader.result);
-      if (!obj || !obj.name || !obj.startDate || !obj.duration) throw new Error('bad file');
-      let base = obj.name, n=1;
-      while(state.jamiyahs.some(x=>x.name === obj.name)){ obj.name = `${base} (${++n})`; }
-      obj.id = uid();
-      state.jamiyahs.push(obj);
-      saveAll();
-      renderList();
-      openDetails(obj.id);
-      toast('تم الاستيراد');
-    }catch(err){ toast('ملف غير صالح'); }
-  };
-  reader.readAsText(file);
+/* ---------- Export: Printable PDF ---------- */
+function exportPdf(j){
+  if (!j) return;
+  // Build print HTML
+  const title = `Jamiyati - ${j.name}`;
+  const css = `
+    <style>
+      @page { size: A4; margin: 16mm; }
+      body { font-family: -apple-system, Segoe UI, Roboto, Arial, "Noto Naskh Arabic", "IBM Plex Sans Arabic", sans-serif; color:#111; }
+      header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+      header .brand { display:flex; align-items:center; gap:8px; }
+      header h1 { font-size:20px; margin:0; }
+      .logo { width:20px; height:20px; }
+      .meta { color:#555; font-size:12px; margin-bottom:12px; }
+      h2 { margin:18px 0 8px; font-size:16px; }
+      table { width:100%; border-collapse: collapse; }
+      th, td { border:1px solid #ccc; padding:8px; text-align:right; font-size:12px; vertical-align:top; }
+      thead th { background:#f3f4f6; }
+      tfoot td { font-weight:700; background:#fafafa; }
+      .muted { color:#666; }
+      .right { text-align:left; }
+      footer { margin-top:20px; font-size:11px; color:#666; display:flex; justify-content:space-between; }
+    </style>
+  `;
+  // Members rows
+  const membersSorted = j.members.slice().sort((a,b)=> a.month-b.month || a.name.localeCompare(b.name));
+  const membersRows = membersSorted.map((m,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${m.name}</td>
+      <td>${Number(m.pay||0).toLocaleString('en-US')}</td>
+      <td>${Number(m.entitlement||0).toLocaleString('en-US')}</td>
+      <td>${monthLabel(j.startDate, m.month)}</td>
+    </tr>
+  `).join('');
+  const totPay = membersSorted.reduce((s,m)=>s+Number(m.pay||0),0);
+  const totEnt = membersSorted.reduce((s,m)=>s+Number(m.entitlement||0),0);
+
+  // Schedule rows
+  const scheduleRows = Array.from({length: j.duration}, (_,k)=>{
+    const i = k+1;
+    const receivers = j.members.filter(m=>Number(m.month)===i).sort((a,b)=>a.name.localeCompare(b.name));
+    const totalAssigned = receivers.reduce((s,m)=>s+Number(m.entitlement||0),0);
+    const remaining = Math.max(0, j.goal - totalAssigned);
+    const receiversText = receivers.length
+      ? receivers.map(r=>`${r.name} (${Number(r.entitlement||0).toLocaleString('en-US')})`).join('، ')
+      : '—';
+    return `
+      <tr>
+        <td>${monthLabel(j.startDate, i)}</td>
+        <td>${addMonths(j.startDate, i-1)}</td>
+        <td>${receiversText}</td>
+        <td>Spent: ${Number(totalAssigned).toLocaleString('en-US')} · Left: ${Number(remaining).toLocaleString('en-US')}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const html = `
+    <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="utf-8" />
+        <title>${title}</title>
+        ${css}
+      </head>
+      <body>
+        <header>
+          <div class="brand">
+            <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true">
+              <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
+              <circle cx="64" cy="50" r="22" fill="url(#lg)"></circle>
+              <path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"></path>
+            </svg>
+            <h1>جمعيتي</h1>
+          </div>
+          <div class="muted right">${new Date().toLocaleDateString('en-GB')}</div>
+        </header>
+
+        <div class="meta">
+          <div>الاسم: <strong>${j.name}</strong></div>
+          <div>الفترة: من ${j.startDate} لمدة ${Number(j.duration||0).toLocaleString('en-US')} شهر</div>
+          <div>الهدف الشهري: ${Number(j.goal||0).toLocaleString('en-US')} SAR</div>
+        </div>
+
+        <h2>الأعضاء</h2>
+        <table>
+          <thead><tr><th>#</th><th>الاسم</th><th>المساهمة (شهريًا)</th><th>الاستحقاق الكلي</th><th>شهر الاستلام</th></tr></thead>
+          <tbody>${membersRows || `<tr><td colspan="5" class="muted">لا يوجد أعضاء</td></tr>`}</tbody>
+          <tfoot><tr><td colspan="2">الإجمالي</td><td>${totPay.toLocaleString('en-US')}</td><td>${totEnt.toLocaleString('en-US')}</td><td></td></tr></tfoot>
+        </table>
+
+        <h2>الجدول الشهري</h2>
+        <table>
+          <thead><tr><th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th></tr></thead>
+          <tbody>${scheduleRows}</tbody>
+        </table>
+
+        <footer>
+          <span>© Aseel Thalnoon</span>
+          <span>Jamiyati · Generated from web app</span>
+        </footer>
+
+        <script>window.onload = () => { window.print(); setTimeout(()=>window.close(), 300); };</script>
+      </body>
+    </html>
+  `;
+
+  const w = window.open('', '_blank');
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
 }
 
 /* ---------- Back ---------- */
