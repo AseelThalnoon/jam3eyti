@@ -195,7 +195,7 @@
           <table class="table table--cards">
             <thead>
               <tr>
-                <th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>شهر الاستلام</th><th></th>
+                <th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>مدفوع / متبقي</th><th>شهر الاستلام</th><th></th>
               </tr>
             </thead>
             <tbody id="memberTableBody"></tbody>
@@ -204,7 +204,7 @@
                 <td colspan="2">الإجمالي</td>
                 <td id="totPay">0</td>
                 <td id="totEnt">0</td>
-                <td colspan="2"></td>
+                <td colspan="3"></td>
               </tr>
             </tfoot>
           </table>
@@ -243,10 +243,34 @@
     </section>
   </main>
 
+  <!-- Payments Modal -->
+  <dialog id="paymentsModal">
+    <form method="dialog" class="pmodal">
+      <header class="pmodal__header">
+        <h3 id="pmemberTitle">مدفوعات العضو</h3>
+        <menu>
+          <button type="reset" id="pmReset" class="btn ghost">إلغاء</button>
+          <button type="submit" id="pmSave" class="btn primary">حفظ</button>
+        </menu>
+      </header>
+
+      <div id="pmemberMeta" class="pmodal__meta"></div>
+      <div id="pmMonths" class="pmodal__grid"></div>
+
+      <footer class="pmodal__footer">
+        <div>المدفوع: <strong id="pmPaidSum">0</strong> SAR</div>
+        <div>المتبقي: <strong id="pmRemainSum">0</strong> SAR</div>
+        <div class="grow"></div>
+        <button type="button" id="pmMarkAll" class="btn secondary">تحديد الكل كمدفوع</button>
+        <button type="button" id="pmClearAll" class="btn ghost">مسح الكل</button>
+      </footer>
+    </form>
+  </dialog>
+
   <!-- Toasts -->
   <div id="toasts" class="toasts"></div>
 
-  <footer class="footer">v1.4 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
+  <footer class="footer">v1.5 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
   <script src="app.js"></script>
 </body>
 </html>
