@@ -93,6 +93,36 @@ small.hint { color: var(--muted); margin-top:4px; font-size:12px; min-height: 16
 
 .elevated { background: #0e1628; border-radius:12px; padding:10px; border:1px solid var(--border); }
 
+/* Collapsible sections */
+.collapsible {
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#0e1628;
+  margin-top:12px;
+}
+.collapsible > summary {
+  list-style:none;
+  cursor:pointer;
+  padding:10px 12px;
+  font-weight:600;
+  color:#d1d5db;
+  display:flex; align-items:center; gap:8px;
+  border-bottom:1px solid transparent;
+}
+.collapsible[open] > summary { border-bottom-color: var(--border); }
+.collapsible .content { padding:12px; }
+summary::-webkit-details-marker { display:none; }
+
+.caret::before {
+  content:"▸";
+  display:inline-block;
+  transform: rotate(-90deg);
+  transition: transform .15s ease;
+}
+details[open] > summary.caret::before {
+  transform: rotate(0deg);
+}
+
 /* Toasts */
 .toasts { position: fixed; inset-inline: 12px; bottom: 14px; display:flex; flex-direction:column; gap:8px; z-index:50; }
 .toast {
@@ -102,3 +132,9 @@ small.hint { color: var(--muted); margin-top:4px; font-size:12px; min-height: 16
 }
 @keyframes fadein { from{opacity:0} to{opacity:1} }
 @keyframes slideup { from{transform: translateY(4px)} to{transform: translateY(0)} }
+
+/* Mobile: collapse big sections by default */
+@media (max-width: 640px){
+  #membersBlock:not([data-force-open]) { /* default collapsed via JS when opening details */ }
+  #scheduleBlock:not([data-force-open]) { /* default collapsed via JS when opening details */ }
+}
