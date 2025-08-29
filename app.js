@@ -143,7 +143,8 @@ function openDetails(id){
   const isMobile=window.matchMedia('(max-width:640px)').matches;
   $('#membersBlock').open=!isMobile; $('#scheduleBlock').open=!isMobile;
 
-  $('#details').classList.remove('hidden'); window.scrollTo({top:0,behavior:'smooth'});
+$('#details').classList.remove('hidden');
+document.getElementById('details').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /* Helpers */
