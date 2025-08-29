@@ -1,8 +1,8 @@
-/* جمعيتي v0.7 — Polished UX/UI, logo, search, toasts, export/import */
+/* جمعيتي v0.8 — Collapsible Members & Schedule + footer credits kept in HTML */
 
 const $ = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
-const SKEY = "jamiyati:v02"; // keep storage key
+const SKEY = "jamiyati:v02";
 
 const state = {
   jamiyahs: loadAll(),
@@ -18,9 +18,7 @@ function monthLabel(startDate, offset){
   d.setMonth(d.getMonth() + (offset - 1));
   return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
-function startedStatus(j){
-  return hasStarted(j) ? `Started` : `Starts ${j.startDate}`;
-}
+function startedStatus(j){ return hasStarted(j) ? `Started` : `Starts ${j.startDate}`; }
 
 /* ---------- Storage & Migration ---------- */
 function migrateV01toV02(old) {
@@ -91,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ---------- Create Jamiyah ---------- */
 function onCreateJamiyah(e){
   e.preventDefault();
-  // clear errors
   setError('err-j-name'); setError('err-j-start'); setError('err-j-duration'); setError('err-j-goal');
 
   const name = $('#j-name').value.trim();
@@ -158,7 +155,6 @@ function renderList(){
     list.appendChild(row);
   });
 
-  // Hide details if no items
   if (state.jamiyahs.length === 0) $('#details').classList.add('hidden');
 }
 
@@ -185,11 +181,18 @@ function openDetails(id){
   $('#e-start').disabled = started;
   $('#e-duration').disabled = started;
 
+  // Mobile: collapse big sections by default, expand on desktop
+  const isMobile = window.matchMedia('(max-width: 640px)').matches;
+  $('#membersBlock').open = !isMobile;
+  $('#scheduleBlock').open = !isMobile;
+
   populateMonthOptions(j);
   updateMonthHint();
 
   renderMembers(j);
   renderSchedule(j);
+  updateMembersSummary(j);
+  updateScheduleSummary(j);
 
   $('#details').classList.remove('hidden');
   window.scrollTo({top:0, behavior:'smooth'});
@@ -203,6 +206,18 @@ function monthAssignedTotal(j, month){
 function maxMonthlyForMonth(j, month){
   const remaining = Math.max(0, j.goal - monthAssignedTotal(j, month));
   return Math.floor(remaining / j.duration);
+}
+
+/* Summaries for collapsible sections */
+function updateMembersSummary(j){
+  const txt = $('#mSummaryText');
+  if (!txt) return;
+  txt.textContent = `الأعضاء (${fmtInt(j.members.length)})`;
+}
+function updateScheduleSummary(j){
+  const txt = $('#sSummaryText');
+  if (!txt) return;
+  txt.textContent = `الجدول الشهري (${fmtInt(j.duration)} شهر)`;
 }
 
 /* Build month options with "max monthly" and FULL state */
@@ -302,10 +317,13 @@ function renderMembers(j){
         renderList();
         populateMonthOptions(jx);
         updateMonthHint();
+        updateMembersSummary(jx);
         toast('تم حذف العضو');
       });
       body.appendChild(tr);
     });
+
+  updateMembersSummary(j);
 }
 
 /* ---------- Add member ---------- */
@@ -352,6 +370,7 @@ function onAddMember(e){
   renderSchedule(j);
   renderList();
   updateMonthHint();
+  updateMembersSummary(j);
   toast('تمت إضافة العضو');
 }
 
@@ -383,6 +402,8 @@ function renderSchedule(j){
     `;
     body.appendChild(tr);
   }
+
+  updateScheduleSummary(j);
 }
 
 /* ---------- Live hint ---------- */
@@ -438,7 +459,6 @@ function onImport(e){
     try{
       const obj = JSON.parse(reader.result);
       if (!obj || !obj.name || !obj.startDate || !obj.duration) throw new Error('bad file');
-      // ensure unique name
       let base = obj.name, n=1;
       while(state.jamiyahs.some(x=>x.name === obj.name)){ obj.name = `${base} (${++n})`; }
       obj.id = uid();
