@@ -1,8 +1,13 @@
-/* v1.4 — Unified theme + branding, avatars in list/details, same logic as v1.3 */
+/* v1.5 — Fixed tabs, removed duplicate IDs, validated selectors
+   - Accessible tabs with keyboard support (Left/Right/Home/End)
+   - Details stay hidden until a jamiyah is opened
+   - All prior business logic preserved
+*/
 
 const $ = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
 const SKEY = "jamiyati:v02";
+const THEME_KEY = "jamiyati:theme"; // auto | light | dark
 
 const state = {
   jamiyahs: loadAll(),
@@ -22,12 +27,6 @@ function monthLabel(startDate, offset){
   return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 function startedStatus(j){ return hasStarted(j) ? `Started` : `Starts ${j.startDate}`; }
-function initials(name){
-  if(!name) return "؟";
-  const parts = name.trim().split(/\s+/);
-  const a = parts[0]?.[0] || "", b = parts[1]?.[0] || "";
-  return (a + b).toUpperCase();
-}
 
 /* ---------- Storage ---------- */
 function migrateV01toV02(old) {
@@ -64,42 +63,114 @@ function hasStarted(j){ const today=new Date().setHours(0,0,0,0); const start=ne
 function currentJamiyah(){ return state.jamiyahs.find(x=>x.id===state.currentId); }
 function toast(msg){ const box=$('#toasts'); const el=document.createElement('div'); el.className='toast'; el.textContent=msg; box.appendChild(el); setTimeout(()=>el.remove(),2200); }
 function setError(id,text){ const el=$(`#${id}`); if(el) el.textContent=text||''; }
-function monthToFirstDay(monthStr){ if(!monthStr) return ""; const [y,m]=monthStr.split('-'); if(!y||!m) return ""; return `${y}-${String(m).padStart(2,'0')}-01`; }
-function show(el){ el.classList.remove('hidden'); }
-function hide(el){ el.classList.add('hidden'); }
-function toggle(id, showIt){ const el=document.getElementById(id); if(!el) return; showIt?show(el):hide(el); }
-function setDetailsSectionsVisible(hasOpen){
-  toggle('editBlock', hasOpen);
-  toggle('addMemberBlock', hasOpen);
-  toggle('membersBlock', hasOpen);
-  toggle('scheduleBlock', hasOpen);
+function monthToFirstDay(monthStr){
+  if(!monthStr) return "";
+  const [y,m]=monthStr.split('-');
+  if(!y||!m) return "";
+  return `${y}-${String(m).padStart(2,'0')}-01`;
+}
+
+/* ---------- Theme ---------- */
+function applyTheme(mode){
+  const html = document.documentElement;
+  html.setAttribute('data-theme', mode || 'auto');
+  localStorage.setItem(THEME_KEY, mode || 'auto');
+}
+function initTheme(){
+  applyTheme(localStorage.getItem(THEME_KEY) || 'auto');
+  $('#themeToggle')?.addEventListener('click', ()=>{
+    const cur = localStorage.getItem(THEME_KEY) || 'auto';
+    const next = cur === 'auto' ? 'dark' : (cur === 'dark' ? 'light' : 'auto');
+    applyTheme(next);
+    toast(next === 'auto' ? 'Theme: Auto' : `Theme: ${next}`);
+  });
+}
+
+/* ---------- Tabs (accessible) ---------- */
+const Tabs = {
+  list: null, tabs: [], panels: [],
+  init(){
+    this.list = $('#tabsList');
+    if (!this.list) return;
+    this.tabs = $$('#tabsList [role="tab"]');
+    this.panels = ['editBlock','addMemberBlock','membersBlock','scheduleBlock'].map(id => document.getElementById(id)).filter(Boolean);
+
+    // click
+    this.tabs.forEach((t, idx) => t.addEventListener('click', () => this.setActive(idx)));
+    // keyboard
+    this.list.addEventListener('keydown', (e)=>{
+      const cur = this.tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+      let next = cur;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        const dir = e.key === 'ArrowRight' ? -1 : 1; // RTL
+        next = (cur + dir + this.tabs.length) % this.tabs.length;
+        e.preventDefault();
+      } else if (e.key === 'Home') { next = 0; e.preventDefault(); }
+      else if (e.key === 'End') { next = this.tabs.length-1; e.preventDefault(); }
+      if (next !== cur) this.setActive(next, true);
+    });
+
+    // default
+    this.setActive(2); // open on "الأعضاء" by default
+  },
+  setActive(i, focusTab=false){
+    this.tabs.forEach((t, idx)=>{
+      const sel = idx === i;
+      t.setAttribute('aria-selected', sel ? 'true' : 'false');
+      t.setAttribute('tabindex', sel ? '0' : '-1');
+      if (sel && focusTab) t.focus();
+    });
+    this.panels.forEach((p, idx)=>{ p.hidden = (idx !== i); });
+  }
+};
+
+/* ---------- Section visibility ---------- */
+function setDetailsVisible(hasOpen){
+  const details = $('#details');
+  const tabsWrap = $('#detailsTabs');
+  if (hasOpen) {
+    details.classList.remove('hidden');
+    tabsWrap.classList.remove('hidden');
+  } else {
+    details.classList.add('hidden');
+    tabsWrap.classList.add('hidden');
+  }
 }
 
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', () => {
-  hide($('#details'));
+  // Hide details on load
+  setDetailsVisible(false);
+  initTheme();
+  Tabs.init();
 
-  $('#jamiyahForm').addEventListener('submit', onCreateJamiyah);
-  $('#memberForm').addEventListener('submit', onAddMember);
-  $('#deleteJamiyah').addEventListener('click', onDeleteJamiyah);
-  $('#backBtn').addEventListener('click', showList);
+  // Create
+  $('#jamiyahForm')?.addEventListener('submit', onCreateJamiyah);
 
-  $('#editForm').addEventListener('submit', onSaveEdit);
-  $('#cancelEdit').addEventListener('click', (e)=>{ e.preventDefault(); $('#editBlock').open=false; });
+  // Member add
+  $('#memberForm')?.addEventListener('submit', onAddMember);
 
-  $('#search').addEventListener('input', (e)=>{ state.filter=(e.target.value||'').trim(); renderList(); });
+  // Nav
+  $('#deleteJamiyah')?.addEventListener('click', onDeleteJamiyah);
+  $('#backBtn')?.addEventListener('click', showList);
 
-  $('#exportBtn').addEventListener('click', ()=> exportPdf(currentJamiyah()));
+  // Edit
+  $('#editForm')?.addEventListener('submit', onSaveEdit);
+  $('#cancelEdit')?.addEventListener('click', (e)=>{ e.preventDefault(); /* keep panel open */ });
 
-  $('#m-month').addEventListener('change', updateMonthHint);
-  $('#m-pay').addEventListener('input', updateMonthHint);
+  // Search
+  $('#search')?.addEventListener('input', (e)=>{ state.filter=(e.target.value||'').trim(); renderList(); });
 
-  $('#memberSearch').addEventListener('input', (e)=>{ state.memberSearch=(e.target.value||'').trim(); renderMembers(currentJamiyah()); });
-  $('#memberSort').addEventListener('change', (e)=>{ state.memberSort=e.target.value; renderMembers(currentJamiyah()); });
+  // Export
+  $('#exportBtn')?.addEventListener('click', ()=> exportPdf(currentJamiyah()));
 
-  $('#scheduleFilter').addEventListener('change', (e)=>{ state.scheduleFilter=e.target.value; renderSchedule(currentJamiyah()); });
+  // Hints / filters
+  $('#m-month')?.addEventListener('change', updateMonthHint);
+  $('#m-pay')?.addEventListener('input', updateMonthHint);
+  $('#memberSearch')?.addEventListener('input', (e)=>{ state.memberSearch=(e.target.value||'').trim(); renderMembers(currentJamiyah()); });
+  $('#memberSort')?.addEventListener('change', (e)=>{ state.memberSort=e.target.value; renderMembers(currentJamiyah()); });
+  $('#scheduleFilter')?.addEventListener('change', (e)=>{ state.scheduleFilter=e.target.value; renderSchedule(currentJamiyah()); });
 
-  setDetailsSectionsVisible(false);
   renderList();
 });
 
@@ -135,50 +206,38 @@ function onCreateJamiyah(e){
 /* ---------- List ---------- */
 function renderList(){
   const list=$('#jamiyahList'); const empty=$('#emptyList'); const pill=$('#jamiyahCountPill');
-  const items=state.jamiyahs
-    .filter(j=>!state.filter || j.name.includes(state.filter))
-    .sort((a,b)=> a.name.localeCompare(b.name));
+  const items=state.jamiyahs.filter(j=>!state.filter||j.name.includes(state.filter)).sort((a,b)=>a.name.localeCompare(b.name));
   list.innerHTML=''; pill.textContent=fmtInt(items.length);
-
-  empty.classList.toggle('hidden', items.length>0);
+  empty.classList[items.length===0?'remove':'add']('hidden');
 
   items.forEach(j=>{
     const totalEntitlement=j.members.reduce((s,m)=>s+Number(m.entitlement||0),0);
     const row=document.createElement('div');
     row.className='item';
     row.innerHTML=`
-      <div class="jamiyah-row">
-        <div class="jamiyah-avatar" aria-hidden="true">${initials(j.name)}</div>
-        <div>
-          <div><strong>${j.name}</strong></div>
-          <div class="meta">
-            <span>من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر</span>
-            <span class="badge">الهدف الشهري: ${fmtMoney(j.goal)}</span>
-            <span class="badge">${startedStatus(j)}</span>
-            <span class="badge">مجموع الاستحقاقات: ${fmtMoney(totalEntitlement)}</span>
-          </div>
+      <div>
+        <div class="titleline"><svg class="i" style="color:var(--primary)"><use href="#logo"/></svg><strong>${j.name}</strong></div>
+        <div class="meta">
+          <span>من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر</span>
+          <span class="badge">الهدف الشهري: ${fmtMoney(j.goal)}</span>
+          <span class="badge">${startedStatus(j)}</span>
+          <span class="badge">مجموع الاستحقاقات: ${fmtMoney(totalEntitlement)}</span>
         </div>
       </div>
-      <button class="btn secondary" data-id="${j.id}">
-        <svg class="btn-ico" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-        فتح
-      </button>
+      <button class="btn secondary" data-id="${j.id}"><svg class="i"><use href="#ic-open"/></svg>فتح</button>
     `;
     row.querySelector('button').addEventListener('click', ()=> openDetails(j.id));
     list.appendChild(row);
   });
 
-  if(!state.currentId){ hide($('#details')); setDetailsSectionsVisible(false); }
+  if(!state.currentId){ setDetailsVisible(false); }
 }
 
 /* ---------- Open details ---------- */
 function openDetails(id){
   state.currentId=id;
   const j=currentJamiyah();
-  if(!j){ hide($('#details')); setDetailsSectionsVisible(false); return; }
-
-  // Avatar & header
-  $('#d-avatar').textContent = initials(j.name);
+  if(!j){ setDetailsVisible(false); return; }
 
   $('#d-title').textContent=j.name;
   $('#d-period').textContent=`من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر`;
@@ -187,9 +246,9 @@ function openDetails(id){
 
   const started=hasStarted(j);
   $('#startedAlert').hidden=!started;
-  $('#memberForm').querySelectorAll('input,button,select').forEach(el=>{ el.disabled=started; });
+  $('#memberForm')?.querySelectorAll('input,button,select').forEach(el=>{ el.disabled=started; });
 
-  // Edit
+  // Edit form
   $('#e-name').value=j.name;
   $('#e-goal').value=j.goal;
   $('#e-start').value=j.startDate.slice(0,7);
@@ -205,8 +264,8 @@ function openDetails(id){
   updateMembersSummary(j);
   updateScheduleSummary(j);
 
-  setDetailsSectionsVisible(true);
-  show($('#details'));
+  setDetailsVisible(true);
+  Tabs.setActive(2); // open on "الأعضاء"
   document.getElementById('details')?.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
@@ -225,7 +284,8 @@ function colorForMonth(i){
 
 /* ---------- Month selects ---------- */
 function populateMonthOptions(j){
-  const select=$('#m-month'); const current=select.value; select.innerHTML='';
+  const select=$('#m-month'); if(!select) return;
+  const current=select.value; select.innerHTML='';
   for(let i=1;i<=j.duration;i++){
     const maxMonthly=maxMonthlyForMonth(j,i);
     const opt=document.createElement('option');
@@ -237,7 +297,8 @@ function populateMonthOptions(j){
   if(current && Number(current)>=1 && Number(current)<=j.duration) select.value=current;
 }
 function populateScheduleFilter(j){
-  const sel=$('#scheduleFilter'); const current=state.scheduleFilter; sel.innerHTML='';
+  const sel=$('#scheduleFilter'); if(!sel) return;
+  const current=state.scheduleFilter; sel.innerHTML='';
   const all=document.createElement('option'); all.value='all'; all.textContent='عرض: كل الشهور'; sel.appendChild(all);
   for(let i=1;i<=j.duration;i++){ const o=document.createElement('option'); o.value=String(i); o.textContent=monthLabel(j.startDate,i); sel.appendChild(o); }
   sel.value=current||'all';
@@ -264,7 +325,6 @@ function onSaveEdit(e){
     if(!startMonth){ toast('حدد شهر البداية'); return; }
     if(!newDuration||newDuration<1){ toast('المدة غير صحيحة'); return; }
     const newStart=monthToFirstDay(startMonth);
-
     if(newDuration!==j.duration){
       j.members=j.members.map(m=>({ ...m, entitlement:Number(m.pay||0)*newDuration, month:Math.min(m.month,newDuration) }));
     }
@@ -273,10 +333,8 @@ function onSaveEdit(e){
   }
 
   j.name=newName; j.goal=newGoal; saveAll();
-
   openDetails(j.id);
   renderList();
-  $('#editBlock').open=false;
   toast('تم حفظ التعديلات');
 }
 
@@ -288,6 +346,7 @@ function updateMembersSummary(j){
 function renderMembers(j){
   if(!j) return;
   const body=$('#memberTableBody'); const empty=$('#emptyMembers'); const totPay=$('#totPay'); const totEnt=$('#totEnt');
+  if(!body||!empty||!totPay||!totEnt) return;
   body.innerHTML='';
 
   let rows=j.members.slice();
@@ -300,41 +359,33 @@ function renderMembers(j){
   else { rows.sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name)); }
 
   let totalPay=0,totalEnt=0;
-  if(rows.length===0){ empty.classList.remove('hidden'); }
-  else{
-    empty.classList.add('hidden');
-    rows.forEach((m,idx)=>{
-      totalPay+=Number(m.pay||0); totalEnt+=Number(m.entitlement||0);
+  empty.classList[rows.length===0?'remove':'add']('hidden');
 
-      const tr=document.createElement('tr'); tr.className='row-accent'; tr.style.borderInlineStartColor=colorForMonth(m.month);
-
-      const cells=[
-        ['#',fmtInt(idx+1)],
-        ['الاسم',m.name],
-        ['المساهمة',fmtMoney(m.pay)],
-        ['الاستحقاق الكلي',fmtMoney(m.entitlement)],
-        ['شهر الاستلام',monthLabel(j.startDate,m.month)],
-        ['', '']
-      ];
-      cells.forEach(([label,val],i)=>{
-        const td=document.createElement('td'); td.setAttribute('data-col',label); td.innerHTML=val;
-        if(i===5){
-          const btn=document.createElement('button'); btn.className='btn danger'; btn.innerHTML='<svg class="btn-ico" viewBox="0 0 24 24"><path d="M6 7h12M9 7v12m6-12v12M10 7l1-2h2l1 2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg> حذف';
-          btn.addEventListener('click', ()=>{
-            const jx=currentJamiyah(); if(!jx) return;
-            if(hasStarted(jx)){ toast('بدأت الجمعية. لا يمكن تعديل الأعضاء.'); return; }
-            if(!confirm(`حذف ${m.name}؟`)) return;
-            jx.members=jx.members.filter(x=>x.id!==m.id); saveAll();
-            renderMembers(jx); renderSchedule(jx); renderList(); populateMonthOptions(jx); updateMonthHint(); updateMembersSummary(jx);
-            toast('تم حذف العضو');
-          });
-          td.appendChild(btn);
-        }
-        tr.appendChild(td);
-      });
-      body.appendChild(tr);
+  rows.forEach((m,idx)=>{
+    totalPay+=Number(m.pay||0); totalEnt+=Number(m.entitlement||0);
+    const tr=document.createElement('tr'); tr.className='row-accent'; tr.style.borderInlineStartColor=colorForMonth(m.month);
+    const cells=[
+      ['#',fmtInt(idx+1)],['الاسم',m.name],['المساهمة',fmtMoney(m.pay)],
+      ['الاستحقاق الكلي',fmtMoney(m.entitlement)],['شهر الاستلام',monthLabel(j.startDate,m.month)],['','']
+    ];
+    cells.forEach(([label,val],i)=>{
+      const td=document.createElement('td'); td.setAttribute('data-col',label); td.innerHTML=val;
+      if(i===5){ const btn=document.createElement('button'); btn.className='btn danger'; btn.textContent='حذف';
+        btn.addEventListener('click',()=>{
+          const jx=currentJamiyah(); if(!jx) return;
+          if(hasStarted(jx)){ toast('بدأت الجمعية. لا يمكن تعديل الأعضاء.'); return; }
+          if(!confirm(`حذف ${m.name}؟`)) return;
+          jx.members=jx.members.filter(x=>x.id!==m.id); saveAll();
+          renderMembers(jx); renderSchedule(jx); renderList(); populateMonthOptions(jx); updateMonthHint(); updateMembersSummary(jx);
+          toast('تم حذف العضو');
+        });
+        td.appendChild(btn);
+      }
+      tr.appendChild(td);
     });
-  }
+    body.appendChild(tr);
+  });
+
   totPay.textContent=fmtMoney(totalPay);
   totEnt.textContent=fmtMoney(totalEnt);
   updateMembersSummary(j);
@@ -377,12 +428,13 @@ function onAddMember(e){
 
 /* ---------- Schedule ---------- */
 function updateScheduleSummary(j){
-  $('#sSummaryText').textContent='الجدول الشهري';
-  $('#sCountPill').textContent=fmtInt(j.duration);
+  $('#sSummaryText')?.textContent='الجدول الشهري';
+  $('#sCountPill')?.textContent=fmtInt(j.duration);
 }
 function renderSchedule(j){
   if(!j) return;
-  const body=$('#scheduleTableBody'); body.innerHTML='';
+  const body=$('#scheduleTableBody'); if(!body) return;
+  body.innerHTML='';
   const filter=state.scheduleFilter; const months=[];
   for(let i=1;i<=j.duration;i++){ if(filter==='all' || String(i)===filter) months.push(i); }
 
@@ -405,16 +457,6 @@ function renderSchedule(j){
   });
 
   updateScheduleSummary(j);
-}
-
-/* ---------- Hint ---------- */
-function updateMonthHint(){
-  const j=currentJamiyah(); const hint=$('#monthHint'); const sel=$('#m-month');
-  if(!j||!sel||!sel.value){ hint.textContent=''; return; }
-  const monthVal=parseInt(sel.value); const maxMonthly=maxMonthlyForMonth(j,monthVal); const pay=parseInt($('#m-pay').value||'0');
-  let line=`Max monthly in ${monthLabel(j.startDate,monthVal)}: ${fmtMoney(maxMonthly)} SAR`;
-  if(pay){ line += pay>maxMonthly ? ` · Your input (${fmtMoney(pay)}) is above max` : ` · Your input (${fmtMoney(pay)}) is within max`; }
-  hint.textContent=line;
 }
 
 /* ---------- Delete ---------- */
@@ -442,23 +484,22 @@ function exportPdf(j){
       th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}
       thead th{background:#f3f4f6}
       tfoot td{font-weight:700;background:#fafafa}
+      .muted{color:#666}
       footer{margin-top:20px;font-size:11px;color:#666;display:flex;justify-content:space-between}
     </style>
   `;
   const members=j.members.slice().sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
-  const rowsMembers=members.map((m,i)=>`
+  const membersRows=members.map((m,i)=>`
     <tr><td>${i+1}</td><td>${m.name}</td><td>${fmtMoney(m.pay)}</td><td>${fmtMoney(m.entitlement)}</td><td>${monthLabel(j.startDate,m.month)}</td></tr>
   `).join('');
   const totPay=members.reduce((s,m)=>s+Number(m.pay||0),0);
   const totEnt=members.reduce((s,m)=>s+Number(m.entitlement||0),0);
 
-  const rowsSchedule=Array.from({length:j.duration},(_,k)=>{
-    const i=k+1;
-    const rec=j.members.filter(m=>Number(m.month)===i).sort((a,b)=>a.name.localeCompare(b.name));
-    const totalAssigned=rec.reduce((s,m)=>s+Number(m.entitlement||0),0);
-    const remaining=Math.max(0,j.goal-totalAssigned);
-    const recTxt=rec.length?rec.map(r=>`${r.name} (${fmtMoney(r.entitlement)})`).join('، '):'—';
-    return `<tr><td>${monthLabel(j.startDate,i)}</td><td>${addMonths(j.startDate,i-1)}</td><td>${recTxt}</td><td>Spent: ${fmtMoney(totalAssigned)} · Left: ${fmtMoney(remaining)}</td></tr>`;
+  const scheduleRows=Array.from({length:j.duration},(_,k)=>{
+    const i=k+1; const rec=j.members.filter(m=>Number(m.month)===i).sort((a,b)=>a.name.localeCompare(b.name));
+    const totalAssigned=rec.reduce((s,m)=>s+Number(m.entitlement||0),0); const remaining=Math.max(0,j.goal-totalAssigned);
+    const receiversText=rec.length?rec.map(r=>`${r.name} (${fmtMoney(r.entitlement)})`).join('، '):'—';
+    return `<tr><td>${monthLabel(j.startDate,i)}</td><td>${addMonths(j.startDate,i-1)}</td><td>${receiversText}</td><td>Spent: ${fmtMoney(totalAssigned)} · Left: ${fmtMoney(remaining)}</td></tr>`;
   }).join('');
 
   const html=`
@@ -467,11 +508,7 @@ function exportPdf(j){
       <body>
         <header>
           <div class="brand">
-            <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-              <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
-              <circle cx="64" cy="50" r="22" fill="url(#lg)"></circle>
-              <path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"></path>
-            </svg>
+            <svg class="logo" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="#0b1220"/><circle cx="64" cy="52" r="22" fill="#22c55e"></circle><path d="M24 100c10-18 28-28 40-28s30 10 40 28" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>
             <h1>جمعيتي</h1>
           </div>
           <div class="muted">${new Date().toLocaleDateString('en-GB')}</div>
@@ -486,14 +523,14 @@ function exportPdf(j){
         <h2>الأعضاء</h2>
         <table>
           <thead><tr><th>#</th><th>الاسم</th><th>المساهمة (شهريًا)</th><th>الاستحقاق الكلي</th><th>شهر الاستلام</th></tr></thead>
-          <tbody>${rowsMembers || `<tr><td colspan="5">لا يوجد أعضاء</td></tr>`}</tbody>
+          <tbody>${membersRows || `<tr><td colspan="5" class="muted">لا يوجد أعضاء</td></tr>`}</tbody>
           <tfoot><tr><td colspan="2">الإجمالي</td><td>${fmtMoney(totPay)}</td><td>${fmtMoney(totEnt)}</td><td></td></tr></tfoot>
         </table>
 
         <h2>الجدول الشهري</h2>
         <table>
           <thead><tr><th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th></tr></thead>
-          <tbody>${rowsSchedule}</tbody>
+          <tbody>${scheduleRows}</tbody>
         </table>
 
         <footer>
@@ -510,7 +547,6 @@ function exportPdf(j){
 
 /* ---------- Back ---------- */
 function showList(){
-  hide($('#details'));
+  setDetailsVisible(false);
   state.currentId=null;
-  setDetailsSectionsVisible(false);
 }
