@@ -1,36 +1,68 @@
-const members = [];
-
-function addMember() {
-  const name = document.getElementById("memberName").value.trim();
-  const contribution = parseFloat(document.getElementById("contribution").value);
-  const preferredMonth = parseInt(document.getElementById("preferredMonth").value);
-
-  if (!name || isNaN(contribution) || isNaN(preferredMonth)) {
-    alert("الرجاء تعبئة جميع الحقول بشكل صحيح");
-    return;
-  }
-
-  const member = {
-    name,
-    contribution,
-    preferredMonth,
-  };
-
-  members.push(member);
-  updateMembersList();
-
-  document.getElementById("memberName").value = "";
-  document.getElementById("contribution").value = "";
-  document.getElementById("preferredMonth").value = "";
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  direction: rtl;
+  background: #f4f4f4;
+  margin: 0;
+  padding: 20px;
 }
 
-function updateMembersList() {
-  const list = document.getElementById("membersList");
-  list.innerHTML = "";
+.container {
+  max-width: 600px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 
-  members.forEach((member, index) => {
-    const li = document.createElement("li");
-    li.textContent = `👤 ${member.name} - 💰 ${member.contribution} ر.س - 📅 شهر ${member.preferredMonth}`;
-    list.appendChild(li);
-  });
+h1, h2 {
+  text-align: center;
+  color: #2c3e50;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  margin-top: 15px;
+  width: 100%;
+  background-color: #3498db;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 10px;
+  background: #ecf0f1;
+  margin-bottom: 5px;
+  border-radius: 4px;
 }
