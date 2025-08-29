@@ -22,8 +22,8 @@ html,body { margin:0; padding:0; background:var(--bg); color:var(--fg); font-fam
 @media (max-width:640px) { .grid { grid-template-columns: 1fr; } }
 
 label { display:flex; flex-direction:column; gap:6px; font-size:14px; color:var(--muted); }
-input { padding:10px; border-radius:10px; border:1px solid var(--border); background:#0b1220; color:var(--fg); }
-input:focus { outline:2px solid #1e293b; }
+input, select { padding:10px; border-radius:10px; border:1px solid var(--border); background:#0b1220; color:var(--fg); }
+input:focus, select:focus { outline:2px solid #1e293b; }
 
 small.hint { color: var(--muted); margin-top:4px; font-size:12px; min-height: 16px; }
 
