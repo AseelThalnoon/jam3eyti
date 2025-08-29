@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
-
-  <!-- Favicon (inline SVG) -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2311a34b"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -22,46 +20,57 @@
     </div>
 
     <div class="actions-right">
-      <input id="search" class="search" placeholder="ابحث عن جمعية بالاسم…" />
+      <input id="search" class="search" placeholder="ابحث عن جمعية…" />
     </div>
   </header>
 
   <main class="container">
-    <!-- Create Jamiyah -->
+    <!-- Create Jamiyah (collapsible) -->
     <section class="card">
-      <h2>إنشاء جمعية جديدة</h2>
-      <form id="jamiyahForm" novalidate>
-        <div class="grid">
-          <label>اسم الجمعية
-            <input required id="j-name" placeholder="مثال: جمعية رمضان" />
-            <span class="error" id="err-j-name"></span>
-          </label>
+      <details id="createBlock" class="collapsible" open>
+        <summary class="caret section-title">
+          <span class="section-icon">➕</span>
+          <span>إنشاء جمعية</span>
+        </summary>
+        <div class="content">
+          <form id="jamiyahForm" novalidate>
+            <div class="grid">
+              <label>اسم الجمعية
+                <input required id="j-name" placeholder="مثال: جمعية رمضان" />
+                <span class="error" id="err-j-name"></span>
+              </label>
 
-          <label>تاريخ البداية
-            <input required id="j-start" type="date" />
-            <small class="hint">يتم ضبطه تلقائيًا ليوم 01 من الشهر</small>
-            <span class="error" id="err-j-start"></span>
-          </label>
+              <label>تاريخ البداية
+                <input required id="j-start" type="date" />
+                <small class="hint">يثبّت تلقائيًا على يوم 01</small>
+                <span class="error" id="err-j-start"></span>
+              </label>
 
-          <label>المدة (أشهر)
-            <input required id="j-duration" type="number" inputmode="numeric" min="1" max="60" value="6" />
-            <span class="error" id="err-j-duration"></span>
-          </label>
+              <label>المدة (أشهر)
+                <input required id="j-duration" type="number" inputmode="numeric" min="1" max="60" value="6" />
+                <span class="error" id="err-j-duration"></span>
+              </label>
 
-          <label>الهدف (سقف الصرف الشهري) · SAR
-            <input required id="j-goal" type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 30000" />
-            <span class="error" id="err-j-goal"></span>
-          </label>
+              <label>الهدف الشهري (SAR)
+                <input required id="j-goal" type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 30000" />
+                <span class="error" id="err-j-goal"></span>
+              </label>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="btn primary">إنشاء</button>
+              <button type="reset" class="btn secondary">مسح</button>
+            </div>
+          </form>
         </div>
-
-        <button type="submit" class="btn primary">إنشاء</button>
-      </form>
+      </details>
     </section>
 
     <!-- List Jamiyahs (collapsible) -->
     <section class="card">
       <details id="listBlock" class="collapsible" open>
         <summary class="caret section-title">
+          <span class="section-icon">📚</span>
           <span>الجمعيات</span>
           <span class="pill" id="jamiyahCountPill">0</span>
         </summary>
@@ -69,13 +78,13 @@
           <div id="jamiyahList" class="list"></div>
           <div id="emptyList" class="empty hidden">
             <div class="empty-illustration">🙂</div>
-            <div>ابدأ بإنشاء أول جمعية لك من الأعلى.</div>
+            <div>ابدأ بإنشاء أول جمعية من القسم الأعلى.</div>
           </div>
         </div>
       </details>
     </section>
 
-    <!-- Jamiyah Details -->
+    <!-- Jamiyah Details (collapsible sections inside) -->
     <section id="details" class="card hidden">
       <div class="details-header">
         <div>
@@ -87,66 +96,71 @@
           </div>
         </div>
         <div class="details-ops">
-          <button class="btn" id="exportBtn">تصدير PDF</button>
-          <!-- تم إخفاء الاستيراد حسب طلبك -->
+          <button class="btn info" id="exportBtn">📄 تصدير PDF</button>
         </div>
       </div>
 
-      <div class="alert" id="startedAlert" hidden>
-        بدأت الجمعية. لا يمكن إضافة أعضاء جدد.
-      </div>
+      <div class="alert" id="startedAlert" hidden>بدأت الجمعية. لا يمكن إضافة أعضاء جدد.</div>
 
       <!-- Edit Jamiyah -->
-      <details id="editBlock" class="elevated">
-        <summary class="btn caret">تعديل الجمعية</summary>
-        <form id="editForm" class="grid" style="margin-top:10px;" novalidate>
-          <label>اسم الجمعية
-            <input id="e-name" required />
-            <span class="error" id="err-e-name"></span>
-          </label>
+      <details id="editBlock" class="collapsible elevated">
+        <summary class="caret section-title"><span class="section-icon">✏️</span><span>تعديل الجمعية</span></summary>
+        <div class="content">
+          <form id="editForm" class="grid" novalidate>
+            <label>اسم الجمعية
+              <input id="e-name" required />
+              <span class="error" id="err-e-name"></span>
+            </label>
 
-          <label>الهدف (سقف الصرف الشهري) · SAR
-            <input id="e-goal" type="number" min="1" step="1" required />
-            <span class="error" id="err-e-goال"></span>
-          </label>
+            <label>الهدف الشهري (SAR)
+              <input id="e-goal" type="number" min="1" step="1" required />
+              <span class="error" id="err-e-goal"></span>
+            </label>
 
-          <label>تاريخ البداية
-            <input id="e-start" type="date" />
-            <small class="hint">يُضبط تلقائيًا على يوم 01 · لا يمكن تعديله بعد البدء</small>
-          </label>
+            <label>تاريخ البداية
+              <input id="e-start" type="date" />
+              <small class="hint">يثبّت على يوم 01 · يُقفل بعد البدء</small>
+            </label>
 
-          <label>المدة (أشهر)
-            <input id="e-duration" type="number" min="1" max="60" />
-            <small class="hint">لا يمكن تعديلها بعد بدء الجمعية</small>
-          </label>
+            <label>المدة (أشهر)
+              <input id="e-duration" type="number" min="1" max="60" />
+              <small class="hint">يُقفل بعد البدء</small>
+            </label>
 
-          <div class="actions">
-            <button class="btn primary" id="saveEdit" type="submit">حفظ</button>
-            <button class="btn" id="cancelEdit" type="button">إلغاء</button>
-          </div>
-        </form>
+            <div class="actions">
+              <button class="btn primary" id="saveEdit" type="submit">حفظ</button>
+              <button class="btn secondary" id="cancelEdit" type="button">إلغاء</button>
+            </div>
+          </form>
+        </div>
       </details>
 
-      <h3>إضافة عضو</h3>
-      <form id="memberForm" class="grid" novalidate>
-        <label>اسم العضو
-          <input id="m-name" required placeholder="مثال: Ahmed" />
-          <span class="error" id="err-m-name"></span>
-        </label>
+      <details id="addMemberBlock" class="collapsible" open>
+        <summary class="caret section-title"><span class="section-icon">🧩</span><span>إضافة عضو</span></summary>
+        <div class="content">
+          <form id="memberForm" class="grid" novalidate>
+            <label>اسم العضو
+              <input id="m-name" required placeholder="مثال: Ahmed" />
+              <span class="error" id="err-m-name"></span>
+            </label>
 
-        <label>المساهمة الشهرية (SAR)
-          <input id="m-pay" required type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 1000" />
-          <span class="error" id="err-m-pay"></span>
-        </label>
+            <label>المساهمة الشهرية (SAR)
+              <input id="m-pay" required type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 1000" />
+              <span class="error" id="err-m-pay"></span>
+            </label>
 
-        <label>شهر الاستلام
-          <select id="m-month" required></select>
-          <small id="monthHint" class="hint"></small>
-          <span class="error" id="err-m-month"></span>
-        </label>
+            <label>شهر الاستلام
+              <select id="m-month" required></select>
+              <small id="monthHint" class="hint"></small>
+              <span class="error" id="err-m-month"></span>
+            </label>
 
-        <button class="btn">إضافة</button>
-      </form>
+            <div class="actions">
+              <button class="btn success">إضافة</button>
+            </div>
+          </form>
+        </div>
+      </details>
 
       <!-- Members -->
       <details id="membersBlock" class="collapsible" open>
@@ -159,15 +173,15 @@
           <div class="subtoolbar">
             <input id="memberSearch" class="search small" placeholder="بحث بالاسم…" />
             <select id="memberSort" class="select small">
-              <option value="month">ترتيب: بالشهر</option>
-              <option value="name">ترتيب: بالاسم</option>
-              <option value="pay">ترتيب: بالمساهمة</option>
+              <option value="month">بالشهر</option>
+              <option value="name">بالاسم</option>
+              <option value="pay">بالمساهمة</option>
             </select>
           </div>
           <table class="table table--cards" id="memberTable">
             <thead>
               <tr>
-                <th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>شهر الاستلام</th><th></th>
+                <th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق</th><th>شهر الاستلام</th><th></th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -194,7 +208,7 @@
         <div class="content">
           <div class="subtoolbar">
             <select id="scheduleFilter" class="select small">
-              <option value="all">عرض: كل الشهور</option>
+              <option value="all">كل الشهور</option>
             </select>
           </div>
           <table class="table table--cards" id="scheduleTable">
@@ -209,16 +223,15 @@
       </details>
 
       <div class="actions">
-        <button class="btn danger" id="deleteJamiyah">حذف الجمعية</button>
-        <button class="btn" id="backBtn">رجوع</button>
+        <button class="btn danger" id="deleteJamiyah">🗑️ حذف الجمعية</button>
+        <button class="btn secondary" id="backBtn">رجوع</button>
       </div>
     </section>
   </main>
 
-  <!-- Toasts -->
   <div id="toasts" class="toasts"></div>
 
-  <footer class="footer">v1.0 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
+  <footer class="footer">v1.1 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
   <script src="app.js"></script>
 </body>
 </html>
