@@ -1,22 +1,20 @@
-/* جمعيتي v0.2 - سقف شهري يساوي الهدف، مع مستلمين متعددين لكل شهر */
-/* Data shape:
-  jamiyah = {
-    id, name, startDate, duration, goal (>0),
-    members: [{id, name, pay, month, entitlement}],
-    createdAt
-  }
-*/
+/* جمعيتي v0.3 - أرقام بالإنجليزية + اختيار شهر من قائمة */
+/* Monthly cap = goal, multiple receivers per month */
 
 const $ = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
-const SKEY = "jamiyati:v02";
+const SKEY = "jamiyati:v02"; // نفس المفتاح، البيانات السابقة تبقى صالحة
 
 const state = {
   jamiyahs: loadAll(),
   currentId: null,
 };
 
-/* Migration from v0.1 if present */
+/* ------- Formatting (English digits) ------- */
+function fmtMoney(n){ return Number(n||0).toLocaleString('en-US'); }
+function fmtInt(n){ return Number(n||0).toLocaleString('en-US'); }
+
+/* ------- Migration from v0.1 if present ------- */
 function migrateV01toV02(old) {
   return (old || []).map(j => ({
     ...j,
@@ -47,25 +45,24 @@ function loadAll() {
 function saveAll() { localStorage.setItem(SKEY, JSON.stringify(state.jamiyahs)); }
 
 function uid() { return Math.random().toString(36).slice(2,10); }
-function fmtMoney(n){ return Number(n||0).toLocaleString('ar-EG'); }
 function addMonths(dateStr, i){ const d = new Date(dateStr); d.setMonth(d.getMonth()+i); return d.toISOString().slice(0,10); }
 function hasStarted(j){ const today = new Date().setHours(0,0,0,0); const start = new Date(j.startDate).setHours(0,0,0,0); return today >= start; }
 
-/* UI wiring */
+/* ------- UI wiring ------- */
 document.addEventListener('DOMContentLoaded', () => {
   $('#jamiyahForm').addEventListener('submit', onCreateJamiyah);
   $('#memberForm').addEventListener('submit', onAddMember);
   $('#deleteJamiyah').addEventListener('click', onDeleteJamiyah);
   $('#backBtn').addEventListener('click', () => showList());
 
-  // Live hint for month remaining cap
-  $('#m-month').addEventListener('input', updateMonthHint);
+  // Live hint when month or pay changes
+  $('#m-month').addEventListener('change', updateMonthHint);
   $('#m-pay').addEventListener('input', updateMonthHint);
 
   renderList();
 });
 
-/* Create Jamiyah */
+/* ------- Create Jamiyah ------- */
 function onCreateJamiyah(e){
   e.preventDefault();
   const name = $('#j-name').value.trim();
@@ -89,7 +86,7 @@ function onCreateJamiyah(e){
   renderList();
 }
 
-/* List Jamiyahs */
+/* ------- List Jamiyahs ------- */
 function renderList(){
   const list = $('#jamiyahList');
   list.innerHTML = '';
@@ -108,7 +105,7 @@ function renderList(){
       <div>
         <div><strong>${j.name}</strong></div>
         <div class="meta">
-          من ${j.startDate} لمدة ${j.duration} شهر
+          من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر
           · <span class="badge">الهدف الشهري: ${fmtMoney(j.goal)}</span>
           · <span class="badge">مجموع الاستحقاقات: ${fmtMoney(totalEntitlement)}</span>
         </div>
@@ -120,25 +117,23 @@ function renderList(){
   });
 }
 
-/* Open details */
+/* ------- Open details ------- */
 function openDetails(id){
   state.currentId = id;
   const j = state.jamiyahs.find(x=>x.id===id);
   if (!j) return;
 
   $('#d-title').textContent = j.name;
-  $('#d-period').textContent = `من ${j.startDate} لمدة ${j.duration} شهر`;
+  $('#d-period').textContent = `من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر`;
   $('#d-goal').textContent = `الهدف الشهري: ${fmtMoney(j.goal)}`;
 
   const started = hasStarted(j);
   $('#startedAlert').hidden = !started;
-  $('#memberForm').querySelectorAll('input,button').forEach(el => { el.disabled = started; });
+  // تأكد أننا نعطل select أيضًا
+  $('#memberForm').querySelectorAll('input,button,select').forEach(el => { el.disabled = started; });
 
-  // set month input bounds + hint
-  const mMonth = $('#m-month');
-  mMonth.min = 1;
-  mMonth.max = j.duration;
-  mMonth.placeholder = `1 إلى ${j.duration}`;
+  // بناء خيارات الأشهر
+  populateMonthOptions(j);
   updateMonthHint();
 
   renderMembers(j);
@@ -148,13 +143,32 @@ function openDetails(id){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-/* Helpers for monthly cap logic */
+/* ------- Helpers for monthly cap logic ------- */
 function monthAssignedTotal(j, month){
   return j.members.filter(m=>Number(m.month)===Number(month))
                   .reduce((s,m)=>s+Number(m.entitlement||0),0);
 }
 
-/* Render members */
+/* تعبئة قائمة الأشهر المتاحة مع المتبقي لكل شهر */
+function populateMonthOptions(j){
+  const select = $('#m-month');
+  const current = select.value; // احتفظ بالاختيار لو كان موجود
+  select.innerHTML = '';
+  for (let i=1; i<=j.duration; i++){
+    const already = monthAssignedTotal(j, i);
+    const remaining = Math.max(0, j.goal - already);
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = `شهر ${fmtInt(i)} · المتبقي: ${fmtMoney(remaining)}`;
+    select.appendChild(option);
+  }
+  // حاول ترجع الاختيار السابق إن كان صالح
+  if (current && Number(current) >= 1 && Number(current) <= j.duration) {
+    select.value = current;
+  }
+}
+
+/* ------- Render members ------- */
 function renderMembers(j){
   const body = $('#memberTable tbody');
   body.innerHTML = '';
@@ -163,11 +177,11 @@ function renderMembers(j){
     .forEach((m,idx)=>{
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${idx+1}</td>
+        <td>${fmtInt(idx+1)}</td>
         <td>${m.name}</td>
         <td>${fmtMoney(m.pay)}</td>
         <td>${fmtMoney(m.entitlement)}</td>
-        <td>${m.month}</td>
+        <td>${fmtInt(m.month)}</td>
         <td><button class="btn danger btn-sm" data-id="${m.id}">حذف</button></td>
       `;
       tr.querySelector('button').addEventListener('click', ()=>{
@@ -179,13 +193,14 @@ function renderMembers(j){
         renderMembers(jx);
         renderSchedule(jx);
         renderList();
+        populateMonthOptions(jx);
         updateMonthHint();
       });
       body.appendChild(tr);
     });
 }
 
-/* Add member */
+/* ------- Add member ------- */
 function onAddMember(e){
   e.preventDefault();
   const j = state.jamiyahs.find(x=>x.id===state.currentId);
@@ -198,7 +213,7 @@ function onAddMember(e){
 
   if (!name || !pay || !month) return;
   if (month < 1 || month > j.duration) {
-    alert(`شهر الاستلام يجب أن يكون بين 1 و ${j.duration}.`);
+    alert(`شهر الاستلام يجب أن يكون بين 1 و ${fmtInt(j.duration)}.`);
     return;
   }
 
@@ -208,7 +223,7 @@ function onAddMember(e){
   const remaining = j.goal - already;
 
   if (entitlement > remaining) {
-    alert(`السقف الشهري (${fmtMoney(j.goal)}) لا يكفي لهذا الاستحقاق.\nالمتبقي في شهر ${month}: ${fmtMoney(remaining)}.\nاختر شهرًا آخر أو خفّض المساهمة.`);
+    alert(`السقف الشهري (${fmtMoney(j.goal)}) لا يكفي لهذا الاستحقاق.\nالمتبقي في شهر ${fmtInt(month)}: ${fmtMoney(remaining)}.\nاختر شهرًا آخر أو خفّض المساهمة.`);
     return;
   }
 
@@ -219,10 +234,11 @@ function onAddMember(e){
   renderMembers(j);
   renderSchedule(j);
   renderList();
+  populateMonthOptions(j);
   updateMonthHint();
 }
 
-/* Schedule */
+/* ------- Schedule ------- */
 function renderSchedule(j){
   const body = $('#scheduleTable tbody');
   body.innerHTML = '';
@@ -243,7 +259,7 @@ function renderSchedule(j){
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${monthIndex}</td>
+      <td>${fmtInt(monthIndex)}</td>
       <td>${date}</td>
       <td>${receiversText}</td>
       <td>المصروف: ${fmtMoney(totalAssigned)} · المتبقي: ${fmtMoney(remaining)}</td>
@@ -252,22 +268,23 @@ function renderSchedule(j){
   }
 }
 
-/* Live month hint under input */
+/* ------- Live month hint under input ------- */
 function updateMonthHint(){
   const j = state.jamiyahs.find(x=>x.id===state.currentId);
   const hint = $('#monthHint');
-  const monthVal = parseInt($('#m-month').value);
-  if (!j || !monthVal) { hint.textContent = ''; return; }
+  const sel = $('#m-month');
+  if (!j || !sel || !sel.value) { hint.textContent = ''; return; }
 
+  const monthVal = parseInt(sel.value);
   const already = monthAssignedTotal(j, monthVal);
   const remaining = Math.max(0, j.goal - already);
   const pay = parseInt($('#m-pay').value || '0');
   const ent = pay && j.duration ? pay * j.duration : 0;
 
-  hint.textContent = `المتبقي في شهر ${monthVal}: ${fmtMoney(remaining)}${ent ? ` · استحقاقك المتوقع: ${fmtMoney(ent)}` : ''}`;
+  hint.textContent = `المتبقي في شهر ${fmtInt(monthVal)}: ${fmtMoney(remaining)}${ent ? ` · استحقاقك المتوقع: ${fmtMoney(ent)}` : ''}`;
 }
 
-/* Delete jamiyah */
+/* ------- Delete jamiyah ------- */
 function onDeleteJamiyah(){
   const id = state.currentId;
   const j = state.jamiyahs.find(x=>x.id===id);
@@ -279,7 +296,7 @@ function onDeleteJamiyah(){
   showList();
 }
 
-/* Back to list */
+/* ------- Back to list ------- */
 function showList(){
   $('#details').classList.add('hidden');
   renderList();
