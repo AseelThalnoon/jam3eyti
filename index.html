@@ -58,6 +58,35 @@
         بدأت الجمعية. لا يمكن إضافة أعضاء جدد.
       </div>
 
+      <!-- Edit Jamiyah -->
+      <details id="editBlock">
+        <summary class="btn">تعديل الجمعية</summary>
+        <form id="editForm" class="grid" style="margin-top:10px;">
+          <label>اسم الجمعية
+            <input id="e-name" required />
+          </label>
+
+          <label>الهدف (سقف الصرف الشهري)
+            <input id="e-goal" type="number" min="1" step="1" required />
+          </label>
+
+          <label>تاريخ البداية
+            <input id="e-start" type="date" />
+            <small class="hint">لا يمكن تعديله بعد بدء الجمعية</small>
+          </label>
+
+          <label>المدة (أشهر)
+            <input id="e-duration" type="number" min="1" max="60" />
+            <small class="hint">لا يمكن تعديلها بعد بدء الجمعية</small>
+          </label>
+
+          <div class="actions">
+            <button class="btn primary" id="saveEdit" type="submit">حفظ</button>
+            <button class="btn" id="cancelEdit" type="button">إلغاء</button>
+          </div>
+        </form>
+      </details>
+
       <h3>إضافة عضو</h3>
       <form id="memberForm" class="grid">
         <label>اسم العضو
@@ -103,7 +132,7 @@
     </section>
   </main>
 
-  <footer class="footer">v0.5 · البيانات تُخزن محليًا على جهازك</footer>
+  <footer class="footer">v0.6 · البيانات تُخزن محليًا على جهازك</footer>
   <script src="app.js"></script>
 </body>
 </html>
