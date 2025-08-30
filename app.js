@@ -1,6 +1,4 @@
-/* v1.4.1 — enforce modal hidden on load, Esc to close
-   + keeps v1.4 features (payments per member, summaries, UX)
-*/
+/* v1.4.2 — fix show/hide to toggle the hidden attribute so the modal opens correctly */
 
 const $ = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
@@ -60,6 +58,18 @@ function toast(msg){ const box=$('#toasts'); const el=document.createElement('di
 function setError(id, text){ const el=$(`#${id}`); if(el) el.textContent=text||''; }
 function monthToFirstDay(monthStr){ if(!monthStr) return ""; const [y,m]=monthStr.split('-'); if(!y||!m) return ""; return `${y}-${String(m).padStart(2,'0')}-01`; }
 
+/* FIXED: show/hide toggle both class and [hidden] attribute */
+const show = (el)=>{ if(!el) return; el.classList.remove('hidden'); el.removeAttribute('hidden'); };
+const hide = (el)=>{ if(!el) return; el.classList.add('hidden'); el.setAttribute('hidden',''); };
+
+function toggle(id, showIt){ const el=document.getElementById(id); if(!el) return; showIt?show(el):hide(el); }
+function setDetailsSectionsVisible(hasOpen){
+  toggle('editBlock', hasOpen);
+  toggle('addMemberBlock', hasOpen);
+  toggle('membersBlock', hasOpen);
+  toggle('scheduleBlock', hasOpen);
+}
+
 /* Months elapsed from start */
 function monthsElapsed(j){
   const start = new Date(j.startDate); const now = new Date();
@@ -68,7 +78,7 @@ function monthsElapsed(j){
   return Math.max(0, Math.min(j.duration, months));
 }
 
-/* Ensure payments[] exists with correct length */
+/* Ensure payments[] exists */
 function ensurePayments(j, m){
   if (!Array.isArray(m.payments) || m.payments.length !== j.duration){
     const prev = Array.isArray(m.payments) ? m.payments : [];
@@ -89,7 +99,7 @@ function ensurePayments(j, m){
   }
 }
 
-/* Paid & due summary for member */
+/* Paid & due summary */
 function memberPaidSummary(j, m){
   ensurePayments(j,m);
   const elapsed = monthsElapsed(j);
@@ -99,20 +109,8 @@ function memberPaidSummary(j, m){
   return { paid, due };
 }
 
-/* ---------- Show/Hide helpers ---------- */
-const show = (el)=> el.classList.remove('hidden');
-const hide = (el)=> el.classList.add('hidden');
-function toggle(id, showIt){ const el=document.getElementById(id); if(!el) return; showIt?show(el):hide(el); }
-function setDetailsSectionsVisible(hasOpen){
-  toggle('editBlock', hasOpen);
-  toggle('addMemberBlock', hasOpen);
-  toggle('membersBlock', hasOpen);
-  toggle('scheduleBlock', hasOpen);
-}
-
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', () => {
-  // Enforce hidden on load (defensive)
   hide($('#details'));
   hide($('#payModal'));
 
@@ -224,7 +222,6 @@ function openDetails(id){
   const j=currentJamiyah();
   if(!j){ hide($('#details')); setDetailsSectionsVisible(false); return; }
 
-  // Upgrade payments if needed
   j.members.forEach(m=>ensurePayments(j,m));
 
   $('#d-title').textContent=j.name;
@@ -236,7 +233,6 @@ function openDetails(id){
   $('#startedAlert').hidden=!started;
   $('#memberForm').querySelectorAll('input,button,select').forEach(el=>{ el.disabled=started; });
 
-  // Edit
   $('#e-name').value=j.name; $('#e-goal').value=j.goal;
   $('#e-start').value=j.startDate.slice(0,7); $('#e-duration').value=j.duration;
   $('#e-start').disabled=started; $('#e-duration').disabled=started;
@@ -250,7 +246,7 @@ function openDetails(id){
 
   setDetailsSectionsVisible(true);
   show($('#details'));
-  document.getElementById('details')?.scrollIntoView({ behavior:'smooth', block:'start' });
+  $('#details')?.scrollIntoView({ behavior:'smooth', block:'start' });
 
   saveAll();
 }
@@ -507,7 +503,6 @@ function openPayModal(memberId){
   const grid=document.createElement('div');
   grid.className='pay-grid';
 
-  // header
   grid.insertAdjacentHTML('beforeend', `
     <div class="cell"><strong>الشهر</strong></div>
     <div class="cell"><strong>مدفوع؟</strong></div>
@@ -530,7 +525,6 @@ function openPayModal(memberId){
     `);
   });
 
-  body.appendChild(grid);
   show($('#payModal'));
 }
 
