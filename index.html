@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
-
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
-  <link rel="stylesheet" href="style.css?v=1.4.2" />
+  <link rel="stylesheet" href="style.css?v=1.4.3" />
 </head>
 <body>
   <header class="app-bar">
@@ -63,8 +62,7 @@
     <section class="card stack-3">
       <details id="listBlock" class="collapsible" open>
         <summary class="caret section-title">
-          <span>الجمعيات</span>
-          <span class="pill" id="jamiyahCountPill">0</span>
+          <span>الجمعيات</span><span class="pill" id="jamiyahCountPill">0</span>
         </summary>
         <div class="content">
           <div id="jamiyahList" class="list"></div>
@@ -94,18 +92,15 @@
 
       <div class="alert" id="startedAlert" hidden>بدأت الجمعية. لا يمكن إضافة أعضاء جدد.</div>
 
-      <!-- تعديل -->
       <details id="editBlock" class="elevated collapsible hidden">
         <summary class="caret section-title">تعديل الجمعية</summary>
         <div class="content">
           <form id="editForm" class="grid" novalidate>
             <label>اسم الجمعية
-              <input id="e-name" required />
-              <span class="error" id="err-e-name"></span>
+              <input id="e-name" required /><span class="error" id="err-e-name"></span>
             </label>
             <label>الهدف (سقف الصرف الشهري) · SAR
-              <input id="e-goal" type="number" min="1" step="1" required />
-              <span class="error" id="err-e-goal"></span>
+              <input id="e-goal" type="number" min="1" step="1" required /><span class="error" id="err-e-goal"></span>
             </label>
             <label>شهر البداية
               <input id="e-start" type="month" />
@@ -123,7 +118,6 @@
         </div>
       </details>
 
-      <!-- إضافة عضو -->
       <details id="addMemberBlock" class="collapsible hidden">
         <summary class="caret section-title">إضافة عضو</summary>
         <div class="content">
@@ -152,9 +146,7 @@
       <!-- الأعضاء -->
       <details id="membersBlock" class="collapsible hidden">
         <summary class="caret section-title">
-          <span class="section-icon">👥</span>
-          <span id="mSummaryText">الأعضاء</span>
-          <span class="pill" id="mCountPill">0</span>
+          <span class="section-icon">👥</span><span id="mSummaryText">الأعضاء</span><span class="pill" id="mCountPill">0</span>
         </summary>
         <div class="content">
           <div class="subtoolbar">
@@ -165,6 +157,7 @@
               <option value="pay">ترتيب: بالمساهمة</option>
             </select>
           </div>
+
           <table class="table table--cards">
             <thead>
               <tr>
@@ -182,6 +175,7 @@
               </tr>
             </tfoot>
           </table>
+
           <div id="emptyMembers" class="empty hidden">لا يوجد أعضاء بعد.</div>
         </div>
       </details>
@@ -189,9 +183,7 @@
       <!-- الجدول الشهري -->
       <details id="scheduleBlock" class="collapsible hidden">
         <summary class="caret section-title">
-          <span class="section-icon">🗓️</span>
-          <span id="sSummaryText">الجدول الشهري</span>
-          <span class="pill" id="sCountPill">0</span>
+          <span class="section-icon">🗓️</span><span id="sSummaryText">الجدول الشهري</span><span class="pill" id="sCountPill">0</span>
         </summary>
         <div class="content">
           <div class="subtoolbar">
@@ -201,9 +193,7 @@
           </div>
           <table class="table table--cards">
             <thead>
-              <tr>
-                <th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th>
-              </tr>
+              <tr><th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th></tr>
             </thead>
             <tbody id="scheduleTableBody"></tbody>
           </table>
@@ -226,7 +216,10 @@
         <h3 id="payModalTitle" class="h2">دفعات العضو</h3>
         <button class="btn ghost modal__close" id="payClose">إغلاق</button>
       </div>
-      <div id="payModalBody" class="modal__body"></div>
+      <div class="modal__body">
+        <div id="paySummary" class="subtoolbar"></div>
+        <div id="payModalBody"></div>
+      </div>
       <div class="modal__foot">
         <button class="btn" id="payMarkAll">تحديد كل الأشهر مدفوعة</button>
         <button class="btn ghost" id="payClearAll">مسح كل العلامات</button>
@@ -235,7 +228,7 @@
     </div>
   </div>
 
-  <footer class="footer">v1.4.2 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
-  <script src="app.js?v=1.4.2"></script>
+  <footer class="footer">v1.4.3 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
+  <script src="app.js?v=1.4.3"></script>
 </body>
 </html>
