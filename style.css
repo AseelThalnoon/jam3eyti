@@ -1,4 +1,4 @@
-/* v1.5 — unified spacing + dashboard + payments modal */
+/* v1.4 — unified spacing + dashboard styles */
 
 :root{
   /* Colors */
@@ -182,19 +182,3 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
   transition:width .3s ease;
 }
 .dash-actions{ display:flex; gap:var(--s1); flex-wrap:wrap; margin-top:var(--s1); }
-
-/* ---- Payments modal ---- */
-dialog#paymentsModal{
-  border:none; padding:0; border-radius:14px; max-width:640px; width:90vw; color:var(--fg);
-  background:var(--card); box-shadow:0 24px 80px rgba(0,0,0,.6); border:1px solid var(--border);
-}
-.pmodal{display:grid; gap:var(--s2); padding:var(--s3)}
-.pmodal__header{display:flex; align-items:center; gap:var(--s2); justify-content:space-between}
-.pmodal__header h3{margin:0}
-.pmodal__meta{color:var(--muted); font-size:var(--fs-sm)}
-.pmodal__grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--s2)}
-@media (max-width:540px){ .pmodal__grid{ grid-template-columns:1fr; } }
-.pmonth{display:flex; align-items:flex-start; gap:10px; padding:12px; background:var(--panel); border:1px solid var(--border); border-radius:12px}
-.pmonth label{gap:6px}
-.pmodal__footer{display:flex; gap:var(--s2); align-items:center; flex-wrap:wrap}
-.grow{flex:1}
