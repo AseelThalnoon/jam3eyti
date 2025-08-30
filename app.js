@@ -1,7 +1,5 @@
-/* v1.4 — تتبّع دفعات شهرية لكل عضو + Modal إدارة الدفعات
-   - لكل عضو payments[] بطول مدة الجمعية: {i, paid, amount, paidAt}
-   - ملخص مدفوع/متأخر في جدول الأعضاء
-   - ترقية تلقائية للبيانات القديمة التي لا تحتوي payments
+/* v1.4.1 — enforce modal hidden on load, Esc to close
+   + keeps v1.4 features (payments per member, summaries, UX)
 */
 
 const $ = (s, p=document) => p.querySelector(s);
@@ -62,7 +60,7 @@ function toast(msg){ const box=$('#toasts'); const el=document.createElement('di
 function setError(id, text){ const el=$(`#${id}`); if(el) el.textContent=text||''; }
 function monthToFirstDay(monthStr){ if(!monthStr) return ""; const [y,m]=monthStr.split('-'); if(!y||!m) return ""; return `${y}-${String(m).padStart(2,'0')}-01`; }
 
-/* كم شهر مضى منذ بداية الجمعية؟ (1..duration) */
+/* Months elapsed from start */
 function monthsElapsed(j){
   const start = new Date(j.startDate); const now = new Date();
   if (now < start) return 0;
@@ -70,7 +68,7 @@ function monthsElapsed(j){
   return Math.max(0, Math.min(j.duration, months));
 }
 
-/* تأكد أن عضو عنده payments[] بطول المدة */
+/* Ensure payments[] exists with correct length */
 function ensurePayments(j, m){
   if (!Array.isArray(m.payments) || m.payments.length !== j.duration){
     const prev = Array.isArray(m.payments) ? m.payments : [];
@@ -84,7 +82,6 @@ function ensurePayments(j, m){
       };
     });
   }else{
-    // تأكد من الأرقام
     m.payments.forEach((p,idx)=>{
       if (!Number.isFinite(p.amount)) p.amount = Number(m.pay||0);
       p.i = idx+1;
@@ -92,17 +89,13 @@ function ensurePayments(j, m){
   }
 }
 
-/* إجمالي مدفوع ومتأخر لعضو */
+/* Paid & due summary for member */
 function memberPaidSummary(j, m){
   ensurePayments(j,m);
   const elapsed = monthsElapsed(j);
   let paid = 0, due = 0;
-  m.payments.forEach(p=>{
-    if (p.paid) paid += Number(p.amount||0);
-  });
-  m.payments.slice(0, elapsed).forEach(p=>{
-    if (!p.paid) due += Number(p.amount||0);
-  });
+  m.payments.forEach(p=>{ if (p.paid) paid += Number(p.amount||0); });
+  m.payments.slice(0, elapsed).forEach(p=>{ if (!p.paid) due += Number(p.amount||0); });
   return { paid, due };
 }
 
@@ -119,7 +112,9 @@ function setDetailsSectionsVisible(hasOpen){
 
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', () => {
+  // Enforce hidden on load (defensive)
   hide($('#details'));
+  hide($('#payModal'));
 
   // Create
   $('#jamiyahForm').addEventListener('submit', onCreateJamiyah);
@@ -158,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#payMarkAll').addEventListener('click', ()=> setAllPayModal(true));
   $('#payClearAll').addEventListener('click', ()=> setAllPayModal(false));
   $('#payModal').addEventListener('click', (e)=>{ if (e.target.id==='payModal') closePayModal(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePayModal(); });
 
   setDetailsSectionsVisible(false);
   renderList();
@@ -228,7 +224,7 @@ function openDetails(id){
   const j=currentJamiyah();
   if(!j){ hide($('#details')); setDetailsSectionsVisible(false); return; }
 
-  // ترقية payments للأعضاء القدامى
+  // Upgrade payments if needed
   j.members.forEach(m=>ensurePayments(j,m));
 
   $('#d-title').textContent=j.name;
@@ -256,7 +252,7 @@ function openDetails(id){
   show($('#details'));
   document.getElementById('details')?.scrollIntoView({ behavior:'smooth', block:'start' });
 
-  saveAll(); // احفظ الترقية إن حصلت
+  saveAll();
 }
 
 /* ---------- Helpers ---------- */
@@ -314,7 +310,6 @@ function onSaveEdit(e){
 
     const newStart=monthToFirstDay(startMonth);
 
-    // إذا تغيّرت المدة: عدّل الاستحقاقات وpayments
     if(newDuration !== j.duration){
       j.members = j.members.map(m=>{
         ensurePayments(j,m);
@@ -322,7 +317,7 @@ function onSaveEdit(e){
           const prev = m.payments[k]||{};
           return {
             i: k+1,
-            paid: !!prev.paid && k < newDuration, // حافظ على المدفوع إن كان ضمن النطاق
+            paid: !!prev.paid && k < newDuration,
             amount: Number.isFinite(prev.amount) ? Number(prev.amount) : Number(m.pay||0),
             paidAt: prev.paidAt && prev.paid ? prev.paidAt : null
           };
@@ -512,7 +507,7 @@ function openPayModal(memberId){
   const grid=document.createElement('div');
   grid.className='pay-grid';
 
-  // Header row
+  // header
   grid.insertAdjacentHTML('beforeend', `
     <div class="cell"><strong>الشهر</strong></div>
     <div class="cell"><strong>مدفوع؟</strong></div>
@@ -572,7 +567,6 @@ function savePayModal(){
   });
 
   saveAll();
-  // حدث جدول الأعضاء لعرض الملخص
   renderMembers(j);
   closePayModal();
   toast('تم حفظ الدفعات');
@@ -617,7 +611,7 @@ function exportPdf(j){
       footer{margin-top:20px;font-size:11px;color:#666;display:flex;justify-content:space-between}
     </style>
   `;
-  const members=currentJamiyah().members.slice().sort((a,b)=> a.month-b.month || a.name.localeCompare(b.name));
+  const members=j.members.slice().sort((a,b)=> a.month-b.month || a.name.localeCompare(b.name));
   const membersRows=members.map((m,i)=>{
     const {paid, due} = memberPaidSummary(j, m);
     return `
