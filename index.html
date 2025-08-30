@@ -31,12 +31,15 @@
               </label>
               <label>شهر البداية
                 <input required id="j-start" type="month" />
+                <span class="error" id="err-j-start"></span>
               </label>
               <label>المدة (أشهر)
                 <input required id="j-duration" type="number" min="1" max="60" value="6" />
+                <span class="error" id="err-j-duration"></span>
               </label>
               <label>الهدف (سقف الصرف الشهري) · ريال
                 <input required id="j-goal" type="number" min="1" step="1" placeholder="مثال: 30000" />
+                <span class="error" id="err-j-goal"></span>
               </label>
             </div>
             <div class="actions">
@@ -64,12 +67,50 @@
 
     <!-- تفاصيل الجمعية -->
     <section id="details" class="card hidden stack-3" hidden>
-      <h2 id="d-title" class="h2"></h2>
-      <div class="meta">
-        <span id="d-period" class="badge"></span>
-        <span id="d-goal" class="badge"></span>
-        <span id="d-status" class="badge status"></span>
+      <div class="details-header stack-1">
+        <div class="stack-0">
+          <h2 id="d-title" class="h2"></h2>
+          <div class="meta">
+            <span id="d-period" class="badge"></span>
+            <span id="d-goal" class="badge"></span>
+            <span id="d-status" class="badge status"></span>
+          </div>
+        </div>
+        <div class="details-ops">
+          <button class="btn secondary" id="exportBtn">تصدير PDF</button>
+        </div>
       </div>
+
+      <div class="alert" id="startedAlert" hidden>بدأت الجمعية. لا يمكن إضافة أعضاء جدد.</div>
+
+      <!-- تعديل الجمعية -->
+      <details id="editBlock" class="elevated collapsible hidden">
+        <summary class="caret section-title">تعديل الجمعية</summary>
+        <div class="content">
+          <form id="editForm" class="grid" novalidate>
+            <label>اسم الجمعية
+              <input id="e-name" required />
+              <span class="error" id="err-e-name"></span>
+            </label>
+            <label>الهدف (سقف الصرف الشهري) · ريال
+              <input id="e-goal" type="number" min="1" step="1" required />
+              <span class="error" id="err-e-goal"></span>
+            </label>
+            <label>شهر البداية
+              <input id="e-start" type="month" />
+              <small class="hint">يُحفظ كـ YYYY-MM-01 · لا يمكن تعديله بعد البدء</small>
+            </label>
+            <label>المدة (أشهر)
+              <input id="e-duration" type="number" min="1" max="60" />
+              <small class="hint">لا يمكن تعديلها بعد بدء الجمعية</small>
+            </label>
+            <div class="actions">
+              <button class="btn primary" id="saveEdit" type="submit">حفظ</button>
+              <button class="btn ghost" id="cancelEdit" type="button">إلغاء</button>
+            </div>
+          </form>
+        </div>
+      </details>
 
       <!-- إضافة عضو -->
       <details id="addMemberBlock" class="collapsible hidden">
@@ -77,14 +118,17 @@
         <div class="content">
           <form id="memberForm" class="grid" novalidate>
             <label>اسم العضو
-              <input id="m-name" required />
+              <input id="m-name" required placeholder="مثال: Ahmed" />
+              <span class="error" id="err-m-name"></span>
             </label>
             <label>المساهمة الشهرية (ريال)
-              <input id="m-pay" required type="number" min="1" step="1" />
+              <input id="m-pay" required type="number" min="1" step="1" placeholder="مثال: 1000" />
+              <span class="error" id="err-m-pay"></span>
             </label>
             <label>شهر الاستلام
               <select id="m-month" required></select>
               <small id="monthHint" class="hint"></small>
+              <span class="error" id="err-m-month"></span>
             </label>
             <div class="actions">
               <button class="btn primary">إضافة</button>
@@ -147,7 +191,7 @@
         <button id="payClose" class="btn ghost modal__close">إغلاق</button>
       </div>
       <div class="modal__body">
-        <div id="paySummary"></div>
+        <div id="paySummary" class="subtoolbar"></div>
         <div id="payModalBody"></div>
       </div>
       <div class="modal__foot">
