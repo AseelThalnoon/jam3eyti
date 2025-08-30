@@ -1,4 +1,6 @@
-/* v1.4.2 — fix show/hide to toggle the hidden attribute so the modal opens correctly */
+/* v1.4.3 — Counters per member: paidCount, remainingCount, overdueCount
+   + Modal summary row showing (Paid / Remaining / Overdue now)
+*/
 
 const $ = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
@@ -58,7 +60,7 @@ function toast(msg){ const box=$('#toasts'); const el=document.createElement('di
 function setError(id, text){ const el=$(`#${id}`); if(el) el.textContent=text||''; }
 function monthToFirstDay(monthStr){ if(!monthStr) return ""; const [y,m]=monthStr.split('-'); if(!y||!m) return ""; return `${y}-${String(m).padStart(2,'0')}-01`; }
 
-/* FIXED: show/hide toggle both class and [hidden] attribute */
+/* show/hide manage class + [hidden] */
 const show = (el)=>{ if(!el) return; el.classList.remove('hidden'); el.removeAttribute('hidden'); };
 const hide = (el)=>{ if(!el) return; el.classList.add('hidden'); el.setAttribute('hidden',''); };
 
@@ -70,7 +72,7 @@ function setDetailsSectionsVisible(hasOpen){
   toggle('scheduleBlock', hasOpen);
 }
 
-/* Months elapsed from start */
+/* ---------- Payments helpers ---------- */
 function monthsElapsed(j){
   const start = new Date(j.startDate); const now = new Date();
   if (now < start) return 0;
@@ -78,7 +80,6 @@ function monthsElapsed(j){
   return Math.max(0, Math.min(j.duration, months));
 }
 
-/* Ensure payments[] exists */
 function ensurePayments(j, m){
   if (!Array.isArray(m.payments) || m.payments.length !== j.duration){
     const prev = Array.isArray(m.payments) ? m.payments : [];
@@ -97,9 +98,21 @@ function ensurePayments(j, m){
       p.i = idx+1;
     });
   }
+  recalcMemberCounters(j,m); // keep counters up to date
 }
 
-/* Paid & due summary */
+function recalcMemberCounters(j,m){
+  // إجمالي شهور مدفوعة/متبقية + كم شهر متأخر حتى الآن
+  const paidCount = (m.payments||[]).reduce((s,p)=> s + (p.paid?1:0), 0);
+  const remainingCount = Math.max(0, j.duration - paidCount);
+  const elapsed = monthsElapsed(j);
+  const overdueCount = (m.payments||[]).slice(0, elapsed).reduce((s,p)=> s + (p.paid?0:1), 0);
+  m.paidCount = paidCount;
+  m.remainingCount = remainingCount;
+  m.overdueCount = overdueCount;
+  return {paidCount, remainingCount, overdueCount};
+}
+
 function memberPaidSummary(j, m){
   ensurePayments(j,m);
   const elapsed = monthsElapsed(j);
@@ -365,6 +378,7 @@ function renderMembers(j){
     empty.classList.add('hidden');
     rows.forEach((m,idx)=>{
       ensurePayments(j,m);
+      const counts = recalcMemberCounters(j,m);
       totalPay += Number(m.pay||0);
       totalEnt += Number(m.entitlement||0);
 
@@ -379,8 +393,8 @@ function renderMembers(j){
         ['الاسم', m.name],
         ['المساهمة', fmtMoney(m.pay)],
         ['الاستحقاق الكلي', fmtMoney(m.entitlement)],
-        ['مدفوع حتى الآن', `<span class="badge ok">${fmtMoney(paid)}</span>`],
-        ['متأخر', due>0 ? `<span class="badge late">${fmtMoney(due)}</span>` : `<span class="badge ok">0</span>`],
+        ['مدفوع حتى الآن', `<span class="badge ok">${fmtMoney(paid)}</span><small class="hint">(${counts.paidCount} / ${j.duration})</small>`],
+        ['متأخر', counts.overdueCount>0 ? `<span class="badge late">${fmtMoney(due)}</span><small class="hint">${counts.overdueCount} شهر</small>` : `<span class="badge ok">0</span><small class="hint">(0 شهر)</small>`],
         ['شهر الاستلام', monthLabel(j.startDate, m.month)],
         ['', '']
       ];
@@ -449,7 +463,8 @@ function onAddMember(e){
   const memberId = uid();
   const payments = Array.from({length:j.duration}, (_,k)=>({ i:k+1, paid:false, amount:pay, paidAt:null }));
 
-  j.members.push({ id: memberId, name, pay, month, entitlement, payments });
+  const m={ id: memberId, name, pay, month, entitlement, payments, paidCount:0, remainingCount:j.duration, overdueCount:0 };
+  state.jamiyahs.find(x=>x.id===j.id).members.push(m);
   saveAll();
 
   e.target.reset();
@@ -496,7 +511,15 @@ function openPayModal(memberId){
   ensurePayments(j,m);
   state.payModal.memberId = memberId;
 
+  // Summary counters
+  const {paidCount, remainingCount, overdueCount} = recalcMemberCounters(j,m);
   $('#payModalTitle').textContent = `دفعات: ${m.name}`;
+  $('#paySummary').innerHTML = `
+    <span class="badge ok">مدفوعة: ${paidCount} / ${j.duration}</span>
+    <span class="badge">المتبقية: ${remainingCount}</span>
+    <span class="badge ${overdueCount>0?'late':'ok'}">متأخرة حتى الآن: ${overdueCount}</span>
+  `;
+
   const body = $('#payModalBody');
   body.innerHTML = '';
 
@@ -510,21 +533,26 @@ function openPayModal(memberId){
     <div class="cell"><strong>التاريخ</strong></div>
   `);
 
-  m.payments.forEach(p=>{
-    const monthTxt = monthLabel(j.startDate, p.i);
-    const paidAtTxt = p.paidAt ? new Date(p.paidAt).toLocaleDateString('en-GB') : '—';
-    grid.insertAdjacentHTML('beforeend', `
-      <div class="cell month">${monthTxt}</div>
-      <div class="cell">
-        <input type="checkbox" data-k="paid" data-i="${p.i}" ${p.paid?'checked':''} />
-      </div>
-      <div class="cell">
-        <input type="number" data-k="amount" data-i="${p.i}" min="0" step="1" value="${Number(p.amount||0)}" />
-      </div>
-      <div class="cell" id="paidAt-${p.i}">${paidAtTxt}</div>
-    `);
-  });
+  if (!Array.isArray(m.payments) || m.payments.length===0){
+    grid.insertAdjacentHTML('beforeend', `<div class="cell" style="grid-column:1/-1">لا توجد أشهر. تأكد من مدة الجمعية.</div>`);
+  }else{
+    m.payments.forEach(p=>{
+      const monthTxt = monthLabel(j.startDate, p.i);
+      const paidAtTxt = p.paidAt ? new Date(p.paidAt).toLocaleDateString('en-GB') : '—';
+      grid.insertAdjacentHTML('beforeend', `
+        <div class="cell month">${monthTxt}</div>
+        <div class="cell">
+          <input type="checkbox" data-k="paid" data-i="${p.i}" ${p.paid?'checked':''} />
+        </div>
+        <div class="cell">
+          <input type="number" data-k="amount" data-i="${p.i}" min="0" step="1" value="${Number(p.amount||0)}" />
+        </div>
+        <div class="cell" id="paidAt-${p.i}">${paidAtTxt}</div>
+      `);
+    });
+  }
 
+  body.appendChild(grid);
   show($('#payModal'));
 }
 
@@ -559,6 +587,9 @@ function savePayModal(){
       paidAt: newPaid ? (p.paid ? p.paidAt || now : now) : null
     };
   });
+
+  // تحديث العدادات
+  recalcMemberCounters(j,m);
 
   saveAll();
   renderMembers(j);
@@ -608,14 +639,15 @@ function exportPdf(j){
   const members=j.members.slice().sort((a,b)=> a.month-b.month || a.name.localeCompare(b.name));
   const membersRows=members.map((m,i)=>{
     const {paid, due} = memberPaidSummary(j, m);
+    const counts = recalcMemberCounters(j,m);
     return `
       <tr>
         <td>${i+1}</td>
         <td>${m.name}</td>
         <td>${fmtMoney(m.pay)}</td>
         <td>${fmtMoney(m.entitlement)}</td>
-        <td>${fmtMoney(paid)}</td>
-        <td>${fmtMoney(due)}</td>
+        <td>${fmtMoney(paid)} (${counts.paidCount}/${j.duration})</td>
+        <td>${fmtMoney(due)} (${counts.overdueCount})</td>
         <td>${monthLabel(j.startDate, m.month)}</td>
       </tr>`;
   }).join('');
@@ -654,7 +686,7 @@ function exportPdf(j){
         <h2>الأعضاء (ملخص الدفعات)</h2>
         <table>
           <thead><tr>
-            <th>#</th><th>الاسم</th><th>المساهمة (شهريًا)</th><th>الاستحقاق الكلي</th><th>مدفوع</th><th>متأخر</th><th>شهر الاستلام</th>
+            <th>#</th><th>الاسم</th><th>المساهمة (شهريًا)</th><th>الاستحقاق الكلي</th><th>مدفوع (عدد)</th><th>متأخر (عدد)</th><th>شهر الاستلام</th>
           </tr></thead>
           <tbody>${membersRows || `<tr><td colspan="7" class="muted">لا يوجد أعضاء</td></tr>`}</tbody>
           <tfoot><tr><td colspan="2">الإجمالي</td><td>${fmtMoney(totPay)}</td><td>${fmtMoney(totEnt)}</td><td colspan="3"></td></tr></tfoot>
