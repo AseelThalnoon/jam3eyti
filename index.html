@@ -5,11 +5,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
-  <link rel="stylesheet" href="style.css?v=1.4.5" />
+
+  <!-- favicon شعار -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
+  <link rel="stylesheet" href="style.css?v=1.4.6" />
 </head>
 <body>
   <header class="app-bar">
     <div class="brand">
+      <!-- شعار الهيدر -->
+      <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true" style="width:28px;height:28px">
+        <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
+        <circle cx="64" cy="50" r="22" fill="url(#lg)"></circle>
+        <path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"></path>
+      </svg>
       <h1 class="h1">جمعيتي</h1>
     </div>
     <div class="actions-right">
@@ -141,6 +150,7 @@
       <!-- الأعضاء -->
       <details id="membersBlock" class="collapsible hidden">
         <summary class="caret section-title">
+          <span class="section-icon">👥</span>
           <span id="mSummaryText">الأعضاء</span>
           <span class="pill" id="mCountPill">0</span>
         </summary>
@@ -161,6 +171,7 @@
       <!-- الجدول الشهري -->
       <details id="scheduleBlock" class="collapsible hidden">
         <summary class="caret section-title">
+          <span class="section-icon">🗓️</span>
           <span id="sSummaryText">الجدول الشهري</span>
           <span class="pill" id="sCountPill">0</span>
         </summary>
@@ -184,7 +195,7 @@
   <div id="toasts" class="toasts"></div>
 
   <!-- نافذة الدفعات -->
-  <div id="payModal" class="modal hidden" hidden>
+  <div id="payModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="payModalTitle" hidden>
     <div class="modal__card">
       <div class="modal__head">
         <h3 id="payModalTitle" class="h2">دفعات العضو</h3>
@@ -202,7 +213,7 @@
     </div>
   </div>
 
-  <footer class="footer">v1.4.5 · © Aseel Thalnoon</footer>
+  <footer class="footer">v1.4.6 · © Aseel Thalnoon</footer>
   <script src="app.js?v=1.4.5"></script>
 </body>
 </html>
