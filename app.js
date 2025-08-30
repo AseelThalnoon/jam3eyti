@@ -1,4 +1,8 @@
-/* v1.4 — Dashboard + details hidden until open + smooth scroll + consistent spacing */
+/* v1.3 — details fully hidden until a jamiyah is opened; consistent spacing kept in CSS
+   - Ensures #details hidden on load and after "رجوع"
+   - Shows/hides sub-sections strictly when jamiyah is open
+   - Keeps scrollIntoView on open
+*/
 
 const $ = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
@@ -77,83 +81,10 @@ function setDetailsSectionsVisible(hasOpen){
   toggle('scheduleBlock', hasOpen);
 }
 
-/* ---------- Dashboard helpers ---------- */
-function monthsElapsedFromStart(j){
-  const start = new Date(j.startDate);
-  const today = new Date();
-  if (today < start) return 0;
-  let months = (today.getFullYear() - start.getFullYear())*12 + (today.getMonth() - start.getMonth()) + 1;
-  return Math.min(Math.max(months, 0), j.duration);
-}
-function collectedSoFar(j){
-  const m = monthsElapsedFromStart(j);
-  const perMonthTotal = j.members.reduce((s, x) => s + Number(x.pay||0), 0);
-  return perMonthTotal * m;
-}
-function nextPayoutIndex(j){
-  const m = monthsElapsedFromStart(j);
-  if (m < 1) return 1;
-  if (m >= j.duration) return null;
-  return m + 1;
-}
-function renderDashboard(){
-  const grid = document.getElementById('dashboardGrid');
-  const empty = document.getElementById('dashboardEmpty');
-  if (!grid || !empty) return;
-
-  const items = state.jamiyahs.slice().sort((a,b)=>a.name.localeCompare(b.name));
-  grid.innerHTML = '';
-  empty.classList.toggle('hidden', items.length > 0);
-
-  items.forEach(j => {
-    const membersCount = j.members.length;
-    const collected = collectedSoFar(j);
-    const allowedSoFar = j.goal * monthsElapsedFromStart(j); // progress vs plan (up to current month)
-    const denom = Math.max(allowedSoFar, 1);
-    const pct = Math.min(100, Math.round((collected / denom) * 100));
-
-    const nextIdx = nextPayoutIndex(j);
-    const nextText = nextIdx ? monthLabel(j.startDate, nextIdx) : '—';
-
-    const card = document.createElement('div');
-    card.className = 'dash-card';
-    card.innerHTML = `
-      <div class="dash-card__head">
-        <div class="dash-card__title">${j.name}</div>
-        <span class="badge">${hasStarted(j) ? 'Started' : 'Not started'}</span>
-      </div>
-
-      <div class="dash-row">
-        <span class="badge">المدة: ${fmtInt(j.duration)} شهر</span>
-        <span class="badge">الأعضاء: ${fmtInt(membersCount)}</span>
-        <span class="badge">الهدف الشهري: ${fmtMoney(j.goal)} SAR</span>
-        <span class="badge">التالي: ${nextText}</span>
-      </div>
-
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;">
-          <span>Collected so far</span>
-          <span>${fmtMoney(collected)} / ${fmtMoney(allowedSoFar)} SAR</span>
-        </div>
-        <div class="progress"><div class="progress__bar" style="width:${pct}%;"></div></div>
-      </div>
-
-      <div class="dash-actions">
-        <button class="btn secondary">فتح</button>
-        <button class="btn ghost">تصدير</button>
-      </div>
-    `;
-    const [openBtn, exportBtn] = card.querySelectorAll('button');
-    openBtn.addEventListener('click', () => openDetails(j.id));
-    exportBtn.addEventListener('click', () => exportPdf(j));
-    grid.appendChild(card);
-  });
-}
-
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', () => {
-  hide($('#details'));                 // details hidden on load
-  setDetailsSectionsVisible(false);    // sub-sections hidden on load
+  /* Force details hidden on load */
+  hide($('#details'));
 
   /* Create */
   $('#jamiyahForm').addEventListener('submit', onCreateJamiyah);
@@ -170,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#cancelEdit').addEventListener('click', (e)=>{ e.preventDefault(); $('#editBlock').open=false; });
 
   /* Search (list) */
-  $('#search').addEventListener('input', (e)=>{ state.filter=(e.target.value||'').trim(); renderList(); renderDashboard(); });
+  $('#search').addEventListener('input', (e)=>{ state.filter=(e.target.value||'').trim(); renderList(); });
 
   /* Export PDF */
   $('#exportBtn').addEventListener('click', ()=> exportPdf(currentJamiyah()));
@@ -186,8 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Schedule filter */
   $('#scheduleFilter').addEventListener('change', (e)=>{ state.scheduleFilter=e.target.value; renderSchedule(currentJamiyah()); });
 
+  /* Start with sections hidden */
+  setDetailsSectionsVisible(false);
   renderList();
-  renderDashboard();
 });
 
 /* ---------- Create Jamiyah ---------- */
@@ -196,7 +128,7 @@ function onCreateJamiyah(e){
   setError('err-j-name'); setError('err-j-start'); setError('err-j-duration'); setError('err-j-goal');
 
   const name=$('#j-name').value.trim();
-  const startMonth=$('#j-start').value; // YYYY-MM
+  const startMonth=$('#j-start').value;
   const duration=parseInt($('#j-duration').value);
   const goal=parseInt($('#j-goal').value);
 
@@ -217,7 +149,6 @@ function onCreateJamiyah(e){
   e.target.reset();
   toast('تم إنشاء الجمعية');
   renderList();
-  renderDashboard();
 }
 
 /* ---------- List Jamiyahs ---------- */
@@ -247,6 +178,7 @@ function renderList(){
     list.appendChild(row);
   });
 
+  /* إذا لا يوجد جمعية مفتوحة حالياً، تأكد بقاء التفاصيل مخفية */
   if(!state.currentId){ hide($('#details')); setDetailsSectionsVisible(false); }
 }
 
@@ -350,7 +282,6 @@ function onSaveEdit(e){
   j.name=newName; j.goal=newGoal; saveAll();
   openDetails(j.id);
   renderList();
-  renderDashboard();
   $('#editBlock').open=false;
   toast('تم حفظ التعديلات');
 }
@@ -393,7 +324,7 @@ function renderMembers(j){
             if(hasStarted(jx)){ toast('بدأت الجمعية. لا يمكن تعديل الأعضاء.'); return; }
             if(!confirm(`حذف ${m.name}؟`)) return;
             jx.members=jx.members.filter(x=>x.id!==m.id); saveAll();
-            renderMembers(jx); renderSchedule(jx); renderList(); renderDashboard(); populateMonthOptions(jx); updateMonthHint(); updateMembersSummary(jx);
+            renderMembers(jx); renderSchedule(jx); renderList(); populateMonthOptions(jx); updateMonthHint(); updateMembersSummary(jx);
             toast('تم حذف العضو');
           });
           td.appendChild(btn);
@@ -439,13 +370,7 @@ function onAddMember(e){
   saveAll();
 
   e.target.reset();
-  populateMonthOptions(j);
-  renderMembers(j);
-  renderSchedule(j);
-  renderList();
-  renderDashboard();
-  updateMonthHint();
-  updateMembersSummary(j);
+  populateMonthOptions(j); renderMembers(j); renderSchedule(j); renderList(); updateMonthHint(); updateMembersSummary(j);
   toast('تمت إضافة العضو');
 }
 
@@ -457,7 +382,6 @@ function updateScheduleSummary(j){
 function renderSchedule(j){
   if(!j) return;
   const body=$('#scheduleTableBody'); body.innerHTML='';
-
   const filter=state.scheduleFilter; const months=[];
   for(let i=1;i<=j.duration;i++){ if(filter==='all' || String(i)===filter) months.push(i); }
 
@@ -497,7 +421,7 @@ function onDeleteJamiyah(){
   const j=currentJamiyah(); if(!j) return;
   if(!confirm(`حذف ${j.name}؟ لا يمكن التراجع.`)) return;
   state.jamiyahs=state.jamiyahs.filter(x=>x.id!==j.id); saveAll();
-  showList(); renderList(); renderDashboard(); toast('تم حذف الجمعية');
+  showList(); renderList(); toast('تم حذف الجمعية');
 }
 
 /* ---------- Export PDF ---------- */
