@@ -1,7 +1,8 @@
-/* v1.4.5 — تبسيط الجداول:
-   - الأعضاء: حذف "متأخر" وصف الإجمالي
-   - الجدول الشهري: عمودان فقط (الشهر، المستلمون)
-   - باقي الميزات كما هي، الأشهر والأرقام إنجليزي
+/* v1.4.7 — تعريب الواجهة:
+   - استبدال "الهدف الشهري" بـ "مبلغ الجمعية"
+   - في تفاصيل الجمعية: عرض (شهر/سنة) + المدة + مبلغ الجمعية
+   - حذف "مجموع الاستحقاقات" من بطاقة القائمة
+   - المنطق كما هو (goal = المبلغ الشهري المتاح لكل شهر)
 */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
@@ -76,9 +77,7 @@ function recalcMemberCounters(j,m){
 }
 function memberPaidSummary(j,m){
   ensurePayments(j,m);
-  const elapsed=monthsElapsed(j);
-  let paid=0;
-  m.payments.forEach(p=>{if(p.paid)paid+=Number(p.amount||0);});
+  let paid=0; m.payments.forEach(p=>{if(p.paid)paid+=Number(p.amount||0);});
   return {paid};
 }
 
@@ -132,23 +131,23 @@ function renderList(){
   const items=state.jamiyahs.filter(j=>!state.filter||j.name.includes(state.filter)).sort((a,b)=>a.name.localeCompare(b.name));
   list.innerHTML=''; pill.textContent=fmtInt(items.length);
   if(items.length===0) empty.classList.remove('hidden'); else empty.classList.add('hidden');
+
   items.forEach(j=>{
-    const totalEnt=j.members.reduce((s,m)=>s+Number(m.entitlement||0),0);
     const row=document.createElement('div'); row.className='item';
     row.innerHTML=`
       <div>
         <div><strong>${j.name}</strong></div>
         <div class="meta">
           <span>من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر</span>
-          <span class="badge">الهدف الشهري: ${fmtMoney(j.goal)} ريال</span>
+          <span class="badge">مبلغ الجمعية: ${fmtMoney(j.goal)} ريال</span>
           <span class="badge">${startedStatus(j)}</span>
-          <span class="badge">مجموع الاستحقاقات: ${fmtMoney(totalEnt)} ريال</span>
         </div>
       </div>
       <button class="btn secondary" data-id="${j.id}">فتح</button>`;
     row.querySelector('button').addEventListener('click',()=>openDetails(j.id));
     list.appendChild(row);
   });
+
   if(!state.currentId){hide($('#details'));setDetailsSectionsVisible(false);}
 }
 
@@ -158,10 +157,17 @@ function openDetails(id){
   const j=currentJamiyah();
   if(!j){hide($('#details'));setDetailsSectionsVisible(false);return;}
   j.members.forEach(m=>ensurePayments(j,m));
+
+  // عنوان
   $('#d-title').textContent=j.name;
-  $('#d-period').textContent=`من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر`;
-  $('#d-goal').textContent=`الهدف الشهري: ${fmtMoney(j.goal)} ريال`;
-  $('#d-status').textContent=startedStatus(j);
+
+  // ميتا: شهر/سنة + المدة + مبلغ الجمعية
+  const meta=$('#d-meta');
+  meta.innerHTML='';
+  const b1=document.createElement('span'); b1.className='badge'; b1.textContent=monthLabel(j.startDate,1);
+  const b2=document.createElement('span'); b2.className='badge'; b2.textContent=`المدة: ${fmtInt(j.duration)} شهر`;
+  const b3=document.createElement('span'); b3.className='badge'; b3.textContent=`مبلغ الجمعية: ${fmtMoney(j.goal)} ريال`;
+  meta.append(b1,b2,b3);
 
   const started=hasStarted(j);
   $('#startedAlert').hidden=!started;
@@ -174,6 +180,7 @@ function openDetails(id){
   populateMonthOptions(j); updateMonthHint();
   renderMembers(j);
   renderSchedule(j);
+
   setDetailsSectionsVisible(true);
   show($('#details'));
   $('#details')?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -271,7 +278,7 @@ function renderMembers(j){
 
       cells.forEach(([label,val],i)=>{
         const td=document.createElement('td'); td.setAttribute('data-col',label); td.innerHTML=val;
-        if(i===6){ // عمود الأزرار
+        if(i===6){
           const wrap=document.createElement('div'); wrap.style.display='flex'; wrap.style.gap='8px';
           const btnPay=document.createElement('button'); btnPay.className='btn'; btnPay.textContent='دفعات'; btnPay.addEventListener('click',()=>openPayModal(m.id));
           const btnDel=document.createElement('button'); btnDel.className='btn danger'; btnDel.textContent='حذف';
@@ -417,7 +424,7 @@ function onDeleteJamiyah(){
   showList(); renderList(); toast('تم حذف الجمعية');
 }
 
-/* تصدير PDF (يبقى كما هو) */
+/* تصدير PDF */
 function exportPdf(j){
   if(!j) return;
   const css=`<style>@page{size:A4;margin:14mm}body{font-family:-apple-system,Segoe UI,Roboto,Arial,"Noto Naskh Arabic","IBM Plex Sans Arabic",sans-serif;color:#111}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.meta{color:#555;font-size:12px;margin-bottom:12px}h2{margin:18px 0 8px;font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}thead th{background:#f3f4f6}tfoot td{font-weight:700;background:#fafafa}.muted{color:#666}</style>`;
@@ -431,7 +438,7 @@ function exportPdf(j){
   }).join('');
   const html=`<html dir="rtl" lang="ar"><head><meta charset="utf-8" /><title>${j.name}</title>${css}</head><body>
   <header><h1>جمعيتي</h1><div>${new Date().toLocaleDateString('en-GB')}</div></header>
-  <div class="meta">الاسم: <strong>${j.name}</strong> · من ${j.startDate} لمدة ${fmtInt(j.duration)} شهر · الهدف الشهري: ${fmtMoney(j.goal)} ريال</div>
+  <div class="meta">${monthLabel(j.startDate,1)} · المدة: ${fmtInt(j.duration)} شهر · مبلغ الجمعية: ${fmtMoney(j.goal)} ريال</div>
   <h2>الأعضاء</h2>
   <table><thead><tr><th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>مدفوع (عدد)</th><th>شهر الاستلام</th></tr></thead>
   <tbody>${rows||`<tr><td colspan="6" class="muted">لا يوجد أعضاء</td></tr>`}</tbody>
