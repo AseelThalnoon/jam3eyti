@@ -1,4 +1,4 @@
-/* v1.4 — unified spacing + dashboard styles */
+/* v1.3 — unified spacing scale, consistent sizes, details hidden by default */
 
 :root{
   /* Colors */
@@ -16,7 +16,7 @@
 }
 
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif;}
 
 /* App bar */
 .app-bar{
@@ -144,41 +144,3 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 
 /* Utilities */
 .hidden{display:none}
-
-/* ---- Dashboard ---- */
-.dash-grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:var(--s2);
-}
-@media (max-width:780px){ .dash-grid{ grid-template-columns:1fr; } }
-
-.dash-card{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:var(--s2);
-  display:grid;
-  gap:var(--s1);
-}
-.dash-card__head{
-  display:flex; align-items:center; justify-content:space-between; gap:var(--s1);
-}
-.dash-card__title{ font-weight:800; }
-.dash-row{ display:flex; gap:var(--s2); flex-wrap:wrap; color:var(--muted); font-size:var(--fs-sm); }
-.dash-row .badge{ font-size:var(--fs-xs); }
-
-.progress{
-  background:#0b1424;
-  border:1px solid var(--border);
-  border-radius:999px;
-  height:10px;
-  overflow:hidden;
-}
-.progress__bar{
-  height:100%;
-  background:linear-gradient(90deg,var(--accent),var(--accent-2));
-  width:0%;
-  transition:width .3s ease;
-}
-.dash-actions{ display:flex; gap:var(--s1); flex-wrap:wrap; margin-top:var(--s1); }
