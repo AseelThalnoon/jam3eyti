@@ -6,8 +6,11 @@
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
 
+  <!-- Favicon (inline SVG) -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2311a34b"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
-  <link rel="stylesheet" href="style.css" />
+
+  <!-- Force refresh with version -->
+  <link rel="stylesheet" href="style.css?v=1.4.1" />
 </head>
 <body>
   <header class="app-bar">
@@ -19,6 +22,7 @@
       </svg>
       <h1 class="h1">جمعيتي</h1>
     </div>
+
     <div class="actions-right">
       <input id="search" class="search" placeholder="ابحث عن جمعية بالاسم…" />
     </div>
@@ -36,20 +40,24 @@
                 <input required id="j-name" placeholder="مثال: جمعية رمضان" />
                 <span class="error" id="err-j-name"></span>
               </label>
+
               <label>شهر البداية
                 <input required id="j-start" type="month" />
                 <small class="hint">يُحفظ تلقائيًا كـ YYYY-MM-01</small>
                 <span class="error" id="err-j-start"></span>
               </label>
+
               <label>المدة (أشهر)
                 <input required id="j-duration" type="number" inputmode="numeric" min="1" max="60" value="6" />
                 <span class="error" id="err-j-duration"></span>
               </label>
+
               <label>الهدف (سقف الصرف الشهري) · SAR
                 <input required id="j-goal" type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 30000" />
                 <span class="error" id="err-j-goal"></span>
               </label>
             </div>
+
             <div class="actions">
               <button type="submit" class="btn primary">إنشاء</button>
               <button type="reset" class="btn ghost">مسح الحقول</button>
@@ -76,7 +84,7 @@
       </details>
     </section>
 
-    <!-- التفاصيل (مخفية دائمًا حتى يفتح المستخدم جمعية) -->
+    <!-- التفاصيل (مخفية دائمًا حتى تفتح جمعية) -->
     <section id="details" class="card hidden stack-3">
       <div class="details-header stack-1">
         <div class="stack-0">
@@ -132,15 +140,18 @@
               <input id="m-name" required placeholder="مثال: Ahmed" />
               <span class="error" id="err-m-name"></span>
             </label>
+
             <label>المساهمة الشهرية (SAR)
               <input id="m-pay" required type="number" inputmode="numeric" min="1" step="1" placeholder="مثال: 1000" />
               <span class="error" id="err-m-pay"></span>
             </label>
+
             <label>شهر الاستلام
               <select id="m-month" required></select>
               <small id="monthHint" class="hint"></small>
               <span class="error" id="err-m-month"></span>
             </label>
+
             <div class="actions">
               <button class="btn primary">إضافة</button>
               <button type="reset" class="btn ghost">مسح</button>
@@ -165,6 +176,7 @@
               <option value="pay">ترتيب: بالمساهمة</option>
             </select>
           </div>
+
           <table class="table table--cards">
             <thead>
               <tr>
@@ -188,6 +200,7 @@
               </tr>
             </tfoot>
           </table>
+
           <div id="emptyMembers" class="empty hidden">لا يوجد أعضاء بعد.</div>
         </div>
       </details>
@@ -208,10 +221,7 @@
           <table class="table table--cards">
             <thead>
               <tr>
-                <th>الشهر</th>
-                <th>التاريخ</th>
-                <th>المستلمون</th>
-                <th>المصروف · المتبقي</th>
+                <th>الشهر</th><th>التاريخ</th><th>المستلمون</th><th>المصروف · المتبقي</th>
               </tr>
             </thead>
             <tbody id="scheduleTableBody"></tbody>
@@ -229,8 +239,8 @@
   <!-- Toasts -->
   <div id="toasts" class="toasts"></div>
 
-  <!-- Modal: تتبع الدفعات -->
-  <div id="payModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
+  <!-- Modal: تتبع الدفعات (hidden by default, enforced) -->
+  <div id="payModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="payModalTitle" hidden>
     <div class="modal__card">
       <div class="modal__head">
         <h3 id="payModalTitle" class="h2">دفعات العضو</h3>
@@ -245,7 +255,9 @@
     </div>
   </div>
 
-  <footer class="footer">v1.4 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
-  <script src="app.js"></script>
+  <footer class="footer">v1.4.1 · البيانات تُخزن محليًا على جهازك · © Aseel Thalnoon</footer>
+
+  <!-- Force refresh with version -->
+  <script src="app.js?v=1.4.1"></script>
 </body>
 </html>
