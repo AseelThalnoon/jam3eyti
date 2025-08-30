@@ -1,8 +1,8 @@
-/* v1.4.9
-   - بطاقة القائمة: "تبدأ في Month Year" + المدة + مبلغ الجمعية (أوضح)
-   - الأعضاء: حذف "متأخر" وصف الإجمالي
-   - الجدول الشهري: عمودان فقط (الشهر، المستلمون)
-   - كل النصوص عربي، الشهور والأرقام إنجليزي
+/* v1.5.0
+   - إصلاح شارات العدّ: الأعضاء والسجل الشهري
+   - بطاقة القائمة: "تبدأ في Month Year" ثم المدة ثم مبلغ الجمعية (مرة واحدة فقط)
+   - باقي الميزات كما هي (الأعضاء بدون "متأخر" وصف الإجمالي، الجدول الشهري عمودان)
+   - النصوص عربية، الأشهر والأرقام إنجليزي
 */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
@@ -253,6 +253,9 @@ function renderMembers(j){
   body.innerHTML='';
   let rows=j.members.slice();
 
+  // تحديث شارة عدد الأعضاء
+  const mPill=$('#mCountPill'); if(mPill) mPill.textContent=fmtInt(j.members.length);
+
   if(state.memberSearch){
     const q=state.memberSearch.toLowerCase();
     rows=rows.filter(m=>(m.name||'').toLowerCase().includes(q));
@@ -348,6 +351,10 @@ function onAddMember(e){
 /* --------- الجدول الشهري (عمودان فقط) --------- */
 function renderSchedule(j){
   const body=$('#scheduleTableBody'); body.innerHTML='';
+
+  // تحديث شارة عدد الأشهر (يساوي مدة الجمعية)
+  const sPill=$('#sCountPill'); if(sPill) sPill.textContent=fmtInt(j.duration);
+
   const months=[...Array(j.duration)].map((_,k)=>k+1);
   months.forEach(i=>{
     const receivers=j.members.filter(m=>Number(m.month)===i).sort((a,b)=>a.name.localeCompare(b.name));
