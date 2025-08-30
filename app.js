@@ -1,10 +1,9 @@
-/* v1.4.8 — واجهة عربية بالكامل
-   - قائمة الجمعيات: عرض الشهر/السنة بدل YYYY-MM-01
-   - startedStatus تستخدم اسم الشهر
-   - سبق وأن حذفنا: (متأخر + إجمالي الأعضاء) و (التاريخ + المصروف/المتبقي) من الجداول
-   - الأشهر والأرقام تُعرض إنجليزي
+/* v1.4.9
+   - بطاقة القائمة: "تبدأ في Month Year" + المدة + مبلغ الجمعية (أوضح)
+   - الأعضاء: حذف "متأخر" وصف الإجمالي
+   - الجدول الشهري: عمودان فقط (الشهر، المستلمون)
+   - كل النصوص عربي، الشهور والأرقام إنجليزي
 */
-
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 const SKEY="jamiyati:v02";
@@ -24,10 +23,9 @@ const fmtMoney=n=>Number(n||0).toLocaleString('en-US');
 const fmtInt  =n=>Number(n||0).toLocaleString('en-US');
 function monthLabel(startDate,offset){
   const d=new Date(startDate); d.setMonth(d.getMonth()+(offset-1));
-  return d.toLocaleDateString('en-US',{month:'long',year:'numeric'}); // مثال: November 2025
+  return d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
 }
-// الحالة قبل البدء تعرض اسم الشهر بدل التاريخ الكامل
-const startedStatus = (j) => hasStarted(j) ? 'بدأت' : `تبدأ في ${monthLabel(j.startDate, 1)}`;
+const startedStatus=j=>hasStarted(j)?'بدأت':`تبدأ في ${j.startDate}`;
 
 /* --------- تخزين --------- */
 function migrateV01toV02(old){
@@ -127,7 +125,7 @@ function onCreateJamiyah(e){
   saveAll(); e.target.reset(); toast('تم إنشاء الجمعية'); renderList();
 }
 
-/* --------- قائمة الجمعيات (Month Year) --------- */
+/* --------- قائمة الجمعيات (معدلة) --------- */
 function renderList(){
   const list=$('#jamiyahList');const empty=$('#emptyList');const pill=$('#jamiyahCountPill');
   const items=state.jamiyahs
@@ -138,20 +136,23 @@ function renderList(){
   if(items.length===0) empty.classList.remove('hidden'); else empty.classList.add('hidden');
 
   items.forEach(j=>{
-    const monthYear = monthLabel(j.startDate, 1);
+    const startLabel = monthLabel(j.startDate,1);                 // Month Year فقط
+    const durationTxt = `المدة: ${fmtInt(j.duration)} شهر`;
+    const amountTxt   = `مبلغ الجمعية: ${fmtMoney(j.goal)} ريال`;
+
     const row=document.createElement('div'); row.className='item';
     row.innerHTML=`
       <div>
         <div><strong>${j.name}</strong></div>
-        <div class="meta">
-          <span>${monthYear} · المدة: ${fmtInt(j.duration)} شهر</span>
-          <span class="badge">مبلغ الجمعية: ${fmtMoney(j.goal)} ريال</span>
-          <span class="badge">${startedStatus(j)}</span>
+        <div class="meta stack-0">
+          <span class="badge">تبدأ في ${startLabel}</span>
+          <span class="badge">${durationTxt}</span>
+          <span class="badge">${amountTxt}</span>
         </div>
       </div>
       <button class="btn secondary" data-id="${j.id}">فتح</button>
     `;
-    row.querySelector('button').addEventListener('click', ()=> openDetails(j.id));
+    row.querySelector('button').addEventListener('click',()=>openDetails(j.id));
     list.appendChild(row);
   });
 
@@ -423,7 +424,7 @@ function updateMonthHint(){
   hint.textContent=line;
 }
 
-/* --------- حذف --------- */
+/* --------- حذف الجمعية --------- */
 function onDeleteJamiyah(){
   const j=currentJamiyah(); if(!j) return;
   if(!confirm(`حذف ${j.name}؟ لا يمكن التراجع.`)) return;
