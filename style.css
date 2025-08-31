@@ -1,4 +1,4 @@
-/* v1.4.5 — نفس ستايل النسخة السابقة */
+/* v1.5.2 */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --border:#1f2937;
@@ -9,14 +9,16 @@
   --fs-xs:12px; --fs-sm:13px; --fs-md:14px; --fs-lg:16px; --fs-xl:18px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
-
-.app-bar{padding:16px;background:#0b1220;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
+.app-bar{padding:16px;background:#0b1220;border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{display:flex;align-items:center;gap:12px}
 .h1{margin:0;font-size:18px}
 
 .container{max-width:980px;margin:16px auto;padding:0 16px}
-.stack-0>*+*{margin-top:4px}.stack-1>*+*{margin-top:8px}.stack-2>*+*{margin-top:12px}.stack-3>*+*{margin-top:16px}.stack-4>*+*{margin-top:24px}
+.stack-0>*+*{margin-top:4px}.stack-1>*+*{margin-top:8px}.stack-2>*+*{margin-top:12px}
+.stack-3>*+*{margin-top:16px}.stack-4>*+*{margin-top:24px}
 
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
 .h2{margin:0 0 8px;font-size:16px}
@@ -42,7 +44,7 @@ small.hint{color:var(--muted);font-size:12px;min-height:16px;display:block}
 
 .list{display:flex;flex-direction:column;gap:12px}
 .list .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;background:var(--panel);border:1px solid var(--border);border-radius:12px}
-.item .meta{color:var(--muted);font-size:13px;display:flex;gap:12px;flex-wrap:wrap}
+.item .meta{color:var(--muted);font-size:13px;display:flex;gap:8px;flex-wrap:wrap}
 
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border-top:1px solid var(--border);padding:10px;text-align:right;vertical-align:top}
@@ -50,7 +52,6 @@ small.hint{color:var(--muted);font-size:12px;min-height:16px;display:block}
 .table tbody tr:nth-child(odd){background:var(--row1)}
 .table tbody tr:nth-child(even){background:var(--row2)}
 
-.table--cards thead{ }
 @media (max-width:720px){
   .table--cards thead{display:none}
   .table--cards tr{display:block;margin:12px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden}
@@ -58,8 +59,8 @@ small.hint{color:var(--muted);font-size:12px;min-height:16px;display:block}
   .table--cards td:first-child{border-top:none}
   .table--cards td::before{content:attr(data-col);color:var(--muted)}
 }
-
 .row-accent{border-inline-start:4px solid var(--accent)}
+
 .details-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .details-header .meta{display:flex;gap:8px;color:var(--muted);font-size:13px;flex-wrap:wrap}
 .badge{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--panel);font-size:12px;color:var(--muted)}
@@ -89,6 +90,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .modal__head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border)}
 .modal__body{padding:16px;overflow:auto}
 .modal__foot{display:flex;gap:12px;justify-content:flex-end;padding:16px;border-top:1px solid var(--border)}
+
 .pay-grid{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center}
 .pay-grid .cell{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
 .pay-grid .month{font-weight:700}
