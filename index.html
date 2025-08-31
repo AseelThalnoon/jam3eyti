@@ -7,12 +7,14 @@
   <title>جمعيتي</title>
 
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
-  <link rel="stylesheet" href="style.css?v=2.2.0" />
-  <script src="app.js?v=2.2.0" defer></script>
+  <link rel="stylesheet" href="style.css?v=2.3.0" />
+  <script src="app.js?v=2.3.0" defer></script>
 </head>
 <body>
-  <header class="app-bar">
-    <div class="brand">
+  <a href="#main" class="skip-link">تخطي إلى المحتوى</a>
+
+  <header class="app-bar" role="banner">
+    <div class="brand" aria-label="العلامة">
       <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true" width="28" height="28">
         <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
         <circle cx="64" cy="50" r="22" fill="url(#lg)"></circle>
@@ -21,33 +23,35 @@
       <h1 class="h1">جمعيتي</h1>
     </div>
     <div class="actions-right">
-      <input id="search" class="search" placeholder="ابحث عن جمعية بالاسم…" />
+      <label class="visually-hidden" for="search">بحث عن جمعية بالاسم</label>
+      <input id="search" class="search" placeholder="ابحث عن جمعية بالاسم…" aria-label="بحث عن جمعية" />
     </div>
   </header>
 
-  <main class="container stack-4">
+  <main id="main" class="container stack-4" role="main">
     <!-- إنشاء جمعية -->
-    <section id="createSection" class="card stack-3">
+    <section id="createSection" class="card stack-3" aria-labelledby="createTitle">
       <details id="createBlock" class="collapsible" open>
-        <summary class="caret section-title">إنشاء جمعية جديدة</summary>
+        <summary id="createTitle" class="caret section-title">إنشاء جمعية جديدة</summary>
         <div class="content">
-          <form id="jamiyahForm" class="stack-2" novalidate>
+          <form id="jamiyahForm" class="stack-2" novalidate aria-describedby="createHelp">
+            <div id="createHelp" class="visually-hidden">جميع الحقول مطلوبة.</div>
             <div class="grid">
-              <label>اسم الجمعية
-                <input required id="j-name" placeholder="مثال: جمعية رمضان" />
-                <span class="error" id="err-j-name"></span>
+              <label for="j-name">اسم الجمعية
+                <input required id="j-name" placeholder="مثال: جمعية رمضان" aria-describedby="err-j-name" />
+                <span class="error" id="err-j-name" role="alert"></span>
               </label>
-              <label>شهر البداية
-                <input required id="j-start" type="month" />
-                <span class="error" id="err-j-start"></span>
+              <label for="j-start">شهر البداية
+                <input required id="j-start" type="month" aria-describedby="err-j-start" />
+                <span class="error" id="err-j-start" role="alert"></span>
               </label>
-              <label>المدة (أشهر)
-                <input required id="j-duration" type="number" min="1" max="60" value="6" />
-                <span class="error" id="err-j-duration"></span>
+              <label for="j-duration">المدة (أشهر)
+                <input required id="j-duration" type="number" min="1" max="60" value="6" aria-describedby="err-j-duration" />
+                <span class="error" id="err-j-duration" role="alert"></span>
               </label>
-              <label>مبلغ الجمعية · ريال
-                <input required id="j-goal" type="number" min="1" step="1" placeholder="مثال: 30000" />
-                <span class="error" id="err-j-goal"></span>
+              <label for="j-goal">مبلغ الجمعية · ريال
+                <input required id="j-goal" type="number" min="1" step="1" placeholder="مثال: 30000" aria-describedby="err-j-goal" />
+                <span class="error" id="err-j-goal" role="alert"></span>
               </label>
             </div>
             <div class="actions">
@@ -60,15 +64,15 @@
     </section>
 
     <!-- قائمة الجمعيات -->
-    <section class="card stack-3">
+    <section class="card stack-3" aria-labelledby="listTitle">
       <details id="listBlock" class="collapsible" open>
-        <summary class="caret section-title">
+        <summary id="listTitle" class="caret section-title">
           <span>الجمعيات</span>
-          <span class="pill" id="jamiyahCountPill">0</span>
+          <span class="pill" id="jamiyahCountPill" aria-live="polite" aria-atomic="true">0</span>
         </summary>
         <div class="content">
-          <div id="jamiyahList" class="list"></div>
-          <div id="emptyList" class="empty hidden">
+          <div id="jamiyahList" class="list" role="list"></div>
+          <div id="emptyList" class="empty hidden" role="status" aria-live="polite">
             لا توجد جمعيات.
             <div id="restoreWrap" class="stack-1 hidden" style="margin-top:8px;">
               <button id="restoreBtn" class="btn">استرجاع الجمعيات</button>
@@ -80,74 +84,76 @@
     </section>
 
     <!-- تفاصيل الجمعية -->
-    <section id="details" class="card hidden stack-3" hidden>
+    <section id="details" class="card hidden stack-3" hidden aria-labelledby="detailsTitle">
       <div class="details-header stack-1">
         <div class="stack-0">
           <div class="title-row">
-            <h2 id="d-title" class="h2"></h2>
+            <h2 id="detailsTitle" class="h2"><span id="d-title"></span></h2>
             <button id="editBtn" class="icon-btn" title="تعديل الجمعية" aria-label="تعديل الجمعية">✏️</button>
           </div>
-          <div class="meta" id="d-meta"></div>
+          <div class="meta" id="d-meta" aria-live="polite"></div>
         </div>
         <!-- شريط إجراءات موحّد -->
-        <div class="details-ops actions">
-          <button class="btn primary" id="addMemberTop">+ عضو</button>
-          <button class="btn secondary" id="exportBtn">تصدير PDF</button>
-          <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">تصدير JSON</button>
-          <button class="btn danger" id="deleteJamiyah">حذف</button>
+        <div class="details-ops actions" role="toolbar" aria-label="إجراءات الجمعية">
+          <button class="btn primary" id="addMemberTop" aria-label="إضافة عضو">+ عضو</button>
+          <button class="btn secondary" id="exportBtn" aria-label="تصدير PDF">تصدير PDF</button>
+          <!-- تمت إزالة تصدير JSON -->
+          <button class="btn danger" id="deleteJamiyah" aria-label="حذف الجمعية">حذف</button>
         </div>
       </div>
 
-      <div class="alert" id="startedAlert" hidden>بدأت الجمعية. لا يمكن إضافة أعضاء جدد.</div>
+      <div class="alert" id="startedAlert" hidden role="alert">بدأت الجمعية. لا يمكن إضافة أعضاء جدد.</div>
 
       <!-- الأعضاء -->
       <details id="membersBlock" class="collapsible hidden">
         <summary class="caret section-title members-summary">
-          <span class="section-icon">👥</span>
+          <span class="section-icon" aria-hidden="true">👥</span>
           <span id="mSummaryText">الأعضاء</span>
-          <span class="pill" id="mCountPill">0</span>
+          <span class="pill" id="mCountPill" aria-live="polite" aria-atomic="true">0</span>
           <span class="spacer"></span>
-          <!-- أزلنا زر + من هنا حسب البند 1 -->
         </summary>
         <div class="content">
-          <div class="subtoolbar sticky-sub">
-            <input id="mSearch" class="search small" placeholder="ابحث عن عضو…" />
-            <select id="mFilter" class="select small">
+          <div class="subtoolbar sticky-sub" role="region" aria-label="أدوات الأعضاء">
+            <label class="visually-hidden" for="mSearch">بحث عن عضو</label>
+            <input id="mSearch" class="search small" placeholder="ابحث عن عضو…" aria-label="بحث عن عضو" />
+            <label class="visually-hidden" for="mFilter">تصفية</label>
+            <select id="mFilter" class="select small" aria-label="تصفية الأعضاء">
               <option value="all">الكل</option>
               <option value="overdue">المتأخرون</option>
               <option value="notfull">غير مكتمل الدفع</option>
             </select>
-            <select id="mSort" class="select small">
+            <label class="visually-hidden" for="mSort">ترتيب</label>
+            <select id="mSort" class="select small" aria-label="ترتيب الأعضاء">
               <option value="month">ترتيب: بالشهر</option>
               <option value="name">ترتيب: بالاسم</option>
             </select>
-            <span id="mOverdueInfo" class="badge subtle"></span>
+            <span id="mOverdueInfo" class="badge subtle" aria-live="polite"></span>
           </div>
 
-          <table class="table table--cards">
+          <table class="table table--cards" role="table" aria-label="جدول الأعضاء">
             <thead>
               <tr>
-                <th>#</th><th>الاسم</th><th>المساهمة</th>
-                <th>التقدّم</th><th>شهر الاستلام</th><th></th>
+                <th scope="col">#</th><th scope="col">الاسم</th><th scope="col">المساهمة</th>
+                <th scope="col">التقدّم</th><th scope="col">شهر الاستلام</th><th scope="col">إجراءات</th>
               </tr>
             </thead>
             <tbody id="memberTableBody"></tbody>
           </table>
-          <div id="emptyMembers" class="empty hidden">لا يوجد أعضاء بعد.</div>
+          <div id="emptyMembers" class="empty hidden" role="status" aria-live="polite">لا يوجد أعضاء بعد.</div>
         </div>
       </details>
 
       <!-- الجدول الشهري (Tiles) -->
       <details id="scheduleBlock" class="collapsible hidden">
         <summary class="caret section-title">
-          <span class="section-icon">🗓️</span>
+          <span class="section-icon" aria-hidden="true">🗓️</span>
           <span id="sSummaryText">الجدول الشهري</span>
-          <span class="pill" id="sCountPill">0</span>
+          <span class="pill" id="sCountPill" aria-live="polite" aria-atomic="true">0</span>
         </summary>
         <div class="content">
-          <div id="scheduleGrid" class="month-grid"></div>
+          <div id="scheduleGrid" class="month-grid" role="list" aria-label="قائمة الشهور"></div>
 
-          <div id="monthDetails" class="month-details hidden">
+          <div id="monthDetails" class="month-details hidden" role="region" aria-live="polite" aria-labelledby="md-title">
             <div class="md-head">
               <div id="md-title" class="h2"></div>
               <button id="md-close" class="btn ghost modal__close" aria-label="إغلاق" title="إغلاق">✖</button>
@@ -158,7 +164,7 @@
       </details>
 
       <div class="actions">
-        <button class="btn secondary" id="backBtn">رجوع</button>
+        <button class="btn secondary" id="backBtn" aria-label="رجوع">رجوع</button>
       </div>
     </section>
 
@@ -166,17 +172,17 @@
     <button id="fabAdd" class="fab" title="إضافة عضو" aria-label="إضافة عضو">＋</button>
   </main>
 
-  <div id="toasts" class="toasts"></div>
+  <div id="toasts" class="toasts" aria-live="polite" aria-atomic="true"></div>
 
   <!-- نافذة الدفعات -->
   <div id="payModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="payModalTitle" hidden>
-    <div class="modal__card">
+    <div class="modal__card" role="document">
       <div class="modal__head">
         <h3 id="payModalTitle" class="h2">دفعات: عضو</h3>
         <button id="payClose" class="btn ghost modal__close" aria-label="إغلاق" title="إغلاق">✖</button>
       </div>
       <div class="modal__body">
-        <div id="paySummary" class="subtoolbar"></div>
+        <div id="paySummary" class="subtoolbar" aria-live="polite"></div>
         <div id="payModalBody"></div>
       </div>
       <div class="modal__foot">
@@ -189,26 +195,26 @@
 
   <!-- نافذة تعديل الجمعية -->
   <div id="editModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="editModalTitle" hidden>
-    <div class="modal__card">
+    <div class="modal__card" role="document">
       <div class="modal__head">
         <h3 id="editModalTitle" class="h2">تعديل الجمعية</h3>
         <button id="editClose" class="btn ghost modal__close" aria-label="إغلاق" title="إغلاق">✖</button>
       </div>
       <div class="modal__body">
         <form id="editForm" class="grid" novalidate>
-          <label>اسم الجمعية
-            <input id="e-name" required />
-            <span class="error" id="err-e-name"></span>
+          <label for="e-name">اسم الجمعية
+            <input id="e-name" required aria-describedby="err-e-name" />
+            <span class="error" id="err-e-name" role="alert"></span>
           </label>
-          <label>مبلغ الجمعية · ريال
-            <input id="e-goal" type="number" min="1" step="1" required />
-            <span class="error" id="err-e-goal"></span>
+          <label for="e-goal">مبلغ الجمعية · ريال
+            <input id="e-goal" type="number" min="1" step="1" required aria-describedby="err-e-goal" />
+            <span class="error" id="err-e-goal" role="alert"></span>
           </label>
-          <label>شهر البداية
+          <label for="e-start">شهر البداية
             <input id="e-start" type="month" />
             <small class="hint">يُحفظ كـ YYYY-MM-01 · لا يمكن تعديله بعد البدء</small>
           </label>
-          <label>المدة (أشهر)
+          <label for="e-duration">المدة (أشهر)
             <input id="e-duration" type="number" min="1" max="60" />
             <small class="hint">لا يمكن تعديلها بعد بدء الجمعية</small>
           </label>
@@ -222,25 +228,25 @@
 
   <!-- نافذة إضافة عضو -->
   <div id="addMemberModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="addMemberTitle" hidden>
-    <div class="modal__card">
+    <div class="modal__card" role="document">
       <div class="modal__head">
         <h3 id="addMemberTitle" class="h2">إضافة عضو</h3>
         <button id="amClose" class="btn ghost modal__close" aria-label="إغلاق" title="إغلاق">✖</button>
       </div>
       <div class="modal__body">
         <form id="amForm" class="grid" novalidate>
-          <label>اسم العضو
-            <input id="am-name" required placeholder="مثال: Ahmed" />
-            <span class="error" id="err-am-name"></span>
+          <label for="am-name">اسم العضو
+            <input id="am-name" required placeholder="مثال: Ahmed" aria-describedby="err-am-name" />
+            <span class="error" id="err-am-name" role="alert"></span>
           </label>
-          <label>المساهمة الشهرية (ريال)
-            <input id="am-pay" required type="number" min="1" step="1" placeholder="مثال: 1000" />
-            <span class="error" id="err-am-pay"></span>
+          <label for="am-pay">المساهمة الشهرية (ريال)
+            <input id="am-pay" required type="number" min="1" step="1" placeholder="مثال: 1000" aria-describedby="err-am-pay" />
+            <span class="error" id="err-am-pay" role="alert"></span>
           </label>
-          <label>شهر الاستلام
-            <select id="am-month" required></select>
+          <label for="am-month">شهر الاستلام
+            <select id="am-month" required aria-describedby="err-am-month"></select>
             <small id="am-hint" class="hint"></small>
-            <span class="error" id="err-am-month"></span>
+            <span class="error" id="err-am-month" role="alert"></span>
           </label>
         </form>
       </div>
@@ -250,6 +256,6 @@
     </div>
   </div>
 
-  <footer class="footer">v2.2.0 · © Aseel Thalnoon</footer>
+  <footer class="footer" role="contentinfo">v2.3.0 · © Aseel Thalnoon</footer>
 </body>
 </html>
