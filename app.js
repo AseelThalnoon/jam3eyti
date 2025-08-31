@@ -1,13 +1,13 @@
-/* v2.0.1 – حمايات التخزين + نسخ احتياطي تلقائي + استرجاع بنقرة */
+/* v2.0.2 – تفويض أحداث + حماية تخزين أقوى + تصدير JSON + defer في HTML */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
 /* مفاتيح التخزين */
-const KEY_PRIMARY   = "jamiyati:data";   // المفتاح الجديد الثابت
-const KEY_V02       = "jamiyati:v02";    // دعم قديم
-const KEY_V01       = "jamiyati:v01";    // دعم قديم
-const KEY_BACKUP    = "jamiyati:backup"; // نسخة احتياطية دوّام
-const KEY_AUTOSAVE  = "jamiyati:autosave";// آخر حفظ + طابع وقت
+const KEY_PRIMARY   = "jamiyati:data";
+const KEY_V02       = "jamiyati:v02";
+const KEY_V01       = "jamiyati:v01";
+const KEY_BACKUP    = "jamiyati:backup";
+const KEY_AUTOSAVE  = "jamiyati:autosave";
 
 /* حالة التطبيق */
 const state={
@@ -25,84 +25,47 @@ const fmtMoney=n=>Number(n||0).toLocaleString('en-US');
 const fmtInt  =n=>Number(n||0).toLocaleString('en-US');
 function monthLabel(startDate,offset){ const d=new Date(startDate); d.setMonth(d.getMonth()+(offset-1)); return d.toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
 
-/* ===== تخزين آمن مع ترحيل + نسخ احتياطي ===== */
-function parseJsonSafe(txt){
-  try{ const v=JSON.parse(txt); return v; }catch{ return null; }
-}
-function readKey(key){
-  const txt=localStorage.getItem(key);
-  if(!txt) return null;
-  return parseJsonSafe(txt);
-}
-function migrateV01toV02(old){
-  return (old||[]).map(j=>({
-    ...j,
-    goal:Number(j.goal||0),
-    members:(j.members||[]).map(m=>({
-      ...m,
-      entitlement:Number.isFinite(m.entitlement)?Number(m.entitlement):Number(m.pay||0)*Number(j.duration||0)
-    }))
-  }));
-}
+/* ===== تخزين آمن ===== */
+function parseJsonSafe(txt){ try{return JSON.parse(txt);}catch{return null;} }
+function readKey(k){ const t=localStorage.getItem(k); return t?parseJsonSafe(t):null; }
+function migrateV01toV02(old){ return (old||[]).map(j=>({...j,goal:Number(j.goal||0),members:(j.members||[]).map(m=>({...m,entitlement:Number.isFinite(m.entitlement)?Number(m.entitlement):Number(m.pay||0)*Number(j.duration||0)}))})); }
 function loadAllSafe(){
-  // 1) جرّب المفتاح الأساسي
-  let data = readKey(KEY_PRIMARY);
-  if (Array.isArray(data)) return data;
-
-  // 2) جرّب v02
-  data = readKey(KEY_V02);
-  if (Array.isArray(data)) { localStorage.setItem(KEY_PRIMARY, JSON.stringify(data)); return data; }
-
-  // 3) جرّب v01 + ترحيل
-  const v01 = readKey(KEY_V01);
-  if (Array.isArray(v01)) {
-    const migrated = migrateV01toV02(v01);
-    localStorage.setItem(KEY_PRIMARY, JSON.stringify(migrated));
-    return migrated;
+  try {
+    let data = readKey(KEY_PRIMARY); if(Array.isArray(data)) return data;
+    data = readKey(KEY_V02); if(Array.isArray(data)){ localStorage.setItem(KEY_PRIMARY, JSON.stringify(data)); return data; }
+    const v01 = readKey(KEY_V01); if(Array.isArray(v01)){ const m=migrateV01toV02(v01); localStorage.setItem(KEY_PRIMARY, JSON.stringify(m)); return m; }
+    const backup = readKey(KEY_BACKUP);
+    if(Array.isArray(backup)&&backup.length){
+      document.addEventListener('DOMContentLoaded',()=>$('#restoreWrap')?.classList.remove('hidden'));
+    }
+  } catch(e){
+    console.warn('Storage read error', e);
   }
-
-  // 4) آخر حل: إن وُجدت نسخة احتياطية صحيحة، لا نحمّلها تلقائيًا لكن نبلّغ واجهة المستخدم
-  const backup = readKey(KEY_BACKUP);
-  if (Array.isArray(backup) && backup.length>0) {
-    // نخلي الواجهة تعرض زر الاسترجاع
-    document.addEventListener('DOMContentLoaded', ()=>{
-      const wrap = $('#restoreWrap'); if(wrap) wrap.classList.remove('hidden');
-    });
-  }
-
-  // فاضي بشكل صريح
   return [];
 }
-
-/* الحفظ مع نسخ احتياطي ومنع الكتابة فوق بيانات سليمة بلا سبب */
+function safeSerialize(v){ try{return JSON.stringify(v);}catch{return null;} }
 function saveAll(){
-  if (!Array.isArray(state.jamiyahs)) return;
-
-  // لا تكتب مصفوفة فاضية لو كان فيه بيانات قديمة غير فاضية (لتجنّب المسح بالغلط)
+  if(!Array.isArray(state.jamiyahs)) return;
   const currentStored = readKey(KEY_PRIMARY);
   if ((!state.jamiyahs || state.jamiyahs.length===0) && Array.isArray(currentStored) && currentStored.length>0){
-    // تجاهل هذا الحفظ
-    console.warn('Skip saving empty array to protect existing data');
-    return;
+    console.warn('Skip saving empty to protect existing data'); return;
   }
-
-  const serialized = JSON.stringify(state.jamiyahs);
-  // النسخة الأساسية
-  localStorage.setItem(KEY_PRIMARY, serialized);
-  // نسخة احتياطية
-  localStorage.setItem(KEY_BACKUP, serialized);
-  // أوتوسيف مع طابع الوقت
-  localStorage.setItem(KEY_AUTOSAVE, JSON.stringify({ at: Date.now(), data: state.jamiyahs }));
+  const ser=safeSerialize(state.jamiyahs);
+  if(!ser) return;
+  try{
+    localStorage.setItem(KEY_PRIMARY, ser);
+    localStorage.setItem(KEY_BACKUP, ser);
+    localStorage.setItem(KEY_AUTOSAVE, JSON.stringify({at:Date.now(), data:state.jamiyahs}));
+  }catch(e){
+    toast('التخزين متوقف (وضع خاص؟). استخدم تصدير JSON كنسخة احتياطية.');
+  }
 }
-
-/* زر الاسترجاع */
 function restoreFromBackup(){
   const backup = readKey(KEY_BACKUP) || (readKey(KEY_AUTOSAVE)||{}).data;
-  if (Array.isArray(backup) && backup.length>0){
-    state.jamiyahs = backup;
+  if(Array.isArray(backup)&&backup.length){
+    state.jamiyahs=backup;
     localStorage.setItem(KEY_PRIMARY, JSON.stringify(backup));
-    // أخفي زر الاسترجاع
-    const wrap = $('#restoreWrap'); if(wrap) wrap.classList.add('hidden');
+    $('#restoreWrap')?.classList.add('hidden');
     toast('تم الاسترجاع من النسخة الاحتياطية');
     renderList();
     if(state.jamiyahs[0]) openDetails(state.jamiyahs[0].id);
@@ -111,7 +74,7 @@ function restoreFromBackup(){
   }
 }
 
-/* ===== بقية الأدوات ===== */
+/* ===== أدوات عامة ===== */
 const uid=()=>Math.random().toString(36).slice(2,10);
 function hasStarted(j){const t=new Date().setHours(0,0,0,0);const s=new Date(j.startDate).setHours(0,0,0,0);return t>=s;}
 function currentJamiyah(){return state.jamiyahs.find(x=>x.id===state.currentId);}
@@ -145,49 +108,67 @@ function monthStats(j, i){
 document.addEventListener('DOMContentLoaded',()=>{
   hide($('#details')); hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal'));
 
-  // زر الاسترجاع
-  $('#restoreBtn')?.addEventListener('click', restoreFromBackup);
-
-  // إنشاء
-  $('#jamiyahForm').addEventListener('submit',onCreateJamiyah);
-
-  // قائمة
-  $('#search').addEventListener('input',e=>{state.filter=(e.target.value||'').trim();renderList();});
-
-  // تصدير
-  $('#exportBtn').addEventListener('click',()=>exportPdf(currentJamiyah()));
-
-  // دفعات
-  $('#payClose').addEventListener('click',()=>hide($('#payModal')));
-  $('#paySave').addEventListener('click',savePayModal);
-  $('#payMarkAll').addEventListener('click',()=>setAllPayModal(true));
-  $('#payClearAll').addEventListener('click',()=>setAllPayModal(false));
-  $('#payModal').addEventListener('click',e=>{if(e.target.id==='payModal')hide($('#payModal'));});
-
-  // تعديل
-  $('#editBtn').addEventListener('click',openEditModal);
-  $('#editClose').addEventListener('click',()=>hide($('#editModal')));
-  $('#saveEdit').addEventListener('click',onSaveEdit);
-
-  // إضافة عضو
-  $('#addMemberBtn').addEventListener('click',openAddMemberModal);
-  $('#fabAdd').addEventListener('click',openAddMemberModal);
-
-  // أدوات الأعضاء
-  $('#mSearch').addEventListener('input',e=>{state.memberQuery=(e.target.value||'').trim().toLowerCase(); renderMembers(currentJamiyah());});
-  $('#mFilter').addEventListener('change',e=>{state.memberFilter=e.target.value; renderMembers(currentJamiyah());});
-  $('#mSort').addEventListener('change',e=>{state.memberSort=e.target.value; renderMembers(currentJamiyah());});
-
-  // تفاصيل الجدول الشهري (Tiles)
-  $('#md-close').addEventListener('click', ()=>hide($('#monthDetails')));
-  $('#schedAutoExpand').addEventListener('change', ()=>renderSchedule(currentJamiyah()));
-
-  // حفظ احتياطي دوري (لو صار كرَش قبل الحفظ)
+  // إدخال عام
+  $('#jamiyahForm')?.addEventListener('submit',onCreateJamiyah);
+  $('#search')?.addEventListener('input',e=>{state.filter=(e.target.value||'').trim();renderList();});
   window.addEventListener('beforeunload', ()=> {
     try{ localStorage.setItem(KEY_AUTOSAVE, JSON.stringify({ at: Date.now(), data: state.jamiyahs })); }catch{}
   });
 
   renderList();
+});
+
+/* تفويض أحداث للأزرار (حتى لو تغيّر DOM) */
+document.addEventListener('click', (e)=>{
+  const id = (e.target.closest('[id]')||{}).id || '';
+  switch(id){
+    case 'restoreBtn':        restoreFromBackup(); break;
+    case 'exportBtn':         exportPdf(currentJamiyah()); break;
+    case 'exportJsonBtn':     exportJson(); break;
+    case 'deleteJamiyah':     onDeleteJamiyah(); break;
+    case 'backBtn':           showList(); break;
+
+    case 'editBtn':           openEditModal(); break;
+    case 'editClose':         hide($('#editModal')); break;
+    case 'saveEdit':          onSaveEdit(); break;
+
+    case 'addMemberBtn':
+    case 'fabAdd':            openAddMemberModal(); break;
+    case 'amClose':           hide($('#addMemberModal')); break;
+    case 'amSave':            onAddMemberFromModal(); break;
+
+    case 'payClose':          hide($('#payModal')); break;
+    case 'payMarkAll':        setAllPayModal(true); break;
+    case 'payClearAll':       setAllPayModal(false); break;
+    case 'paySave':           savePayModal(); break;
+
+    case 'md-close':          hide($('#monthDetails')); break;
+
+    default: {
+      // فتح جمعية من قائمة الجمعيات
+      const btn = e.target.closest('button.btn.secondary[data-id]');
+      if(btn){ openDetails(btn.dataset.id); }
+      // زر دفعات/حذف داخل جدول الأعضاء
+      if(e.target.matches('button.btn') && e.target.textContent.trim()==='دفعات'){
+        const tr=e.target.closest('tr'); if(!tr) return;
+        const nameCell=tr.querySelector('[data-col="الاسم"]'); const nameTxt=nameCell?.textContent?.trim()||'';
+        const j=currentJamiyah(); if(!j) return;
+        const m=j.members.find(x=>x.name===nameTxt); if(m) openPayModal(m.id);
+      }
+      if(e.target.matches('button.btn.danger') && e.target.textContent.trim()==='حذف'){
+        const tr=e.target.closest('tr'); if(!tr) return;
+        const nameCell=tr.querySelector('[data-col="الاسم"]'); const nameTxt=nameCell?.textContent?.trim()||'';
+        const j=currentJamiyah(); if(!j) return;
+        const m=j.members.find(x=>x.name===nameTxt); if(m){
+          if(hasStarted(j)){toast('بدأت الجمعية. لا يمكن تعديل الأعضاء.');return;}
+          if(!confirm(`حذف ${m.name}؟`))return;
+          j.members=j.members.filter(x=>x.id!==m.id);
+          saveAll(); renderMembers(j); renderSchedule(j); populateMonthOptions(j,$('#am-month')); updateCounters(j);
+          toast('تم حذف العضو');
+        }
+      }
+    }
+  }
 });
 
 /* إنشاء جمعية */
@@ -214,10 +195,8 @@ function renderList(){
   const items=state.jamiyahs.filter(j=>!state.filter||j.name.includes(state.filter)).sort((a,b)=>a.name.localeCompare(b.name));
   list.innerHTML=''; pill.textContent=fmtInt(items.length);
 
-  // إظهار/إخفاء الحالة الفارغة
   const hasItems = items.length>0;
   empty.classList.toggle('hidden',hasItems);
-  // أظهر زر الاسترجاع إذا فيه باك أب
   const hasBackup = Array.isArray(readKey(KEY_BACKUP)) && readKey(KEY_BACKUP).length>0;
   const wrap = $('#restoreWrap'); if(wrap) wrap.classList.toggle('hidden', !( !hasItems && hasBackup ));
 
@@ -227,8 +206,6 @@ function renderList(){
         <button id="restoreBtn" class="btn">استرجاع الجمعيات</button>
         <small class="hint">وجدنا نسخة احتياطية محلية — اضغط للاسترجاع.</small>
       </div>`;
-    // اربط زر الاسترجاع (أُنشئ للتو)
-    $('#restoreBtn')?.addEventListener('click', restoreFromBackup);
   }
 
   items.forEach(j=>{
@@ -242,7 +219,6 @@ function renderList(){
         </div>
       </div>
       <button class="btn secondary" data-id="${j.id}">فتح</button>`;
-    row.querySelector('button').addEventListener('click',()=>openDetails(j.id));
     list.appendChild(row);
   });
 
@@ -308,7 +284,7 @@ function renderMembers(j){
     return a.month-b.month||a.name.localeCompare(b.name);
   });
 
-  if(rows.length===0){ empty.classList.remove('hidden'); } else { empty.classList.add('hidden'); }
+  empty.classList.toggle('hidden', rows.length!==0);
 
   rows.forEach((m,idx)=>{
     const {paid}=memberPaidSummary(j,m);
@@ -335,15 +311,8 @@ function renderMembers(j){
       const td=document.createElement('td'); td.setAttribute('data-col',label); td.innerHTML=val;
       if(i===6){
         const wrap=document.createElement('div'); wrap.style.display='flex'; wrap.style.gap='8px';
-        const btnPay=document.createElement('button'); btnPay.className='btn'; btnPay.textContent='دفعات'; btnPay.addEventListener('click',()=>openPayModal(m.id));
+        const btnPay=document.createElement('button'); btnPay.className='btn'; btnPay.textContent='دفعات';
         const btnDel=document.createElement('button'); btnDel.className='btn danger'; btnDel.textContent='حذف';
-        btnDel.addEventListener('click',()=>{
-          if(hasStarted(j)){toast('بدأت الجمعية. لا يمكن تعديل الأعضاء.');return;}
-          if(!confirm(`حذف ${m.name}؟`))return;
-          j.members=j.members.filter(x=>x.id!==m.id);
-          saveAll(); renderMembers(j); renderSchedule(j); populateMonthOptions(j,$('#am-month')); updateCounters(j);
-          toast('تم حذف العضو');
-        });
         wrap.appendChild(btnPay); wrap.appendChild(btnDel);
         td.innerHTML=''; td.appendChild(wrap);
       }
@@ -444,15 +413,13 @@ function renderSchedule(j){
 
     grid.appendChild(tile);
 
-    if(autoExpand?.checked && rec.length){
-      tile.click();
-    }
+    if(autoExpand?.checked && rec.length){ tile.click(); }
   }
 
   updateCounters(j);
 }
 
-/* دفعات */
+/* دفعات (Modal) */
 function openPayModal(memberId){
   const j=currentJamiyah(); if(!j) return;
   const m=j.members.find(x=>x.id===memberId); if(!m) return;
@@ -488,12 +455,11 @@ function savePayModal(){
   recalcMemberCounters(j,m); saveAll(); renderMembers(j); hide($('#payModal')); toast('تم حفظ الدفعات');
 }
 
-/* حذف/رجوع + PDF */
+/* حذف/رجوع + PDF + JSON */
 function onDeleteJamiyah(){ const j=currentJamiyah(); if(!j) return;
   if(!confirm(`حذف ${j.name}؟ لا يمكن التراجع.`)) return;
   state.jamiyahs=state.jamiyahs.filter(x=>x.id!==j.id); saveAll(); showList(); renderList(); toast('تم حذف الجمعية'); }
 function showList(){ hide($('#details')); state.currentId=null; setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
-
 function exportPdf(j){ if(!j) return;
   const css=`<style>@page{size:A4;margin:14mm}body{font-family:-apple-system,Segoe UI,Roboto,Arial,"Noto Naskh Arabic","IBM Plex Sans Arabic",sans-serif;color:#111}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.meta{color:#555;font-size:12px;margin-bottom:12px}h2{margin:18px 0 8px;font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}thead th{background:#f3f4f6}tfoot td{font-weight:700;background:#fafafa}.muted{color:#666}</style>`;
   const jx=j, members=jx.members.slice().sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
@@ -516,4 +482,13 @@ function exportPdf(j){ if(!j) return;
   <table><thead><tr><th>الشهر</th><th>المستلمون</th></tr></thead><tbody>${sched}</tbody></table>
   <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),300);}</script></body></html>`;
   const w=window.open('','_blank');w.document.open();w.document.write(html);w.document.close();
+}
+function exportJson(){
+  const data = safeSerialize(state.jamiyahs)||"[]";
+  const blob = new Blob([data],{type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`jamiyati-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  toast('تم تنزيل نسخة JSON احتياطية');
 }
