@@ -1,29 +1,34 @@
-/* v2.0.3 – ثابتة ومتكاملة: تفويض أحداث + نسخ احتياطي + إضافة عضو + إغلاق ✖ */
+/* v2.1.0 – تبسيط واجهة + Undo + مؤشر حفظ + تفضيلات محفوظة */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
 /* مفاتيح التخزين */
 const KEY_PRIMARY   = "jamiyati:data";
-const KEY_V02       = "jamiyati:v02";  // دعم إصدارات قديمة
-const KEY_V01       = "jamiyati:v01";  // دعم أقدم
+const KEY_V02       = "jamiyati:v02";
+const KEY_V01       = "jamiyati:v01";
 const KEY_BACKUP    = "jamiyati:backup";
 const KEY_AUTOSAVE  = "jamiyati:autosave";
+const KEY_UI        = "jamiyati:ui";        // تفضيلات المستخدم
+const KEY_CURRENT   = "jamiyati:currentId"; // الجمعية المفتوحة آخر مرة
 
 /* حالة التطبيق */
 const state={
   jamiyahs: loadAllSafe(),
-  currentId:null,
+  currentId: localStorage.getItem(KEY_CURRENT) || null,
   filter:"",
-  memberSort:"month",
-  memberFilter:"all",
-  memberQuery:"",
-  payModal:{memberId:null}
+  memberSort: "month",
+  memberFilter: "all",
+  memberQuery: "",
+  payModal:{memberId:null},
+  undo: {timer:null, payload:null},
+  saving:false, saveTimer:null
 };
 
-/* ===== تنسيقات ===== */
+/* ===== تنسيق ===== */
 const fmtMoney=n=>Number(n||0).toLocaleString('en-US');
 const fmtInt  =n=>Number(n||0).toLocaleString('en-US');
 function monthLabel(startDate,offset){ const d=new Date(startDate); d.setMonth(d.getMonth()+(offset-1)); return d.toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
+const shortDate=d=>new Date(d).toLocaleDateString('en-GB');
 
 /* ===== تخزين آمن ===== */
 function parseJsonSafe(txt){ try{return JSON.parse(txt);}catch{return null;} }
@@ -51,6 +56,12 @@ function loadAllSafe(){
   return [];
 }
 function safeSerialize(v){ try{return JSON.stringify(v);}catch{return null;} }
+function markSaving(on,text){
+  state.saving = on;
+  const dot = $('#saveDot'), st = $('#saveText');
+  if(dot) dot.style.background = on ? '#f59e0b' : '#22c55e';
+  if(st) st.textContent = text || (on ? 'جارٍ الحفظ…' : 'تم الحفظ');
+}
 function saveAll(){
   if(!Array.isArray(state.jamiyahs)) return;
   const current = readKey(KEY_PRIMARY);
@@ -59,30 +70,43 @@ function saveAll(){
   }
   const ser=safeSerialize(state.jamiyahs); if(!ser) return;
   try{
+    markSaving(true,'جارٍ الحفظ…');
     localStorage.setItem(KEY_PRIMARY, ser);
     localStorage.setItem(KEY_BACKUP, ser);
     localStorage.setItem(KEY_AUTOSAVE, JSON.stringify({at:Date.now(),data:state.jamiyahs}));
-  }catch{ toast('التخزين معطّل (وضع خاص؟). استخدم تصدير JSON.'); }
-}
-function restoreFromBackup(){
-  const backup = readKey(KEY_BACKUP) || (readKey(KEY_AUTOSAVE)||{}).data;
-  if(Array.isArray(backup)&&backup.length){
-    state.jamiyahs=backup;
-    localStorage.setItem(KEY_PRIMARY, JSON.stringify(backup));
-    $('#restoreWrap')?.classList.add('hidden');
-    toast('تم الاسترجاع من النسخة الاحتياطية');
-    renderList();
-    if(state.jamiyahs[0]) openDetails(state.jamiyahs[0].id);
-  } else {
-    toast('لا توجد نسخة احتياطية صالحة');
+    clearTimeout(state.saveTimer);
+    state.saveTimer=setTimeout(()=>markSaving(false,'تم الحفظ'),500);
+  }catch{
+    toast('التخزين معطّل (وضع خاص؟). استخدم تصدير JSON.');
   }
+}
+function saveUI(){
+  const ui = { memberSort:state.memberSort, memberFilter:state.memberFilter, memberQuery:state.memberQuery };
+  localStorage.setItem(KEY_UI, JSON.stringify(ui));
+}
+function loadUI(){
+  const ui = readKey(KEY_UI);
+  if(!ui) return;
+  state.memberSort   = ui.memberSort   || state.memberSort;
+  state.memberFilter = ui.memberFilter || state.memberFilter;
+  state.memberQuery  = ui.memberQuery  || state.memberQuery;
 }
 
 /* ===== أدوات عامة ===== */
 const uid=()=>Math.random().toString(36).slice(2,10);
 function hasStarted(j){const t=new Date().setHours(0,0,0,0);const s=new Date(j.startDate).setHours(0,0,0,0);return t>=s;}
-function currentJamiyah(){return state.jamiyahs.find(x=>x.id===state.currentId);}
-function toast(msg){const b=$('#toasts');const el=document.createElement('div');el.className='toast';el.textContent=msg;b.appendChild(el);setTimeout(()=>el.remove(),2200);}
+function currentJamiyah(){return state.jamiyahs.find(x=>x.id===state.currentId)||null;}
+function toast(msg, undoHandler){
+  const b=$('#toasts'); const el=document.createElement('div'); el.className='toast';
+  el.innerHTML = `<span>${msg}</span>` + (undoHandler?`<button class="undo">تراجع</button>`:'');
+  b.appendChild(el);
+  if(undoHandler){
+    const t=setTimeout(()=>{el.remove(); undoHandler('expire');},5000);
+    el.querySelector('.undo').addEventListener('click',()=>{clearTimeout(t); el.remove(); undoHandler('undo');});
+  } else {
+    setTimeout(()=>el.remove(),2200);
+  }
+}
 function setError(id,t){const el=$(`#${id}`);if(el)el.textContent=t||'';}
 function monthToFirstDay(m){if(!m)return"";const[y,mm]=m.split('-');if(!y||!mm)return"";return `${y}-${String(mm).padStart(2,'0')}-01`;}
 const show=el=>{if(!el)return;el.classList.remove('hidden');el.removeAttribute('hidden');};
@@ -124,24 +148,63 @@ function monthStats(j, i){
   const pct = j.goal>0 ? Math.min(100, Math.round((assigned/j.goal)*100)) : 0;
   return {rec, assigned, remaining, pct};
 }
+function overallFillPercent(j){
+  // متوسط الامتلاء عبر كل الشهور (assigned/goal لكل شهر)
+  if(!j || !j.duration || !j.goal) return 0;
+  let sumPct=0;
+  for(let i=1;i<=j.duration;i++){
+    const {assigned}=monthStats(j,i);
+    const pct = j.goal>0 ? Math.min(1, assigned/j.goal) : 0;
+    sumPct += pct;
+  }
+  return Math.round((sumPct/j.duration)*100);
+}
 
 /* ===== تهيئة ===== */
 document.addEventListener('DOMContentLoaded',()=>{
   hide($('#details')); hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal'));
+  loadUI();
 
-  // إدخال عام
+  // أحداث فورم الإنشاء + Chips
   $('#jamiyahForm')?.addEventListener('submit',onCreateJamiyah);
+  $$('#createBlock .chip').forEach(ch=>{
+    ch.addEventListener('click',()=>{
+      const v = ch.getAttribute('data-val');
+      const input = ch.parentElement.previousElementSibling; // الـ input قبل الـ chips
+      if(input) input.value = v;
+    });
+  });
+
+  // بحث القائمة
   $('#search')?.addEventListener('input',e=>{state.filter=(e.target.value||'').trim();renderList();});
+
+  // قبل الإغلاق: خزن نسخة تلقائية
   window.addEventListener('beforeunload', ()=> {
     try{ localStorage.setItem(KEY_AUTOSAVE, JSON.stringify({ at: Date.now(), data: state.jamiyahs })); }catch{}
   });
 
+  // Esc لإغلاق أي مودال ظاهر
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape'){
+      ['payModal','editModal','addMemberModal','monthDetails'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el && !el.classList.contains('hidden')) hide(el);
+      });
+    }
+  });
+
   renderList();
+
+  // لو فيه جمعية محفوظة مسبقًا افتحها
+  if(state.currentId && state.jamiyahs.some(j=>j.id===state.currentId)){
+    openDetails(state.currentId);
+  }
 });
 
-/* ===== تفويض أحداث (كل الأزرار) ===== */
+/* ===== تفويض أحداث ===== */
 document.addEventListener('click', (e)=>{
   const id = (e.target.closest('[id]')||{}).id || '';
+
   switch(id){
     case 'restoreBtn':        restoreFromBackup(); break;
     case 'exportBtn':         exportPdf(currentJamiyah()); break;
@@ -166,7 +229,7 @@ document.addEventListener('click', (e)=>{
     case 'md-close':          hide($('#monthDetails')); break;
 
     default: {
-      // فتح جمعية من القائمة
+      // فتح جمعية
       const btn = e.target.closest('button.btn.secondary[data-id]');
       if(btn){ openDetails(btn.dataset.id); }
 
@@ -181,12 +244,27 @@ document.addEventListener('click', (e)=>{
         const tr=e.target.closest('tr'); if(!tr) return;
         const nameCell=tr.querySelector('[data-col="الاسم"]'); const nameTxt=nameCell?.textContent?.trim()||'';
         const j=currentJamiyah(); if(!j) return;
-        const m=j.members.find(x=>x.name===nameTxt); if(m){
+        const idx=j.members.findIndex(x=>x.name===nameTxt);
+        if(idx>-1){
           if(hasStarted(j)){toast('بدأت الجمعية. لا يمكن تعديل الأعضاء.');return;}
-          if(!confirm(`حذف ${m.name}؟`))return;
-          j.members=j.members.filter(x=>x.id!==m.id);
+          // حذف مع تراجع
+          const removed = j.members.splice(idx,1)[0];
           saveAll(); renderMembers(j); renderSchedule(j); populateMonthOptions(j,$('#am-month')); updateCounters(j);
-          toast('تم حذف العضو');
+          state.undo.payload = {type:'member', jamiyahId:j.id, member:removed};
+          if(state.undo.timer) clearTimeout(state.undo.timer);
+          toast(`تم حذف ${removed.name}`, (action)=>{
+            if(action==='undo'){
+              // رجّع العضو
+              const jj = currentJamiyah(); if(!jj) return;
+              jj.members.push(removed);
+              jj.members.sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
+              saveAll(); renderMembers(jj); renderSchedule(jj); populateMonthOptions(jj,$('#am-month')); updateCounters(jj);
+              state.undo.payload=null;
+              toast('تم التراجع');
+            } else {
+              state.undo.payload=null;
+            }
+          });
         }
       }
     }
@@ -207,14 +285,18 @@ function onCreateJamiyah(e){
   if(!ok)return;
   const startDate=monthToFirstDay(startMonth);
   if(state.jamiyahs.some(j=>j.name===name)){setError('err-j-name','الاسم مستخدم مسبقًا');return;}
-  state.jamiyahs.push({id:uid(),name,startDate,duration,goal,members:[],createdAt:Date.now()});
+  const now=Date.now();
+  state.jamiyahs.push({id:uid(),name,startDate,duration,goal,members:[],createdAt:now,updatedAt:now});
   saveAll(); e.target.reset(); toast('تم إنشاء الجمعية'); renderList();
 }
 
 /* ===== قائمة الجمعيات ===== */
 function renderList(){
   const list=$('#jamiyahList'), empty=$('#emptyList'), pill=$('#jamiyahCountPill');
-  const items=state.jamiyahs.filter(j=>!state.filter||j.name.includes(state.filter)).sort((a,b)=>a.name.localeCompare(b.name));
+  const items=state.jamiyahs
+    .filter(j=>!state.filter||j.name.includes(state.filter))
+    .sort((a,b)=>a.name.localeCompare(b.name));
+
   list.innerHTML=''; pill.textContent=fmtInt(items.length);
 
   const hasItems = items.length>0;
@@ -231,6 +313,7 @@ function renderList(){
   }
 
   items.forEach(j=>{
+    const last = j.updatedAt || j.createdAt || Date.now();
     const row=document.createElement('div'); row.className='item';
     row.innerHTML=`<div>
         <div><strong>${j.name}</strong></div>
@@ -238,6 +321,7 @@ function renderList(){
           <span class="badge">تبدأ في ${monthLabel(j.startDate,1)}</span>
           <span class="badge">المدة: ${fmtInt(j.duration)} شهر</span>
           <span class="badge">مبلغ الجمعية: ${fmtMoney(j.goal)} ريال</span>
+          <span class="badge">آخر تعديل: ${shortDate(last)}</span>
         </div>
       </div>
       <button class="btn secondary" data-id="${j.id}">فتح</button>`;
@@ -250,16 +334,25 @@ function renderList(){
 /* ===== فتح التفاصيل ===== */
 function openDetails(id){
   state.currentId=id;
+  localStorage.setItem(KEY_CURRENT, id);
+
   const j=currentJamiyah(); if(!j){hide($('#details')); setDetailsSectionsVisible(false); return;}
   j.members.forEach(m=>ensurePayments(j,m));
 
+  // عنوان + سطر موجز
   $('#d-title').textContent=j.name;
-  const meta=$('#d-meta'); meta.innerHTML='';
-  meta.append(badge(monthLabel(j.startDate,1)), badge(`المدة: ${fmtInt(j.duration)} شهر`), badge(`مبلغ الجمعية: ${fmtMoney(j.goal)} ريال`));
+  const line = `يبدأ: ${monthLabel(j.startDate,1)} · المدة: ${fmtInt(j.duration)} شهر · مبلغ الجمعية: ${fmtMoney(j.goal)} ريال`;
+  $('#metaLine').textContent = line;
 
+  // شريط التقدم الإجمالي
+  const pct = overallFillPercent(j);
+  $('#overallBar').style.width = `${pct}%`;
+
+  // تمكين/تعطيل إضافة أعضاء بعد البدء
   const started=hasStarted(j);
   $('#addMemberBtn').disabled = started;
   $('#fabAdd').disabled = started;
+  $('#startedAlert').hidden = !started;
 
   const onceKey=`opened:${j.id}`;
   if(!localStorage.getItem(onceKey)){
@@ -268,6 +361,7 @@ function openDetails(id){
   }
 
   populateMonthOptions(j, $('#am-month'));
+  applyUIToControls();
   renderMembers(j);
   renderSchedule(j);
   updateCounters(j);
@@ -275,12 +369,21 @@ function openDetails(id){
   setDetailsSectionsVisible(true);
   show($('#details'));
   $('#details')?.scrollIntoView({behavior:'smooth',block:'start'});
+  touchUpdated(j);
   saveAll();
 }
+function touchUpdated(j){ j.updatedAt = Date.now(); }
 function badge(t){const s=document.createElement('span');s.className='badge';s.textContent=t;return s;}
 
 /* ===== الأعضاء + أدواتهم ===== */
 function computeOverdueMembers(j){ return (j.members||[]).filter(m=>{ensurePayments(j,m); return m.overdueCount>0;}).length; }
+
+function applyUIToControls(){
+  // تطبيق تفضيلات محفوظة
+  $('#mFilter').value = state.memberFilter;
+  $('#mSort').value   = state.memberSort;
+  $('#mSearch').value = state.memberQuery;
+}
 
 function renderMembers(j){
   const body=$('#memberTableBody'), empty=$('#emptyMembers'); body.innerHTML=''; const list=[...j.members];
@@ -292,7 +395,7 @@ function renderMembers(j){
   let rows=list.map(m=>{ensurePayments(j,m); return m;});
 
   if(state.memberQuery){
-    const q=state.memberQuery;
+    const q=state.memberQuery.toLowerCase();
     rows=rows.filter(m=>(m.name||'').toLowerCase().includes(q));
   }
   if(state.memberFilter==='overdue'){
@@ -320,9 +423,8 @@ function renderMembers(j){
       ['#', fmtInt(idx+1)],
       ['الاسم', m.name],
       ['المساهمة', `${fmtMoney(m.pay)} ريال`],
-      ['الاستحقاق الكلي', `${fmtMoney(m.entitlement)} ريال`],
-      ['مدفوع حتى الآن', `
-         <span class="badge">${fmtMoney(paid)} ريال</span>
+      ['مدفوع / متبقّي',
+        `<span class="badge">${fmtMoney(paid)} ريال</span>
          <span class="badge">المتبقي: ${fmtMoney(remainingMoney)} ريال</span>
          <small class="hint">(${m.paidCount} / ${j.duration})</small>`],
       ['شهر الاستلام', monthLabel(j.startDate,m.month)],
@@ -331,7 +433,7 @@ function renderMembers(j){
 
     cells.forEach(([label,val],i)=>{
       const td=document.createElement('td'); td.setAttribute('data-col',label); td.innerHTML=val;
-      if(i===6){
+      if(i===5){
         const wrap=document.createElement('div'); wrap.style.display='flex'; wrap.style.gap='8px';
         const btnPay=document.createElement('button'); btnPay.className='btn'; btnPay.textContent='دفعات';
         const btnDel=document.createElement('button'); btnDel.className='btn danger'; btnDel.textContent='حذف';
@@ -342,6 +444,11 @@ function renderMembers(j){
     });
     body.appendChild(tr);
   });
+
+  // ربط أدوات الفلترة/الفرز/البحث
+  $('#mSearch').oninput = (e)=>{ state.memberQuery=(e.target.value||''); saveUI(); renderMembers(j); };
+  $('#mFilter').onchange = (e)=>{ state.memberFilter=e.target.value; saveUI(); renderMembers(j); };
+  $('#mSort').onchange   = (e)=>{ state.memberSort=e.target.value; saveUI(); renderMembers(j); };
 }
 
 /* ===== تعبئة شهور الاستلام ===== */
@@ -387,6 +494,7 @@ function onSaveEdit(){
     j.startDate=newStart; j.duration=newDuration;
   }
   j.name=newName; j.goal=newGoal;
+  touchUpdated(j);
   saveAll(); hide($('#editModal')); openDetails(j.id); renderList(); toast('تم حفظ التعديلات');
 }
 
@@ -396,7 +504,6 @@ function renderSchedule(j){
   const details = $('#monthDetails');
   const mdTitle = $('#md-title');
   const mdBody = $('#md-body');
-  const autoExpand = $('#schedAutoExpand');
 
   if(!grid) return;
   grid.innerHTML = '';
@@ -434,9 +541,11 @@ function renderSchedule(j){
     });
 
     grid.appendChild(tile);
-
-    if(autoExpand?.checked && rec.length){ tile.click(); }
   }
+
+  // حدّث شريط التقدم الإجمالي
+  const pct = overallFillPercent(j);
+  $('#overallBar').style.width = `${pct}%`;
 
   updateCounters(j);
 }
@@ -486,6 +595,7 @@ function onAddMemberFromModal(){
   const m = { id: uid(), name, pay: Number(pay), month: Number(month), entitlement, payments: [] };
   ensurePayments(j, m);
   j.members.push(m);
+  j.updatedAt = Date.now();
 
   saveAll();
   renderMembers(j);
@@ -530,20 +640,34 @@ function savePayModal(){
   amounts.forEach(inp=>amountMap[parseInt(inp.dataset.i)]=Number(inp.value||0));
   m.payments=m.payments.map(p=>{const newPaid=!!paidMap[p.i]; const newAmount=Number(amountMap[p.i]||0);
     return {i:p.i,paid:newPaid,amount:newAmount,paidAt:newPaid?(p.paid?p.paidAt||now:now):null};});
-  recalcMemberCounters(j,m); saveAll(); renderMembers(j); hide($('#payModal')); toast('تم حفظ الدفعات');
+  recalcMemberCounters(j,m); j.updatedAt=Date.now();
+  saveAll(); renderMembers(j); hide($('#payModal')); toast('تم حفظ الدفعات');
 }
 
 /* ===== حذف/رجوع + PDF/JSON ===== */
-function onDeleteJamiyah(){ const j=currentJamiyah(); if(!j) return;
-  if(!confirm(`حذف ${j.name}؟ لا يمكن التراجع.`)) return;
-  state.jamiyahs=state.jamiyahs.filter(x=>x.id!==j.id); saveAll(); showList(); renderList(); toast('تم حذف الجمعية'); }
-function showList(){ hide($('#details')); state.currentId=null; setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
+function onDeleteJamiyah(){
+  const j=currentJamiyah(); if(!j) return;
+  const removed = j; // للوضوح
+  const idx = state.jamiyahs.findIndex(x=>x.id===j.id);
+  if(idx===-1) return;
+  state.jamiyahs.splice(idx,1);
+  saveAll(); showList(); renderList();
+  // تراجع لإرجاع الجمعية كاملة
+  toast(`تم حذف ${removed.name}`, (action)=>{
+    if(action==='undo'){
+      state.jamiyahs.splice(idx,0,removed);
+      saveAll(); renderList(); openDetails(removed.id);
+      toast('تم التراجع');
+    }
+  });
+}
+function showList(){ hide($('#details')); state.currentId=null; localStorage.removeItem(KEY_CURRENT); setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
+
 function exportPdf(j){ if(!j) return;
   const css=`<style>@page{size:A4;margin:14mm}body{font-family:-apple-system,Segoe UI,Roboto,Arial,"Noto Naskh Arabic","IBM Plex Sans Arabic",sans-serif;color:#111}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.meta{color:#555;font-size:12px;margin-bottom:12px}h2{margin:18px 0 8px;font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}thead th{background:#f3f4f6}tfoot td{font-weight:700;background:#fafafa}.muted{color:#666}</style>`;
   const jx=j, members=jx.members.slice().sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
   const rows=members.map((m,i)=>{const {paid}=memberPaidSummary(jx,m);const c=recalcMemberCounters(jx,m);
-    return `<tr><td>${i+1}</td><td>${m.name}</td><td>${fmtMoney(m.pay)} ريال</td><td>${fmtMoney(m.entitlement)} ريال</td><td>${fmtMoney(paid)} ريال (${c.paidCount}/${jx.duration})</td><td>${monthLabel(jx.startDate,m.month)}</td></tr>`;}).join('');
-  const totPay=members.reduce((s,m)=>s+Number(m.pay||0),0),totEnt=members.reduce((s,m)=>s+Number(m.entitlement||0),0);
+    return `<tr><td>${i+1}</td><td>${m.name}</td><td>${fmtMoney(m.pay)} ريال</td><td>${fmtMoney(paid)} ريال (${c.paidCount}/${jx.duration})</td><td>${monthLabel(jx.startDate,m.month)}</td></tr>`;}).join('');
   const sched=Array.from({length: jx.duration},(_,k)=>k+1).map(i=>{
     const rec=jx.members.filter(m=>Number(m.month)===i).sort((a,b)=>a.name.localeCompare(b.name));
     const txt=rec.length?rec.map(r=>`${r.name} (${fmtMoney(r.entitlement)} ريال)`).join('، '):'—';
@@ -551,11 +675,10 @@ function exportPdf(j){ if(!j) return;
   }).join('');
   const html=`<html dir="rtl" lang="ar"><head><meta charset="utf-8" /><title>${jx.name}</title>${css}</head><body>
   <header><h1>جمعيتي</h1><div>${new Date().toLocaleDateString('en-GB')}</div></header>
-  <div class="meta">${monthLabel(jx.startDate,1)} · المدة: ${fmtInt(jx.duration)} شهر · مبلغ الجمعية: ${fmtMoney(jx.goal)} ريال</div>
+  <div class="meta">يبدأ: ${monthLabel(jx.startDate,1)} · المدة: ${fmtInt(jx.duration)} شهر · مبلغ الجمعية: ${fmtMoney(jx.goal)} ريال</div>
   <h2>الأعضاء</h2>
-  <table><thead><tr><th>#</th><th>الاسم</th><th>المساهمة</th><th>الاستحقاق الكلي</th><th>مدفوع (عدد)</th><th>شهر الاستلام</th></tr></thead>
-  <tbody>${rows||`<tr><td colspan="6" class="muted">لا يوجد أعضاء</td></tr>`}</tbody>
-  <tfoot><tr><td colspan="2">الإجمالي</td><td>${fmtMoney(totPay)} ريال</td><td>${fmtMoney(totEnt)} ريال</td><td colspan="2"></td></tr></tfoot></table>
+  <table><thead><tr><th>#</th><th>الاسم</th><th>المساهمة</th><th>مدفوع (عدد)</th><th>شهر الاستلام</th></tr></thead>
+  <tbody>${rows||`<tr><td colspan="5" class="muted">لا يوجد أعضاء</td></tr>`}</tbody>
   <h2>الجدول الشهري</h2>
   <table><thead><tr><th>الشهر</th><th>المستلمون</th></tr></thead><tbody>${sched}</tbody></table>
   <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),300);}</script></body></html>`;
