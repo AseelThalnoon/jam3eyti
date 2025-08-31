@@ -7,8 +7,8 @@
   <title>جمعيتي</title>
 
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
-  <link rel="stylesheet" href="style.css?v=2.0.3" />
-  <script src="app.js?v=2.0.3" defer></script>
+  <link rel="stylesheet" href="style.css?v=2.1.0" />
+  <script src="app.js?v=2.1.0" defer></script>
 </head>
 <body>
   <header class="app-bar">
@@ -42,11 +42,25 @@
                 <span class="error" id="err-j-start"></span>
               </label>
               <label>المدة (أشهر)
-                <input required id="j-duration" type="number" min="1" max="60" value="6" />
+                <div class="hstack-8">
+                  <input required id="j-duration" type="number" min="1" max="60" value="6" />
+                  <div class="chips">
+                    <button type="button" class="chip" data-val="6">6</button>
+                    <button type="button" class="chip" data-val="12">12</button>
+                    <button type="button" class="chip" data-val="18">18</button>
+                  </div>
+                </div>
                 <span class="error" id="err-j-duration"></span>
               </label>
               <label>مبلغ الجمعية · ريال
-                <input required id="j-goal" type="number" min="1" step="1" placeholder="مثال: 30000" />
+                <div class="hstack-8">
+                  <input required id="j-goal" type="number" min="1" step="1" placeholder="مثال: 30000" />
+                  <div class="chips">
+                    <button type="button" class="chip" data-val="10000">10,000</button>
+                    <button type="button" class="chip" data-val="20000">20,000</button>
+                    <button type="button" class="chip" data-val="30000">30,000</button>
+                  </div>
+                </div>
                 <span class="error" id="err-j-goal"></span>
               </label>
             </div>
@@ -81,30 +95,43 @@
 
     <!-- تفاصيل الجمعية -->
     <section id="details" class="card hidden stack-3" hidden>
-      <div class="details-header stack-1">
-        <div class="stack-0">
-          <div class="title-row">
-            <h2 id="d-title" class="h2"></h2>
-            <button id="editBtn" class="icon-btn" title="تعديل الجمعية" aria-label="تعديل الجمعية">✏️</button>
+      <!-- مؤشر الحفظ -->
+      <div class="save-bar" id="saveBar" aria-live="polite">
+        <span class="dot" id="saveDot"></span><span id="saveText">تم الحفظ</span>
+      </div>
+
+      <!-- رأس موجز + شريط تقدم إجمالي -->
+      <div class="stack-2">
+        <div class="details-header stack-0">
+          <div class="stack-0">
+            <div class="title-row">
+              <h2 id="d-title" class="h2"></h2>
+              <button id="editBtn" class="icon-btn" title="تعديل الجمعية" aria-label="تعديل الجمعية">✏️</button>
+            </div>
+            <div class="meta-line" id="metaLine"></div>
           </div>
-          <div class="meta" id="d-meta"></div>
+          <div class="details-ops">
+            <button class="btn secondary" id="exportBtn">تصدير PDF</button>
+            <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">تصدير JSON</button>
+          </div>
         </div>
-        <div class="details-ops">
-          <button class="btn secondary" id="exportBtn">تصدير PDF</button>
-          <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">تصدير JSON</button>
+
+        <div class="overall-progress">
+          <div class="label">نسبة الامتلاء الإجمالية</div>
+          <div class="progress"><span id="overallBar" style="width:0%"></span></div>
         </div>
       </div>
 
       <div class="alert" id="startedAlert" hidden>بدأت الجمعية. لا يمكن إضافة أعضاء جدد.</div>
 
       <!-- الأعضاء -->
-      <details id="membersBlock" class="collapsible hidden">
+      <details id="membersBlock" class="collapsible hidden" open>
         <summary class="caret section-title members-summary">
           <span class="section-icon">👥</span>
           <span id="mSummaryText">الأعضاء</span>
           <span class="pill" id="mCountPill">0</span>
           <span class="spacer"></span>
-          <button id="addMemberBtn" class="icon-btn" title="إضافة عضو" aria-label="إضافة عضو">＋</button>
+          <button id="addMemberBtn" class="btn primary" title="إضافة عضو" aria-label="إضافة عضو">إضافة عضو</button>
         </summary>
         <div class="content">
           <div class="subtoolbar sticky-sub">
@@ -125,30 +152,25 @@
             <thead>
               <tr>
                 <th>#</th><th>الاسم</th><th>المساهمة</th>
-                <th>الاستحقاق الكلي</th><th>مدفوع حتى الآن</th><th>شهر الاستلام</th><th></th>
+                <th>مدفوع / متبقّي</th><th>شهر الاستلام</th><th></th>
               </tr>
             </thead>
             <tbody id="memberTableBody"></tbody>
           </table>
-          <div id="emptyMembers" class="empty hidden">لا يوجد أعضاء بعد.</div>
+          <div id="emptyMembers" class="empty hidden">
+            لا يوجد أعضاء بعد. اضغط <strong>إضافة عضو</strong> للبدء.
+          </div>
         </div>
       </details>
 
       <!-- الجدول الشهري (Tiles) -->
-      <details id="scheduleBlock" class="collapsible hidden">
+      <details id="scheduleBlock" class="collapsible hidden" open>
         <summary class="caret section-title">
           <span class="section-icon">🗓️</span>
           <span id="sSummaryText">الجدول الشهري</span>
           <span class="pill" id="sCountPill">0</span>
         </summary>
         <div class="content">
-          <div class="subtoolbar">
-            <label class="toggle">
-              <input id="schedAutoExpand" type="checkbox" />
-              <span>عرض التفاصيل تلقائيًا</span>
-            </label>
-          </div>
-
           <div id="scheduleGrid" class="month-grid"></div>
 
           <div id="monthDetails" class="month-details hidden">
@@ -255,6 +277,6 @@
     </div>
   </div>
 
-  <footer class="footer">v2.0.3 · © Aseel Thalnoon</footer>
+  <footer class="footer">v2.1.0 · © Aseel Thalnoon</footer>
 </body>
 </html>
