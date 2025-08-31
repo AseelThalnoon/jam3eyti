@@ -1,4 +1,4 @@
-/* v2.1.0 */
+/* v2.2.0 */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -145,7 +145,6 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .month-tile .muted{color:var(--muted);font-size:12px}
 .kpis{display:flex;gap:8px;flex-wrap:wrap}
 .kpis .badge{background:#0f1a2d;color:#a7f3d0;border-color:#14532d}
-.month-tile .tile-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
 
 .month-details{
   margin-top:12px;padding:12px;border:1px solid var(--border);
