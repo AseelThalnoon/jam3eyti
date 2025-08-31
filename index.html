@@ -7,7 +7,7 @@
   <title>جمعيتي</title>
 
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
-  <link rel="stylesheet" href="style.css?v=1.9.0" />
+  <link rel="stylesheet" href="style.css?v=2.0.0" />
 </head>
 <body>
   <header class="app-bar">
@@ -107,7 +107,6 @@
           </button>
         </summary>
         <div class="content">
-          <!-- شريط أدوات ثابت -->
           <div class="subtoolbar sticky-sub">
             <input id="mSearch" class="search small" placeholder="ابحث عن عضو…" />
             <select id="mFilter" class="select small">
@@ -135,7 +134,7 @@
         </div>
       </details>
 
-      <!-- الجدول الشهري -->
+      <!-- الجدول الشهري (نسخة البلاطات) -->
       <details id="scheduleBlock" class="collapsible hidden">
         <summary class="caret section-title">
           <span class="section-icon">🗓️</span>
@@ -143,12 +142,24 @@
           <span class="pill" id="sCountPill">0</span>
         </summary>
         <div class="content">
-          <table class="table table--cards">
-            <thead>
-              <tr><th>الشهر</th><th>المستلمون</th></tr>
-            </thead>
-            <tbody id="scheduleTableBody"></tbody>
-          </table>
+          <div class="subtoolbar">
+            <label class="toggle">
+              <input id="schedAutoExpand" type="checkbox" />
+              <span>عرض التفاصيل تلقائيًا</span>
+            </label>
+          </div>
+
+          <!-- شبكة الأشهر -->
+          <div id="scheduleGrid" class="month-grid"></div>
+
+          <!-- تفاصيل شهر محدد -->
+          <div id="monthDetails" class="month-details hidden">
+            <div class="md-head">
+              <div id="md-title" class="h2"></div>
+              <button id="md-close" class="btn ghost">إغلاق</button>
+            </div>
+            <div id="md-body" class="stack-2"></div>
+          </div>
         </div>
       </details>
 
@@ -246,7 +257,7 @@
     </div>
   </div>
 
-  <footer class="footer">v1.9.0 · © Aseel Thalnoon</footer>
-  <script src="app.js?v=1.9.0"></script>
+  <footer class="footer">v2.0.0 · © Aseel Thalnoon</footer>
+  <script src="app.js?v=2.0.0"></script>
 </body>
 </html>
