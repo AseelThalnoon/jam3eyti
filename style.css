@@ -1,4 +1,4 @@
-/* v2.1.0 */
+/* v2.1.1 */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -136,7 +136,29 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .month-details .md-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .toggle{display:flex;align-items:center;gap:8px;color:var(--muted)}
 
-/* إخفاء أزرار الإضافة/الحذف بعد بدء الجمعية */
+/* إخفاء الإضافة/الحذف بعد البدء */
 .jam-started #addMemberBtn,
 .jam-started #fabAdd,
 .jam-started button[data-action="del"] { display:none !important; }
+
+/* ===== بطاقات الأعضاء – متناسقة ===== */
+.member-card {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 10px 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+@media (max-width: 520px) { .member-card { grid-template-columns: 120px 1fr; } }
+.mc-label { color: var(--muted); font-weight: 600; }
+.mc-value { color: var(--fg); }
+.mc-money { text-align: right; font-variant-numeric: tabular-nums; }
+.mc-chips { display:flex; gap:8px; flex-wrap:wrap; grid-column:1 / -1; }
+.mc-chip  { background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:4px 10px; border-radius:999px; font-size:12px; }
+.mc-actions{ grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-start; margin-top:4px; }
+.table--cards tbody tr { border:0; background:transparent; }
+.table--cards tbody td { border:0; padding:0; }
+.table--cards .member-card + .member-card { margin-top:12px; }
+.mc-index{ background:#0b1424; border:1px solid var(--border); color:#cbd5e1; border-radius:8px; padding:2px 8px; display:inline-block; }
