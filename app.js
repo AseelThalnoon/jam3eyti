@@ -1,4 +1,4 @@
-/* v2.1.0 – نهائي: data-action/id + تنبيه البدء + ESC + نسخ احتياطي + PDF/JSON */
+/* v2.1.1 – نفس منطق v2.1.0 مع عرض الأعضاء كبطاقات متناسقة */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -123,7 +123,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     try{ localStorage.setItem(KEY_AUTOSAVE, JSON.stringify({ at: Date.now(), data: state.jamiyahs })); }catch{}
   });
 
-  // إغلاق بالمفتاح ESC لكل المودالات
   document.addEventListener('keydown',(e)=>{
     if(e.key==='Escape'){
       hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal')); hide($('#monthDetails'));
@@ -133,11 +132,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderList();
 });
 
-/* تفويض أحداث (زر واحد يغطي الكل) */
+/* تفويض أحداث */
 document.addEventListener('click', (e)=>{
   const idAttr = (e.target.closest('[id]')||{}).id || '';
-
-  // أزرار عامة حسب الـ id
   switch(idAttr){
     case 'restoreBtn':        restoreFromBackup(); return;
     case 'exportBtn':         exportPdf(currentJamiyah()); return;
@@ -162,11 +159,9 @@ document.addEventListener('click', (e)=>{
     case 'md-close':          hide($('#monthDetails')); return;
   }
 
-  // فتح جمعية من القائمة
   const openBtn = e.target.closest('button.btn.secondary[data-id]');
   if(openBtn){ openDetails(openBtn.dataset.id); return; }
 
-  // أزرار داخل جدول الأعضاء باستخدام data-action
   const actBtn = e.target.closest('button[data-action]');
   if(actBtn){
     const action = actBtn.dataset.action;
@@ -179,8 +174,7 @@ document.addEventListener('click', (e)=>{
       if(!confirm(`حذف ${m.name}؟`))return;
       j.members=j.members.filter(x=>x.id!==memberId);
       saveAll(); renderMembers(j); renderSchedule(j); populateMonthOptions(j,$('#am-month')); updateCounters(j);
-      toast('تم حذف العضو');
-      return;
+      toast('تم حذف العضو'); return;
     }
   }
 });
@@ -273,7 +267,7 @@ function openDetails(id){
 }
 function badge(t){const s=document.createElement('span');s.className='badge';s.textContent=t;return s;}
 
-/* الأعضاء */
+/* الأعضاء – عرض كبطاقات */
 function computeOverdueMembers(j){ return (j.members||[]).filter(m=>{ensurePayments(j,m); return m.overdueCount>0;}).length; }
 
 function renderMembers(j){
@@ -298,41 +292,45 @@ function renderMembers(j){
 
   empty.classList.toggle('hidden', rows.length!==0);
 
-  rows.forEach((m,idx)=>{
+  rows.forEach((m, idx)=>{
     const {paid}=memberPaidSummary(j,m);
     const remainingMoney=Math.max(0, m.entitlement - paid);
 
     const tr=document.createElement('tr');
-    tr.className='row-accent';
-    tr.style.borderInlineStartColor=colorForMonth(m.month);
     tr.dataset.memberId = m.id;
 
-    const cells=[
-      ['#', fmtInt(idx+1)],
-      ['الاسم', m.name],
-      ['المساهمة', `${fmtMoney(m.pay)} ريال`],
-      ['الاستحقاق الكلي', `${fmtMoney(m.entitlement)} ريال`],
-      ['مدفوع حتى الآن', `
-         <span class="badge">${fmtMoney(paid)} ريال</span>
-         <span class="badge">المتبقي: ${fmtMoney(remainingMoney)} ريال</span>
-         <small class="hint">(${m.paidCount} / ${j.duration})</small>`],
-      ['شهر الاستلام', monthLabel(j.startDate,m.month)],
-      ['', '']
-    ];
+    const td=document.createElement('td');
+    td.colSpan = 7;
+    td.innerHTML = `
+      <div class="member-card" style="border-inline-start:4px solid ${colorForMonth(m.month)}">
+        <div class="mc-label">#</div>
+        <div class="mc-value"><span class="mc-index">${fmtInt(idx + 1)}</span></div>
 
-    cells.forEach(([label,val],i)=>{
-      const td=document.createElement('td'); td.setAttribute('data-col',label); td.innerHTML=val;
-      if(i===6){
-        const wrap=document.createElement('div'); wrap.style.display='flex'; wrap.style.gap='8px';
-        const btnPay=document.createElement('button'); btnPay.className='btn'; btnPay.textContent='دفعات';
-        btnPay.setAttribute('data-action','pay'); btnPay.setAttribute('data-id',m.id);
-        const btnDel=document.createElement('button'); btnDel.className='btn danger'; btnDel.textContent='حذف';
-        btnDel.setAttribute('data-action','del'); btnDel.setAttribute('data-id',m.id);
-        wrap.appendChild(btnPay); wrap.appendChild(btnDel);
-        td.innerHTML=''; td.appendChild(wrap);
-      }
-      tr.appendChild(td);
-    });
+        <div class="mc-label">الاسم</div>
+        <div class="mc-value">${m.name}</div>
+
+        <div class="mc-label">المساهمة</div>
+        <div class="mc-value mc-money">${fmtMoney(m.pay)} ريال</div>
+
+        <div class="mc-label">الاستحقاق الكلي</div>
+        <div class="mc-value mc-money">${fmtMoney(m.entitlement)} ريال</div>
+
+        <div class="mc-label">شهر الاستلام</div>
+        <div class="mc-value">${monthLabel(j.startDate, m.month)}</div>
+
+        <div class="mc-chips">
+          <span class="mc-chip">مدفوع: ${fmtMoney(paid)} ريال</span>
+          <span class="mc-chip">المتبقي: ${fmtMoney(remainingMoney)} ريال</span>
+          <span class="mc-chip">(${m.paidCount} / ${j.duration})</span>
+        </div>
+
+        <div class="mc-actions">
+          <button class="btn" data-action="pay" data-id="${m.id}">دفعات</button>
+          <button class="btn danger" data-action="del" data-id="${m.id}">حذف</button>
+        </div>
+      </div>
+    `;
+    tr.appendChild(td);
     body.appendChild(tr);
   });
 }
@@ -383,7 +381,7 @@ function onSaveEdit(){
   saveAll(); hide($('#editModal')); openDetails(j.id); renderList(); toast('تم حفظ التعديلات');
 }
 
-/* الجدول الشهري – Tiles */
+/* الجدول الشهري */
 function renderSchedule(j){
   const grid = $('#scheduleGrid');
   const details = $('#monthDetails');
@@ -562,4 +560,19 @@ function exportJson(){
   a.href=url; a.download=`jamiyati-backup-${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   toast('تم تنزيل نسخة JSON احتياطية');
+}
+
+/* استرجاع من النسخة الاحتياطية (مطلوب في index) */
+function restoreFromBackup(){
+  const backup = readKey(KEY_BACKUP) || (readKey(KEY_AUTOSAVE)||{}).data;
+  if(Array.isArray(backup)&&backup.length){
+    state.jamiyahs=backup;
+    localStorage.setItem(KEY_PRIMARY, JSON.stringify(backup));
+    $('#restoreWrap')?.classList.add('hidden');
+    toast('تم الاسترجاع من النسخة الاحتياطية');
+    renderList();
+    if(state.jamiyahs[0]) openDetails(state.jamiyahs[0].id);
+  } else {
+    toast('لا توجد نسخة احتياطية صالحة');
+  }
 }
