@@ -1,4 +1,4 @@
-/* v2.0.4 */
+/* v2.0.3 */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -146,3 +146,4 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
   background:#0e1628;border-radius:12px
 }
 .month-details .md-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.toggle{display:flex;align-items:center;gap:8px;color:var(--muted)}
