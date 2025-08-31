@@ -1,4 +1,4 @@
-/* v2.1.0 – تبسيط العرض + زر إسناد من بطاقة الشهر + إزالة "عرض التفاصيل تلقائيًا" */
+/* v2.2.0 – تطبيق البند 1 (شريط إجراءات موحّد) + إزالة "إسناد" + إخفاء إنشاء جمعية عند فتح التفاصيل */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -141,14 +141,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 /* تفويض أحداث */
 document.addEventListener('click', (e)=>{
   const id = (e.target.closest('[id]')||{}).id || '';
-  // زر إسناد من بطاقة الشهر (data-assign-month)
-  const assignBtn = e.target.closest('[data-assign-month]');
-  if(assignBtn){
-    const i = Number(assignBtn.getAttribute('data-assign-month'));
-    const j = currentJamiyah(); if(!j) return;
-    openAddMemberModal(i); // افتح المودال وعيّن الشهر
-    return;
-  }
 
   switch(id){
     case 'restoreBtn':        restoreFromBackup(); break;
@@ -161,7 +153,7 @@ document.addEventListener('click', (e)=>{
     case 'editClose':         hide($('#editModal')); break;
     case 'saveEdit':          onSaveEdit(); break;
 
-    case 'addMemberBtn':
+    case 'addMemberTop':      // زر + عضو في الشريط الموحد
     case 'fabAdd':            openAddMemberModal(); break;
     case 'amClose':           hide($('#addMemberModal')); break;
     case 'amSave':            onAddMemberFromModal(); break;
@@ -174,8 +166,10 @@ document.addEventListener('click', (e)=>{
     case 'md-close':          hide($('#monthDetails')); break;
 
     default: {
+      // فتح جمعية من القائمة
       const btn = e.target.closest('button.btn.secondary[data-id]');
       if(btn){ openDetails(btn.dataset.id); }
+
       // أزرار داخل جدول الأعضاء
       if(e.target.matches('button.btn') && e.target.textContent.trim()==='دفعات'){
         const tr=e.target.closest('tr'); if(!tr) return;
@@ -250,7 +244,13 @@ function renderList(){
     list.appendChild(row);
   });
 
-  if(!state.currentId){ hide($('#details')); setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
+  // عند عدم فتح جمعية، أظهر إنشاء؛ غير ذلك أخفه
+  if(!state.currentId){
+    show($('#createSection'));
+    hide($('#details'));
+    setDetailsSectionsVisible(false);
+    $('#fabAdd').disabled=true;
+  }
 }
 
 /* فتح التفاصيل */
@@ -259,20 +259,20 @@ function openDetails(id){
   const j=currentJamiyah(); if(!j){hide($('#details')); setDetailsSectionsVisible(false); return;}
   j.members.forEach(m=>ensurePayments(j,m));
 
+  // أخفِ إنشاء جمعية
+  hide($('#createSection'));
+
   $('#d-title').textContent=j.name;
   const meta=$('#d-meta'); meta.innerHTML='';
-  // ملخص سطر واحد وواضح
   meta.append(badge(monthLabel(j.startDate,1)), badge(`المدة: ${fmtInt(j.duration)} شهر`), badge(`مبلغ الجمعية: ${fmtMoney(j.goal)} ريال`));
 
   const started=hasStarted(j);
-  $('#addMemberBtn').disabled = started;
   $('#fabAdd').disabled = started;
+  $('#addMemberTop').disabled = started;
 
-  const onceKey=`opened:${j.id}`;
-  if(!localStorage.getItem(onceKey)){
-    $('#membersBlock').setAttribute('open','');
-    localStorage.setItem(onceKey,'1');
-  }
+  // لا نفتح الأقسام تلقائيًا
+  $('#membersBlock').removeAttribute('open');
+  $('#scheduleBlock').removeAttribute('open');
 
   populateMonthOptions(j, $('#am-month'));
   renderMembers(j);
@@ -286,7 +286,7 @@ function openDetails(id){
 }
 function badge(t){const s=document.createElement('span');s.className='badge';s.textContent=t;return s;}
 
-/* الأعضاء (تبسيط العرض) */
+/* الأعضاء (مبسّط) */
 function computeOverdueMembers(j){ return (j.members||[]).filter(m=>{ensurePayments(j,m); return m.overdueCount>0;}).length; }
 
 function renderMembers(j){
@@ -323,7 +323,6 @@ function renderMembers(j){
     tr.className='row-accent';
     tr.style.borderInlineStartColor=colorForMonth(m.month);
 
-    // أعمدة مبسطة: # | الاسم | المساهمة | التقدّم | شهر الاستلام | أزرار
     const cells=[
       ['#', fmtInt(idx+1)],
       ['الاسم', m.name],
@@ -397,7 +396,7 @@ function onSaveEdit(){
   saveAll(); hide($('#editModal')); openDetails(j.id); renderList(); toast('تم حفظ التعديلات');
 }
 
-/* الجدول الشهري – Tiles مع زر + إسناد */
+/* الجدول الشهري – بدون زر "إسناد" */
 function renderSchedule(j){
   const grid = $('#scheduleGrid');
   const details = $('#monthDetails');
@@ -424,14 +423,9 @@ function renderSchedule(j){
         <span class="badge">مستلمون: ${fmtInt(rec.length)}</span>
         <span class="badge">المتبقّي: ${fmtMoney(remaining)} ريال</span>
       </div>
-      <div class="tile-actions">
-        <button class="btn small" data-assign-month="${i}">+ إسناد</button>
-      </div>
     `;
 
-    tile.addEventListener('click', (evt)=>{
-      // تجاهل النقر إذا كان على زر الإسناد
-      if(evt.target.closest('[data-assign-month]')) return;
+    tile.addEventListener('click', ()=>{
       mdTitle.textContent = monthLabel(j.startDate,i);
       mdBody.innerHTML = rec.length
         ? rec.map(m => `
@@ -450,8 +444,8 @@ function renderSchedule(j){
   updateCounters(j);
 }
 
-/* إضافة عضو (Modal) — مع اختيار شهر افتراضي عند الإسناد */
-function openAddMemberModal(prefMonth){
+/* إضافة عضو (Modal) */
+function openAddMemberModal(){
   const j = currentJamiyah();
   if(!j){ toast('افتح جمعية أولًا'); return; }
   if(hasStarted(j)){ toast('بدأت الجمعية. لا يمكن إضافة أعضاء.'); return; }
@@ -466,11 +460,6 @@ function openAddMemberModal(prefMonth){
   if(hint)    hint.textContent = `اختر شهر استلام متاح. مبلغ الجمعية: ${fmtMoney(j.goal)} ريال`;
 
   populateMonthOptions(j, monthSel);
-
-  if(Number.isFinite(prefMonth) && prefMonth>=1 && prefMonth<=j.duration){
-    monthSel.value = String(prefMonth);
-  }
-
   show($('#addMemberModal'));
 }
 function onAddMemberFromModal(){
@@ -551,7 +540,14 @@ function savePayModal(){
 function onDeleteJamiyah(){ const j=currentJamiyah(); if(!j) return;
   if(!confirm(`حذف ${j.name}؟ لا يمكن التراجع.`)) return;
   state.jamiyahs=state.jamiyahs.filter(x=>x.id!==j.id); saveAll(); showList(); renderList(); toast('تم حذف الجمعية'); }
-function showList(){ hide($('#details')); state.currentId=null; setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
+function showList(){
+  hide($('#details'));
+  state.currentId=null;
+  setDetailsSectionsVisible(false);
+  $('#fabAdd').disabled=true;
+  // أظهر إنشاء جمعية
+  show($('#createSection'));
+}
 function exportPdf(j){ if(!j) return;
   const css=`<style>@page{size:A4;margin:14mm}body{font-family:-apple-system,Segoe UI,Roboto,Arial,"Noto Naskh Arabic","IBM Plex Sans Arabic",sans-serif;color:#111}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.meta{color:#555;font-size:12px;margin-bottom:12px}h2{margin:18px 0 8px;font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}thead th{background:#f3f4f6}tfoot td{font-weight:700;background:#fafafa}.muted{color:#666}</style>`;
   const jx=j, members=jx.members.slice().sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
