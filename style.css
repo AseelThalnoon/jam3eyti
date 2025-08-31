@@ -1,4 +1,4 @@
-/* v2.0.0 */
+/* v2.0.2 — نفس التصميم السابق */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -98,12 +98,13 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .modal__body{padding:16px;overflow:auto}
 .modal__foot{display:flex;gap:12px;justify-content:flex-end;padding:16px;border-top:1px solid var(--border)}
 
+/* دفعات */
 .pay-grid{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center}
 .pay-grid .cell{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
 .pay-grid .month{font-weight:700}
 .pay-grid input[type="number"]{width:110px}
 
-/* زر + عائم */
+/* زر + عائم للجوال */
 .fab{
   position:fixed; inset-inline-end:16px; inset-block-end:88px;
   width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
@@ -113,7 +114,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 @media (max-width:768px){ .fab{display:inline-block} }
 .fab:disabled{opacity:.4;cursor:not-allowed}
 
-/* ===== Month grid (Tiles) ===== */
+/* Tiles */
 .month-grid{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
