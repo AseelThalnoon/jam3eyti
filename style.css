@@ -1,4 +1,4 @@
-/* v2.0.3 */
+/* v2.1.0 */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -78,6 +78,9 @@ summary::-webkit-details-marker{display:none}
 details[open] > summary.caret::before{transform:rotate(0deg)}
 .members-summary .spacer{flex:1}
 
+/* تنبيه البدء */
+.alert{background:#2b0f14;border:1px solid #7f1d1d;color:#fecaca;padding:10px;border-radius:10px}
+
 .subtoolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .sticky-sub{position:sticky;top:72px;background:#0e1628;padding:8px;border-radius:12px;border:1px solid var(--border);z-index:10}
 
@@ -98,6 +101,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .modal__body{padding:16px;overflow:auto}
 .modal__foot{display:flex;gap:12px;justify-content:flex-end;padding:16px;border-top:1px solid var(--border)}
 
+/* دفعات */
 .pay-grid{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center}
 .pay-grid .cell{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
 .pay-grid .month{font-weight:700}
@@ -114,36 +118,25 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .fab:disabled{opacity:.4;cursor:not-allowed}
 
 /* Tiles */
-.month-grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:12px;
-}
+.month-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 @media (max-width:900px){ .month-grid{grid-template-columns:repeat(2,1fr);} }
 @media (max-width:520px){ .month-grid{grid-template-columns:1fr;} }
 
-.month-tile{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:12px;
-  cursor:pointer;
-  transition:transform .06s ease, box-shadow .15s ease;
-}
+.month-tile{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px; cursor:pointer; transition:transform .06s ease, box-shadow .15s ease; }
 .month-tile:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.25); }
 .month-tile .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .month-tile .label{font-weight:700}
 .month-tile .muted{color:var(--muted);font-size:12px}
-.progress{
-  height:8px;border-radius:999px;background:#0b1424;border:1px solid var(--border);overflow:hidden;margin:8px 0
-}
+.progress{ height:8px;border-radius:999px;background:#0b1424;border:1px solid var(--border);overflow:hidden;margin:8px 0 }
 .progress > span{display:block;height:100%;background:var(--accent)}
 .kpis{display:flex;gap:8px;flex-wrap:wrap}
 .kpis .badge{background:#0f1a2d;color:#a7f3d0;border-color:#14532d}
 
-.month-details{
-  margin-top:12px;padding:12px;border:1px solid var(--border);
-  background:#0e1628;border-radius:12px
-}
+.month-details{ margin-top:12px;padding:12px;border:1px solid var(--border); background:#0e1628;border-radius:12px }
 .month-details .md-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .toggle{display:flex;align-items:center;gap:8px;color:var(--muted)}
+
+/* إخفاء أزرار الإضافة/الحذف بعد بدء الجمعية */
+.jam-started #addMemberBtn,
+.jam-started #fabAdd,
+.jam-started button[data-action="del"] { display:none !important; }
