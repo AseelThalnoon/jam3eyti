@@ -1,4 +1,4 @@
-/* v2.1.1 – نفس منطق v2.1.0 مع عرض الأعضاء كبطاقات متناسقة */
+/* v2.1.2 – بطاقات متناسقة + منع التفاف شهر الاستلام (mc-month) */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -267,7 +267,7 @@ function openDetails(id){
 }
 function badge(t){const s=document.createElement('span');s.className='badge';s.textContent=t;return s;}
 
-/* الأعضاء – عرض كبطاقات */
+/* الأعضاء – كبطاقات متناسقة */
 function computeOverdueMembers(j){ return (j.members||[]).filter(m=>{ensurePayments(j,m); return m.overdueCount>0;}).length; }
 
 function renderMembers(j){
@@ -316,7 +316,7 @@ function renderMembers(j){
         <div class="mc-value mc-money">${fmtMoney(m.entitlement)} ريال</div>
 
         <div class="mc-label">شهر الاستلام</div>
-        <div class="mc-value">${monthLabel(j.startDate, m.month)}</div>
+        <div class="mc-value mc-month">${monthLabel(j.startDate, m.month)}</div>
 
         <div class="mc-chips">
           <span class="mc-chip">مدفوع: ${fmtMoney(paid)} ريال</span>
@@ -562,7 +562,7 @@ function exportJson(){
   toast('تم تنزيل نسخة JSON احتياطية');
 }
 
-/* استرجاع من النسخة الاحتياطية (مطلوب في index) */
+/* استرجاع من النسخة الاحتياطية */
 function restoreFromBackup(){
   const backup = readKey(KEY_BACKUP) || (readKey(KEY_AUTOSAVE)||{}).data;
   if(Array.isArray(backup)&&backup.length){
