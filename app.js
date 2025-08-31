@@ -1,29 +1,117 @@
-/* v2.0.0 – الجدول الشهري كبلاطات + تفاصيل، مع كل تحسينات v1.9.0 */
+/* v2.0.1 – حمايات التخزين + نسخ احتياطي تلقائي + استرجاع بنقرة */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
-const SKEY="jamiyati:v02";
 
+/* مفاتيح التخزين */
+const KEY_PRIMARY   = "jamiyati:data";   // المفتاح الجديد الثابت
+const KEY_V02       = "jamiyati:v02";    // دعم قديم
+const KEY_V01       = "jamiyati:v01";    // دعم قديم
+const KEY_BACKUP    = "jamiyati:backup"; // نسخة احتياطية دوّام
+const KEY_AUTOSAVE  = "jamiyati:autosave";// آخر حفظ + طابع وقت
+
+/* حالة التطبيق */
 const state={
-  jamiyahs:loadAll(),
+  jamiyahs: loadAllSafe(),
   currentId:null,
   filter:"",
-  memberSort:"month",            // 'month' | 'name'
-  memberFilter:"all",            // 'all' | 'overdue' | 'notfull'
-  memberQuery:"",                // بحث بالاسم
+  memberSort:"month",
+  memberFilter:"all",
+  memberQuery:"",
   payModal:{memberId:null}
 };
 
-/* تنسيق */
+/* ===== أدوات تنسيق ===== */
 const fmtMoney=n=>Number(n||0).toLocaleString('en-US');
 const fmtInt  =n=>Number(n||0).toLocaleString('en-US');
 function monthLabel(startDate,offset){ const d=new Date(startDate); d.setMonth(d.getMonth()+(offset-1)); return d.toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
 
-/* تخزين */
-function migrateV01toV02(old){ return (old||[]).map(j=>({...j,goal:Number(j.goal||0),members:(j.members||[]).map(m=>({...m,entitlement:Number.isFinite(m.entitlement)?Number(m.entitlement):Number(m.pay||0)*Number(j.duration||0)}))}));}
-function loadAll(){try{const v02=JSON.parse(localStorage.getItem(SKEY)); if(Array.isArray(v02)) return v02; const v01=JSON.parse(localStorage.getItem("jamiyati:v01")); if(Array.isArray(v01)){const m=migrateV01toV02(v01);localStorage.setItem(SKEY,JSON.stringify(m));return m;} return [];}catch{return []};}
-function saveAll(){localStorage.setItem(SKEY,JSON.stringify(state.jamiyahs));}
+/* ===== تخزين آمن مع ترحيل + نسخ احتياطي ===== */
+function parseJsonSafe(txt){
+  try{ const v=JSON.parse(txt); return v; }catch{ return null; }
+}
+function readKey(key){
+  const txt=localStorage.getItem(key);
+  if(!txt) return null;
+  return parseJsonSafe(txt);
+}
+function migrateV01toV02(old){
+  return (old||[]).map(j=>({
+    ...j,
+    goal:Number(j.goal||0),
+    members:(j.members||[]).map(m=>({
+      ...m,
+      entitlement:Number.isFinite(m.entitlement)?Number(m.entitlement):Number(m.pay||0)*Number(j.duration||0)
+    }))
+  }));
+}
+function loadAllSafe(){
+  // 1) جرّب المفتاح الأساسي
+  let data = readKey(KEY_PRIMARY);
+  if (Array.isArray(data)) return data;
 
-/* أدوات */
+  // 2) جرّب v02
+  data = readKey(KEY_V02);
+  if (Array.isArray(data)) { localStorage.setItem(KEY_PRIMARY, JSON.stringify(data)); return data; }
+
+  // 3) جرّب v01 + ترحيل
+  const v01 = readKey(KEY_V01);
+  if (Array.isArray(v01)) {
+    const migrated = migrateV01toV02(v01);
+    localStorage.setItem(KEY_PRIMARY, JSON.stringify(migrated));
+    return migrated;
+  }
+
+  // 4) آخر حل: إن وُجدت نسخة احتياطية صحيحة، لا نحمّلها تلقائيًا لكن نبلّغ واجهة المستخدم
+  const backup = readKey(KEY_BACKUP);
+  if (Array.isArray(backup) && backup.length>0) {
+    // نخلي الواجهة تعرض زر الاسترجاع
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const wrap = $('#restoreWrap'); if(wrap) wrap.classList.remove('hidden');
+    });
+  }
+
+  // فاضي بشكل صريح
+  return [];
+}
+
+/* الحفظ مع نسخ احتياطي ومنع الكتابة فوق بيانات سليمة بلا سبب */
+function saveAll(){
+  if (!Array.isArray(state.jamiyahs)) return;
+
+  // لا تكتب مصفوفة فاضية لو كان فيه بيانات قديمة غير فاضية (لتجنّب المسح بالغلط)
+  const currentStored = readKey(KEY_PRIMARY);
+  if ((!state.jamiyahs || state.jamiyahs.length===0) && Array.isArray(currentStored) && currentStored.length>0){
+    // تجاهل هذا الحفظ
+    console.warn('Skip saving empty array to protect existing data');
+    return;
+  }
+
+  const serialized = JSON.stringify(state.jamiyahs);
+  // النسخة الأساسية
+  localStorage.setItem(KEY_PRIMARY, serialized);
+  // نسخة احتياطية
+  localStorage.setItem(KEY_BACKUP, serialized);
+  // أوتوسيف مع طابع الوقت
+  localStorage.setItem(KEY_AUTOSAVE, JSON.stringify({ at: Date.now(), data: state.jamiyahs }));
+}
+
+/* زر الاسترجاع */
+function restoreFromBackup(){
+  const backup = readKey(KEY_BACKUP) || (readKey(KEY_AUTOSAVE)||{}).data;
+  if (Array.isArray(backup) && backup.length>0){
+    state.jamiyahs = backup;
+    localStorage.setItem(KEY_PRIMARY, JSON.stringify(backup));
+    // أخفي زر الاسترجاع
+    const wrap = $('#restoreWrap'); if(wrap) wrap.classList.add('hidden');
+    toast('تم الاسترجاع من النسخة الاحتياطية');
+    renderList();
+    if(state.jamiyahs[0]) openDetails(state.jamiyahs[0].id);
+  } else {
+    toast('لا توجد نسخة احتياطية صالحة');
+  }
+}
+
+/* ===== بقية الأدوات ===== */
 const uid=()=>Math.random().toString(36).slice(2,10);
 function hasStarted(j){const t=new Date().setHours(0,0,0,0);const s=new Date(j.startDate).setHours(0,0,0,0);return t>=s;}
 function currentJamiyah(){return state.jamiyahs.find(x=>x.id===state.currentId);}
@@ -41,7 +129,7 @@ function ensurePayments(j,m){ if(!Array.isArray(m.payments)||m.payments.length!=
 function recalcMemberCounters(j,m){ const paidCount=(m.payments||[]).reduce((s,p)=>s+(p.paid?1:0),0); const remainingCount=Math.max(0,j.duration-paidCount); const overdueCount=(m.payments||[]).slice(0,monthsElapsed(j)).reduce((s,p)=>s+(p.paid?0:1),0); m.paidCount=paidCount;m.remainingCount=remainingCount;m.overdueCount=overdueCount; return {paidCount,remainingCount,overdueCount};}
 function memberPaidSummary(j,m){ ensurePayments(j,m); let paid=0; m.payments.forEach(p=>{if(p.paid)paid+=Number(p.amount||0);}); return {paid};}
 
-/* Helpers للجدول الشهري (Tiles) */
+/* Helpers */
 function monthAssignedTotal(j,month){return j.members.filter(m=>Number(m.month)===Number(month)).reduce((s,m)=>s+Number(m.entitlement||0),0);}
 function maxMonthlyForMonth(j,month){const remaining=Math.max(0,j.goal-monthAssignedTotal(j,month));return Math.floor(remaining/j.duration);}
 function colorForMonth(i){const c=["#22c55e","#16a34a","#2dd4bf","#60a5fa","#a78bfa","#f472b6","#f59e0b"];return c[(i-1)%c.length];}
@@ -56,6 +144,9 @@ function monthStats(j, i){
 /* تهيئة */
 document.addEventListener('DOMContentLoaded',()=>{
   hide($('#details')); hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal'));
+
+  // زر الاسترجاع
+  $('#restoreBtn')?.addEventListener('click', restoreFromBackup);
 
   // إنشاء
   $('#jamiyahForm').addEventListener('submit',onCreateJamiyah);
@@ -78,7 +169,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#editClose').addEventListener('click',()=>hide($('#editModal')));
   $('#saveEdit').addEventListener('click',onSaveEdit);
 
-  // إضافة عضو (+) — زر العنوان و الزر العائم
+  // إضافة عضو
   $('#addMemberBtn').addEventListener('click',openAddMemberModal);
   $('#fabAdd').addEventListener('click',openAddMemberModal);
 
@@ -91,10 +182,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#md-close').addEventListener('click', ()=>hide($('#monthDetails')));
   $('#schedAutoExpand').addEventListener('change', ()=>renderSchedule(currentJamiyah()));
 
-  // عام
-  $('#deleteJamiyah').addEventListener('click',onDeleteJamiyah);
-  $('#backBtn').addEventListener('click',showList);
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal')); hide($('#monthDetails')); }});
+  // حفظ احتياطي دوري (لو صار كرَش قبل الحفظ)
+  window.addEventListener('beforeunload', ()=> {
+    try{ localStorage.setItem(KEY_AUTOSAVE, JSON.stringify({ at: Date.now(), data: state.jamiyahs })); }catch{}
+  });
 
   renderList();
 });
@@ -122,10 +213,24 @@ function renderList(){
   const list=$('#jamiyahList'), empty=$('#emptyList'), pill=$('#jamiyahCountPill');
   const items=state.jamiyahs.filter(j=>!state.filter||j.name.includes(state.filter)).sort((a,b)=>a.name.localeCompare(b.name));
   list.innerHTML=''; pill.textContent=fmtInt(items.length);
-  empty.classList.toggle('hidden',items.length!==0);
+
+  // إظهار/إخفاء الحالة الفارغة
+  const hasItems = items.length>0;
+  empty.classList.toggle('hidden',hasItems);
+  // أظهر زر الاسترجاع إذا فيه باك أب
+  const hasBackup = Array.isArray(readKey(KEY_BACKUP)) && readKey(KEY_BACKUP).length>0;
+  const wrap = $('#restoreWrap'); if(wrap) wrap.classList.toggle('hidden', !( !hasItems && hasBackup ));
+
   if(items.length===0){
-    empty.innerHTML='ابدأ من الأعلى: اختر <b>شهر البداية</b> و<b>المدة</b> و<b>مبلغ الجمعية</b> ثم اضغط "إنشاء".';
+    empty.innerHTML = `لا توجد جمعيات.
+      <div id="restoreWrap" class="stack-1 ${hasBackup?'':'hidden'}" style="margin-top:8px;">
+        <button id="restoreBtn" class="btn">استرجاع الجمعيات</button>
+        <small class="hint">وجدنا نسخة احتياطية محلية — اضغط للاسترجاع.</small>
+      </div>`;
+    // اربط زر الاسترجاع (أُنشئ للتو)
+    $('#restoreBtn')?.addEventListener('click', restoreFromBackup);
   }
+
   items.forEach(j=>{
     const row=document.createElement('div'); row.className='item';
     row.innerHTML=`<div>
@@ -140,6 +245,7 @@ function renderList(){
     row.querySelector('button').addEventListener('click',()=>openDetails(j.id));
     list.appendChild(row);
   });
+
   if(!state.currentId){ hide($('#details')); setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
 }
 
@@ -153,19 +259,16 @@ function openDetails(id){
   const meta=$('#d-meta'); meta.innerHTML='';
   meta.append(badge(monthLabel(j.startDate,1)), badge(`المدة: ${fmtInt(j.duration)} شهر`), badge(`مبلغ الجمعية: ${fmtMoney(j.goal)} ريال`));
 
-  // تفعيل/تعطيل زر الإضافة (+)
   const started=hasStarted(j);
   $('#addMemberBtn').disabled = started;
   $('#fabAdd').disabled = started;
 
-  // افتح قسم الأعضاء تلقائيًا أول مرة
   const onceKey=`opened:${j.id}`;
   if(!localStorage.getItem(onceKey)){
     $('#membersBlock').setAttribute('open','');
     localStorage.setItem(onceKey,'1');
   }
 
-  // إعداد
   populateMonthOptions(j, $('#am-month'));
   renderMembers(j);
   renderSchedule(j);
@@ -185,11 +288,9 @@ function renderMembers(j){
   const body=$('#memberTableBody'), empty=$('#emptyMembers'); body.innerHTML=''; const list=[...j.members];
   updateCounters(j);
 
-  // معلومات المتأخرين
   const overdueCount=computeOverdueMembers(j);
-  $('#mOverdueInfo').textContent = overdueCount ? `متأخرون: ${fmtInt(overdueCount)}` : '';
+  const info=$('#mOverdueInfo'); if(info) info.textContent = overdueCount ? `متأخرون: ${fmtInt(overdueCount)}` : '';
 
-  // بحث/فلتر/ترتيب
   let rows=list.map(m=>{ensurePayments(j,m); return m;});
 
   if(state.memberQuery){
@@ -207,11 +308,7 @@ function renderMembers(j){
     return a.month-b.month||a.name.localeCompare(b.name);
   });
 
-  if(rows.length===0){
-    empty.classList.remove('hidden');
-  }else{
-    empty.classList.add('hidden');
-  }
+  if(rows.length===0){ empty.classList.remove('hidden'); } else { empty.classList.add('hidden'); }
 
   rows.forEach((m,idx)=>{
     const {paid}=memberPaidSummary(j,m);
@@ -256,7 +353,7 @@ function renderMembers(j){
   });
 }
 
-/* تعبئة الشهور لاختيار شهر الاستلام */
+/* تعبئة الشهور لاختيار الاستلام */
 function populateMonthOptions(j, selectEl){
   if(!selectEl) return;
   const cur=selectEl.value; selectEl.innerHTML='';
@@ -270,7 +367,7 @@ function populateMonthOptions(j, selectEl){
   if(cur && Number(cur)>=1 && Number(cur)<=j.duration) selectEl.value=cur;
 }
 
-/* تعديل (Modal) */
+/* تعديل */
 function openEditModal(){ const j=currentJamiyah(); if(!j) return;
   $('#e-name').value=j.name; $('#e-goal').value=j.goal; $('#e-start').value=j.startDate.slice(0,7); $('#e-duration').value=j.duration;
   const started=hasStarted(j); $('#e-start').disabled=started; $('#e-duration').disabled=started;
@@ -302,7 +399,7 @@ function onSaveEdit(){
   saveAll(); hide($('#editModal')); openDetails(j.id); renderList(); toast('تم حفظ التعديلات');
 }
 
-/* الجدول الشهري – نسخة البلاطات */
+/* الجدول الشهري – Tiles */
 function renderSchedule(j){
   const grid = $('#scheduleGrid');
   const details = $('#monthDetails');
@@ -310,11 +407,12 @@ function renderSchedule(j){
   const mdBody = $('#md-body');
   const autoExpand = $('#schedAutoExpand');
 
+  if(!grid) return;
   grid.innerHTML = '';
   hide(details);
 
   for(let i=1;i<=j.duration;i++){
-    const {rec, assigned, remaining, pct} = monthStats(j,i);
+    const {rec, remaining, pct} = monthStats(j,i);
     const tile = document.createElement('div');
     tile.className = 'month-tile';
     tile.setAttribute('data-month', i);
@@ -346,8 +444,7 @@ function renderSchedule(j){
 
     grid.appendChild(tile);
 
-    // فتح تلقائي (اختياري)
-    if(autoExpand.checked && rec.length){
+    if(autoExpand?.checked && rec.length){
       tile.click();
     }
   }
@@ -355,7 +452,7 @@ function renderSchedule(j){
   updateCounters(j);
 }
 
-/* دفعات (Modal) */
+/* دفعات */
 function openPayModal(memberId){
   const j=currentJamiyah(); if(!j) return;
   const m=j.members.find(x=>x.id===memberId); if(!m) return;
