@@ -1,4 +1,4 @@
-/* v1.6.1 – رجوع أقسام (إضافة عضو/الأعضاء/الجدول) */
+/* v1.7.0 – زر + بجانب عدّاد الأعضاء لفتح نافذة إضافة عضو */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 const SKEY="jamiyati:v02";
@@ -25,19 +25,12 @@ function monthToFirstDay(m){if(!m)return"";const[y,mm]=m.split('-');if(!y||!mm)r
 const show=el=>{if(!el)return;el.classList.remove('hidden');el.removeAttribute('hidden');};
 const hide=el=>{if(!el)return;el.classList.add('hidden');el.setAttribute('hidden','');};
 
-/* NEW: إظهار/إخفاء أقسام التفاصيل */
 function setDetailsSectionsVisible(on){
-  ['addMemberBlock','membersBlock','scheduleBlock'].forEach(id=>{
-    const el=document.getElementById(id); if(!el) return;
-    on ? show(el) : hide(el);
-  });
+  ['membersBlock','scheduleBlock'].forEach(id=>{const el=document.getElementById(id); if(!el) return; on?show(el):hide(el);});
 }
-
-/* عدّادات */
 function updateCounters(j){
-  const mPill=$('#mCountPill'), sPill=$('#sCountPill');
-  if(mPill) mPill.textContent=fmtInt((j?.members||[]).length);
-  if(sPill) sPill.textContent=fmtInt(j?.duration||0);
+  $('#mCountPill').textContent = fmtInt((j?.members||[]).length);
+  $('#sCountPill').textContent = fmtInt(j?.duration||0);
 }
 
 /* دفعات */
@@ -48,26 +41,40 @@ function memberPaidSummary(j,m){ ensurePayments(j,m); let paid=0; m.payments.for
 
 /* تهيئة */
 document.addEventListener('DOMContentLoaded',()=>{
-  hide($('#details')); hide($('#payModal')); hide($('#editModal'));
+  hide($('#details')); hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal'));
+
+  // إنشاء
   $('#jamiyahForm').addEventListener('submit',onCreateJamiyah);
-  $('#memberForm').addEventListener('submit',onAddMember);
+
+  // تفاصيل
   $('#deleteJamiyah').addEventListener('click',onDeleteJamiyah);
   $('#backBtn').addEventListener('click',showList);
   $('#search').addEventListener('input',e=>{state.filter=(e.target.value||'').trim();renderList();});
   $('#exportBtn').addEventListener('click',()=>exportPdf(currentJamiyah()));
-  $('#m-month').addEventListener('change',updateMonthHint);
-  $('#m-pay').addEventListener('input',updateMonthHint);
+
+  // تعديل (قلم)
+  $('#editBtn').addEventListener('click',openEditModal);
+  $('#editClose').addEventListener('click',()=>hide($('#editModal')));
+  $('#saveEdit').addEventListener('click',onSaveEdit);
+
+  // إضافة عضو (+)
+  $('#addMemberBtn').addEventListener('click',openAddModal);
+  $('#addClose').addEventListener('click',()=>hide($('#addMemberModal')));
+  $('#addSave').addEventListener('click',onAddMemberModal);
+  $('#am-month').addEventListener('change',()=>updateMonthHint('am'));
+  $('#am-pay').addEventListener('input',()=>updateMonthHint('am'));
+
   // دفعات
   $('#payClose').addEventListener('click',()=>hide($('#payModal')));
   $('#paySave').addEventListener('click',savePayModal);
   $('#payMarkAll').addEventListener('click',()=>setAllPayModal(true));
   $('#payClearAll').addEventListener('click',()=>setAllPayModal(false));
   $('#payModal').addEventListener('click',e=>{if(e.target.id==='payModal')hide($('#payModal'));});
-  // تعديل
-  $('#editBtn').addEventListener('click',openEditModal);
-  $('#editClose').addEventListener('click',()=>hide($('#editModal')));
-  $('#saveEdit').addEventListener('click',onSaveEdit);
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ hide($('#payModal')); hide($('#editModal')); }});
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){ hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal')); }
+  });
+
   renderList();
 });
 
@@ -83,6 +90,7 @@ function onCreateJamiyah(e){
   if(!duration||duration<1){setError('err-j-duration','الحد الأدنى 1');ok=false;}
   if(!goal||goal<=0){setError('err-j-goal','أكبر من 0');ok=false;}
   if(!ok)return;
+
   const startDate=monthToFirstDay(startMonth);
   if(state.jamiyahs.some(j=>j.name===name)){setError('err-j-name','الاسم مستخدم مسبقًا');return;}
   state.jamiyahs.push({id:uid(),name,startDate,duration,goal,members:[],createdAt:Date.now()});
@@ -95,6 +103,7 @@ function renderList(){
   const items=state.jamiyahs.filter(j=>!state.filter||j.name.includes(state.filter)).sort((a,b)=>a.name.localeCompare(b.name));
   list.innerHTML=''; pill.textContent=fmtInt(items.length);
   empty.classList.toggle('hidden',items.length!==0);
+
   items.forEach(j=>{
     const row=document.createElement('div'); row.className='item';
     row.innerHTML=`<div>
@@ -109,6 +118,7 @@ function renderList(){
     row.querySelector('button').addEventListener('click',()=>openDetails(j.id));
     list.appendChild(row);
   });
+
   if(!state.currentId){ hide($('#details')); setDetailsSectionsVisible(false); }
 }
 
@@ -124,47 +134,62 @@ function openDetails(id){
 
   const started=hasStarted(j);
   $('#startedAlert').hidden=!started;
-  $('#memberForm').querySelectorAll('input,button,select').forEach(el=>{el.disabled=started;});
 
-  populateMonthOptions(j);
+  populateMonthOptions(j,'am-month'); // تحضير شهور نافذة الإضافة
   renderMembers(j);
   renderSchedule(j);
   updateCounters(j);
 
-  setDetailsSectionsVisible(true);     // << رجّعنا الظهور هنا
+  setDetailsSectionsVisible(true);
   show($('#details'));
   $('#details')?.scrollIntoView({behavior:'smooth',block:'start'});
   saveAll();
 }
 function badge(t){const s=document.createElement('span');s.className='badge';s.textContent=t;return s;}
 
-/* مساعدين شهور */
+/* شهور وألوان */
 function monthAssignedTotal(j,month){return j.members.filter(m=>Number(m.month)===Number(month)).reduce((s,m)=>s+Number(m.entitlement||0),0);}
 function maxMonthlyForMonth(j,month){const remaining=Math.max(0,j.goal-monthAssignedTotal(j,month));return Math.floor(remaining/j.duration);}
 function colorForMonth(i){const c=["#22c55e","#16a34a","#2dd4bf","#60a5fa","#a78bfa","#f472b6","#f59e0b"];return c[(i-1)%c.length];}
-function populateMonthOptions(j){ const sel=$('#m-month'); const cur=sel.value; sel.innerHTML='';
-  for(let i=1;i<=j.duration;i++){ const max=maxMonthlyForMonth(j,i); const o=document.createElement('option');
+
+/* تعبئة خيارات الشهور (قابل لإعادة الاستخدام) */
+function populateMonthOptions(j,selectId){
+  const sel=document.getElementById(selectId); if(!sel) return;
+  const cur=sel.value; sel.innerHTML='';
+  for(let i=1;i<=j.duration;i++){
+    const max=maxMonthlyForMonth(j,i);
+    const o=document.createElement('option');
     o.value=i; o.textContent=`${monthLabel(j.startDate,i)} · الحد الأعلى الشهري: ${fmtMoney(max)} ريال${max<=0?' · ممتلئ':''}`;
-    if(max<=0) o.disabled=true; sel.appendChild(o); }
+    if(max<=0) o.disabled=true;
+    sel.appendChild(o);
+  }
   if(cur && Number(cur)>=1 && Number(cur)<=j.duration) sel.value=cur;
-  updateMonthHint();
+  updateMonthHint(selectId==='am-month'?'am':undefined);
 }
 
-/* تعديل (نافذة) */
-function openEditModal(){ const j=currentJamiyah(); if(!j) return;
-  $('#e-name').value=j.name; $('#e-goal').value=j.goal; $('#e-start').value=j.startDate.slice(0,7); $('#e-duration').value=j.duration;
-  const started=hasStarted(j); $('#e-start').disabled=started; $('#e-duration').disabled=started;
-  setError('err-e-name'); setError('err-e-goal'); show($('#editModal'));
+/* تعديل الجمعية (Modal) */
+function openEditModal(){
+  const j=currentJamiyah(); if(!j) return;
+  $('#e-name').value=j.name; $('#e-goal').value=j.goal;
+  $('#e-start').value=j.startDate.slice(0,7); $('#e-duration').value=j.duration;
+  const started=hasStarted(j);
+  $('#e-start').disabled=started; $('#e-duration').disabled=started;
+  setError('err-e-name'); setError('err-e-goal');
+  show($('#editModal'));
 }
 function onSaveEdit(){
   const j=currentJamiyah(); if(!j) return;
   setError('err-e-name'); setError('err-e-goal');
-  const newName=$('#e-name').value.trim(), newGoal=parseInt($('#e-goal').value);
-  const startMonth=$('#e-start').value, newDuration=parseInt($('#e-duration').value);
+  const newName=$('#e-name').value.trim();
+  const newGoal=parseInt($('#e-goal').value);
+  const startMonth=$('#e-start').value;
+  const newDuration=parseInt($('#e-duration').value);
   const started=hasStarted(j);
+
   if(!newName){setError('err-e-name','حقل مطلوب');return;}
   if(state.jamiyahs.some(x=>x.id!==j.id && x.name===newName)){setError('err-e-name','الاسم مستخدم مسبقًا');return;}
   if(!newGoal||newGoal<=0){setError('err-e-goal','أكبر من 0');return;}
+
   if(!started){
     if(!startMonth){toast('حدد شهر البداية');return;}
     if(!newDuration||newDuration<1){toast('المدة غير صحيحة');return;}
@@ -172,19 +197,79 @@ function onSaveEdit(){
     if(newDuration!==j.duration){
       j.members=j.members.map(m=>{
         ensurePayments(j,m);
-        const np=Array.from({length:newDuration},(_,k)=>{const prev=m.payments[k]||{};return {i:k+1,paid:!!prev.paid&&k<newDuration,amount:Number.isFinite(prev.amount)?Number(prev.amount):Number(m.pay||0),paidAt:prev.paidAt&&prev.paid?prev.paidAt:null};});
+        const np=Array.from({length:newDuration},(_,k)=>{
+          const prev=m.payments[k]||{};
+          return {i:k+1,paid:!!prev.paid&&k<newDuration,amount:Number.isFinite(prev.amount)?Number(prev.amount):Number(m.pay||0),paidAt:prev.paidAt&&prev.paid?prev.paidAt:null};
+        });
         return {...m,entitlement:Number(m.pay||0)*newDuration,month:Math.min(m.month,newDuration),payments:np};
       });
     }
     j.startDate=newStart; j.duration=newDuration;
   }
   j.name=newName; j.goal=newGoal;
+
   saveAll(); hide($('#editModal')); openDetails(j.id); renderList(); toast('تم حفظ التعديلات');
+}
+
+/* نافذة إضافة عضو (+) */
+function openAddModal(){
+  const j=currentJamiyah(); if(!j) return;
+  if(hasStarted(j)){toast('بدأت الجمعية. لا يمكن إضافة أعضاء جدد.');return;}
+  $('#am-name').value=''; $('#am-pay').value='';
+  populateMonthOptions(j,'am-month');
+  setError('err-am-name'); setError('err-am-pay'); setError('err-am-month');
+  show($('#addMemberModal'));
+}
+function onAddMemberModal(){
+  setError('err-am-name'); setError('err-am-pay'); setError('err-am-month');
+  const j=currentJamiyah(); if(!j) return;
+
+  const name=$('#am-name').value.trim();
+  const pay=parseInt($('#am-pay').value);
+  const month=parseInt($('#am-month').value);
+
+  let ok=true;
+  if(!name){setError('err-am-name','حقل مطلوب');ok=false;}
+  if(!pay||pay<1){setError('err-am-pay','الحد الأدنى 1');ok=false;}
+  if(!month){setError('err-am-month','حقل مطلوب');ok=false;}
+  if(!ok)return;
+
+  if(month<1||month>j.duration){setError('err-am-month',`من 1 إلى ${fmtInt(j.duration)}`);return;}
+  const max=maxMonthlyForMonth(j,month);
+  if(pay>max){setError('err-am-pay',`الحد الأقصى ${fmtMoney(max)} ريال`);return;}
+
+  const entitlement=pay*j.duration;
+  const already=j.members.filter(m=>m.month===month).reduce((s,m)=>s+m.entitlement,0);
+  const remaining=j.goal-already;
+  if(entitlement>remaining){setError('err-am-pay',`يتجاوز الحد بـ ${fmtMoney(entitlement-remaining)} ريال`);return;}
+
+  const payments=Array.from({length:j.duration},(_,k)=>({i:k+1,paid:false,amount:pay,paidAt:null}));
+  j.members.push({id:uid(),name,pay,month,entitlement,payments,paidCount:0,remainingCount:j.duration,overdueCount:0});
+  saveAll();
+
+  hide($('#addMemberModal'));
+  renderMembers(j); renderSchedule(j); updateCounters(j);
+  toast('تمت إضافة العضو');
+}
+
+/* تلميح الحد الأعلى (يخدم نافذة الإضافة) */
+function updateMonthHint(scope){
+  const j=currentJamiyah(); if(!j) return;
+  const selId = scope==='am' ? 'am-month' : null;
+  const payId = scope==='am' ? 'am-pay'   : null;
+  const hintId= scope==='am' ? 'am-hint'  : null;
+  if(!selId) return;
+  const hint=$('#'+hintId), sel=$('#'+selId);
+  if(!sel||!sel.value){hint.textContent='';return;}
+  const monthVal=parseInt(sel.value); const max=maxMonthlyForMonth(j,monthVal); const pay=parseInt($('#'+payId).value||'0');
+  let line=`الحد الأعلى الشهري في ${monthLabel(j.startDate,monthVal)}: ${fmtMoney(max)} ريال`;
+  if(pay){line+= pay>max?` · إدخالك (${fmtMoney(pay)}) أعلى من الحد`:` · إدخالك (${fmtMoney(pay)}) ضمن الحد`;}
+  hint.textContent=line;
 }
 
 /* الأعضاء */
 function renderMembers(j){
-  const body=$('#memberTableBody'), empty=$('#emptyMembers'); body.innerHTML=''; const rows=[...j.members];
+  const body=$('#memberTableBody'); const empty=$('#emptyMembers'); body.innerHTML=''; const rows=[...j.members];
   updateCounters(j);
   if(rows.length===0){ empty.classList.remove('hidden'); return; } else empty.classList.add('hidden');
   rows.sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
@@ -198,37 +283,19 @@ function renderMembers(j){
       if(i===6){ const wrap=document.createElement('div'); wrap.style.display='flex'; wrap.style.gap='8px';
         const btnPay=document.createElement('button'); btnPay.className='btn'; btnPay.textContent='دفعات'; btnPay.addEventListener('click',()=>openPayModal(m.id));
         const btnDel=document.createElement('button'); btnDel.className='btn danger'; btnDel.textContent='حذف';
-        btnDel.addEventListener('click',()=>{ if(hasStarted(j)){toast('بدأت الجمعية. لا يمكن تعديل الأعضاء.');return;}
-          if(!confirm(`حذف ${m.name}؟`))return; j.members=j.members.filter(x=>x.id!==m.id);
-          saveAll(); renderMembers(j); renderSchedule(j); populateMonthOptions(j); updateCounters(j); toast('تم حذف العضو'); });
-        wrap.appendChild(btnPay); wrap.appendChild(btnDel); td.innerHTML=''; td.appendChild(wrap);}
-      tr.appendChild(td); });
+        btnDel.addEventListener('click',()=>{
+          if(hasStarted(j)){toast('بدأت الجمعية. لا يمكن تعديل الأعضاء.');return;}
+          if(!confirm(`حذف ${m.name}؟`))return;
+          j.members=j.members.filter(x=>x.id!==m.id);
+          saveAll(); renderMembers(j); renderSchedule(j); updateCounters(j); toast('تم حذف العضو');
+        });
+        wrap.appendChild(btnPay); wrap.appendChild(btnDel);
+        td.innerHTML=''; td.appendChild(wrap);
+      }
+      tr.appendChild(td);
+    });
     body.appendChild(tr);
   });
-}
-
-/* إضافة عضو */
-function onAddMember(e){
-  e.preventDefault();
-  setError('err-m-name'); setError('err-m-pay'); setError('err-m-month');
-  const j=currentJamiyah(); if(!j)return;
-  if(hasStarted(j)){toast('بدأت الجمعية. لا يمكن إضافة أعضاء جدد.');return;}
-  const name=$('#m-name').value.trim(), pay=parseInt($('#m-pay').value), month=parseInt($('#m-month').value);
-  let ok=true;
-  if(!name){setError('err-m-name','حقل مطلوب');ok=false;}
-  if(!pay||pay<1){setError('err-m-pay','الحد الأدنى 1');ok=false;}
-  if(!month){setError('err-m-month','حقل مطلوب');ok=false;}
-  if(!ok)return;
-  if(month<1||month>j.duration){setError('err-m-month',`من 1 إلى ${fmtInt(j.duration)}`);return;}
-  const max=maxMonthlyForMonth(j,month); if(pay>max){setError('err-m-pay',`الحد الأقصى ${fmtMoney(max)} ريال`);return;}
-  const entitlement=pay*j.duration; const already=j.members.filter(m=>m.month===month).reduce((s,m)=>s+m.entitlement,0);
-  const remaining=j.goal-already; if(entitlement>remaining){setError('err-m-pay',`يتجاوز الحد بـ ${fmtMoney(entitlement-remaining)} ريال`);return;}
-  const payments=Array.from({length:j.duration},(_,k)=>({i:k+1,paid:false,amount:pay,paidAt:null}));
-  j.members.push({id:uid(),name,pay,month,entitlement,payments,paidCount:0,remainingCount:j.duration,overdueCount:0});
-  saveAll();
-  e.target.reset();
-  populateMonthOptions(j); renderMembers(j); renderSchedule(j); updateCounters(j); updateMonthHint();
-  toast('تمت إضافة العضو');
 }
 
 /* الجدول الشهري */
@@ -248,12 +315,15 @@ function renderSchedule(j){
 function openPayModal(memberId){
   const j=currentJamiyah(); if(!j) return;
   const m=j.members.find(x=>x.id===memberId); if(!m) return;
-  ensurePayments(j,m); state.payModal.memberId=memberId;
+  ensurePayments(j,m);
+  state.payModal.memberId=memberId;
+
   const {paidCount,remainingCount,overdueCount}=recalcMemberCounters(j,m);
   $('#payModalTitle').textContent=`دفعات: ${m.name}`;
   $('#paySummary').innerHTML=`<span class="badge">مدفوعة: ${paidCount} / ${j.duration}</span>
     <span class="badge">المتبقية: ${remainingCount}</span>
     <span class="badge ${overdueCount>0?'status':''}">متأخرة حتى الآن: ${overdueCount}</span>`;
+
   const body=$('#payModalBody'); body.innerHTML='';
   const grid=document.createElement('div'); grid.className='pay-grid';
   grid.insertAdjacentHTML('beforeend',`<div class="cell"><strong>الشهر</strong></div><div class="cell"><strong>مدفوع؟</strong></div><div class="cell"><strong>المبلغ · ريال</strong></div><div class="cell"><strong>التاريخ</strong></div>`);
@@ -278,16 +348,6 @@ function savePayModal(){
   m.payments=m.payments.map(p=>{const newPaid=!!paidMap[p.i]; const newAmount=Number(amountMap[p.i]||0);
     return {i:p.i,paid:newPaid,amount:newAmount,paidAt:newPaid?(p.paid?p.paidAt||now:now):null};});
   recalcMemberCounters(j,m); saveAll(); renderMembers(j); hide($('#payModal')); toast('تم حفظ الدفعات');
-}
-
-/* تلميح الحد الأعلى */
-function updateMonthHint(){
-  const j=currentJamiyah(); const hint=$('#monthHint'); const sel=$('#m-month');
-  if(!j||!sel||!sel.value){hint.textContent='';return;}
-  const val=parseInt(sel.value); const max=maxMonthlyForMonth(j,val); const pay=parseInt($('#m-pay').value||'0');
-  let line=`الحد الأعلى الشهري في ${monthLabel(j.startDate,val)}: ${fmtMoney(max)} ريال`;
-  if(pay){line+= pay>max?` · إدخالك (${fmtMoney(pay)}) أعلى من الحد`:` · إدخالك (${fmtMoney(pay)}) ضمن الحد`;}
-  hint.textContent=line;
 }
 
 /* حذف/رجوع */
