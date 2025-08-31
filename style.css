@@ -1,4 +1,4 @@
-/* v2.1.1 */
+/* v2.1.2 */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -141,24 +141,29 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .jam-started #fabAdd,
 .jam-started button[data-action="del"] { display:none !important; }
 
-/* ===== بطاقات الأعضاء – متناسقة ===== */
-.member-card {
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 10px 14px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--panel);
+/* ===== بطاقات الأعضاء – متناسقة (v2.1.2) ===== */
+.member-card{
+  display:grid;
+  grid-template-columns: 1fr 1fr;   /* عمودان يثبتان المحاذاة */
+  gap: 8px 16px;
+  padding:14px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--panel);
+  align-items:center;
 }
-@media (max-width: 520px) { .member-card { grid-template-columns: 120px 1fr; } }
-.mc-label { color: var(--muted); font-weight: 600; }
-.mc-value { color: var(--fg); }
-.mc-money { text-align: right; font-variant-numeric: tabular-nums; }
-.mc-chips { display:flex; gap:8px; flex-wrap:wrap; grid-column:1 / -1; }
-.mc-chip  { background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:4px 10px; border-radius:999px; font-size:12px; }
-.mc-actions{ grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-start; margin-top:4px; }
-.table--cards tbody tr { border:0; background:transparent; }
-.table--cards tbody td { border:0; padding:0; }
-.table--cards .member-card + .member-card { margin-top:12px; }
-.mc-index{ background:#0b1424; border:1px solid var(--border); color:#cbd5e1; border-radius:8px; padding:2px 8px; display:inline-block; }
+.mc-label{ color:var(--muted); font-weight:700; justify-self:end; line-height:1.2; }
+.mc-value{ color:var(--fg); justify-self:start; line-height:1.2; }
+.mc-money{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.mc-month{ white-space:nowrap; }
+.mc-chips{ grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:4px; }
+.mc-chip{ background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:4px 10px; border-radius:999px; font-size:12px; white-space:nowrap; }
+.mc-actions{ grid-column:1 / -1; display:flex; gap:10px; justify-content:center; margin-top:6px; }
+.mc-index{ background:#0b1424; border:1px solid var(--border); color:#cbd5e1; border-radius:8px; padding:2px 8px; display:inline-block; font-variant-numeric:tabular-nums; }
+.table--cards tbody tr{border:0;background:transparent}
+.table--cards tbody td{border:0;padding:0}
+.table--cards .member-card + .member-card{margin-top:12px}
+@media (max-width:520px){
+  .member-card{gap:6px 12px;padding:12px}
+  .mc-chip{font-size:11px;padding:3px 8px}
+}
