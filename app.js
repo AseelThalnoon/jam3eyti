@@ -1,4 +1,5 @@
-/* v2.3.3 — تغيير أيقونة فتح الجمعية إلى 👁️ ومطابقة ستايل الأزرار */
+/* v2.3.4 — زر فتح الجمعية يفتح "الجدول الشهري" مباشرة، وتنسيق البطاقات موحّد في CSS فقط */
+
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -119,9 +120,19 @@ document.addEventListener('click',(e)=>{
     case 'md-close': hide($('#monthDetails')); return;
   }
 
-  // زر فتح الجمعية على البطاقة
+  /* ——— زر فتح الجمعية على البطاقة: افتح التفاصيل ثم فعّل "الجدول الشهري" ——— */
   const openBtn=e.target.closest('button.jam-open[data-id]');
-  if(openBtn){ openDetails(openBtn.dataset.id); return; }
+  if(openBtn){
+    openDetails(openBtn.dataset.id);
+    const dMembers  = document.getElementById('membersBlock');
+    const dSchedule = document.getElementById('scheduleBlock');
+    if(dSchedule && dMembers){
+      dSchedule.open = true;
+      dMembers.open  = false;
+      dSchedule.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+    return;
+  }
 
   // زر تعديل الجمعية على البطاقة
   const editBtnOnCard = e.target.closest('button.jam-edit[data-id]');
@@ -224,13 +235,15 @@ function openDetails(id){
   renderMembers(j); renderSchedule(j); updateCounters(j);
   setDetailsSectionsVisible(true); show($('#details'));
 
+  // الافتراضي: الأعضاء أولًا — يتم قلبه فقط عند الضغط من زر البطاقة في الحدث أعلاه
   const dMembers  = document.getElementById('membersBlock');
   const dSchedule = document.getElementById('scheduleBlock');
-  dMembers.open = true; dSchedule.open = false;
+  if(dMembers && dSchedule){ dMembers.open = true; dSchedule.open = false; }
 
   $('#details')?.scrollIntoView({behavior:'smooth',block:'start'});
   saveAll();
 }
+
 function badge(t){const s=document.createElement('span');s.className='badge';s.textContent=t;return s;}
 function computeOverdueMembers(j){ return (j.members||[]).filter(m=>{ensurePayments(j,m);return m.overdueCount>0;}).length; }
 
