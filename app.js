@@ -1,4 +1,4 @@
-/* v2.3.3 — زر تعديل + زر فتح داخل بطاقة الجمعية (أيقونات) */
+/* v2.3.3 — تغيير أيقونة فتح الجمعية إلى 👁️ ومطابقة ستايل الأزرار */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -123,12 +123,12 @@ document.addEventListener('click',(e)=>{
   const openBtn=e.target.closest('button.jam-open[data-id]');
   if(openBtn){ openDetails(openBtn.dataset.id); return; }
 
-  // زر تعديل الجمعية على البطاقة (جديد)
+  // زر تعديل الجمعية على البطاقة
   const editBtnOnCard = e.target.closest('button.jam-edit[data-id]');
   if(editBtnOnCard){
     const id = editBtnOnCard.dataset.id;
-    state.currentId = id;        // تحديد الجمعية المطلوب تعديلها
-    openEditModal();             // استخدام نافذة التعديل الحالية
+    state.currentId = id;
+    openEditModal();
     return;
   }
 
@@ -189,7 +189,7 @@ function renderList(){
     card.className='jam-card';
     card.style.borderInlineStart=`4px solid ${color}`;
     card.innerHTML=`
-      <button class="jam-open" data-id="${j.id}" title="فتح الجمعية" aria-label="فتح">↗️</button>
+      <button class="jam-open" data-id="${j.id}" title="فتح الجمعية" aria-label="فتح">👁️</button>
       <button class="jam-edit" data-id="${j.id}" title="تعديل الجمعية" aria-label="تعديل">✏️</button>
       <div class="jam-head"><strong>${j.name}</strong></div>
       <div class="jam-lines">
@@ -517,7 +517,7 @@ function onDeleteJamiyah(){ const j=currentJamiyah(); if(!j) return;
   if(!confirm(`حذف ${j.name}؟ لا يمكن التراجع.`)) return;
   state.jamiyahs=state.jamiyahs.filter(x=>x.id!==j.id); saveAll(); showList(); renderList(); toast('تم حذف الجمعية'); }
 function showList(){ hide($('#details')); state.currentId=null; setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
-function exportPdf(j){ /* كما في الإصدار السابق */ 
+function exportPdf(j){
   const css=`<style>@page{size:A4;margin:14mm}body{font-family:-apple-system,Segoe UI,Roboto,Arial,"Noto Naskh Arabic","IBM Plex Sans Arabic",sans-serif;color:#111}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}h2{margin:18px 0 8px;font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}thead th{background:#f3f4f6}tfoot td{font-weight:700;background:#fafafa}.muted{color:#666}</style>`;
   const members=j.members.slice().sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
   const rows=members.map((m,i)=>{const {paid}=memberPaidSummary(j,m);const c=recalcMemberCounters(j,m);
