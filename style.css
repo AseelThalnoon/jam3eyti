@@ -1,16 +1,17 @@
-/* v2.3.0 — Compact UI: بطاقات أدق وأوضح دون فقد معلومات */
+/* v2.3.0 — Compact UI + بطاقات الجمعيات/الأعضاء/المستلمون + زر فتح داخل البطاقة */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
   --accent:#22c55e; --blue:#3b82f6; --danger:#ef4444; --ghost:#0b1424;
   --shadow:0 6px 18px rgba(0,0,0,.32);
 
-  /* كثافة مضغوطة */
   --space-0:4px;  --space-1:6px;  --space-2:8px;  --space-3:10px;  --space-4:14px;
   --rad-s:10px; --rad-m:12px; --rad-l:14px;
 
-  /* أحجام خط مضغوطة مع تسطير واضح */
   --fz-base:13px; --fz-sub:12px; --fz-h1:18px; --fz-h2:15px;
+
+  /* Palette لبطاقات المستلمون */
+  --tone-0:#22c55e; --tone-1:#60a5fa; --tone-2:#a78bfa; --tone-3:#f472b6; --tone-4:#f59e0b; --tone-5:#2dd4bf;
 }
 
 *{box-sizing:border-box}
@@ -59,15 +60,20 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 
 .list{display:flex;flex-direction:column;gap:var(--space-2)}
 
-/* بطاقات قائمة الجمعيات (مضغوطة) */
-.jam-card{
+/* بطاقات الجمعيات كـ Cards + زر فتح داخل البطاقة */
+.jam-card{ position:relative; padding-inline-start:78px;
   display:flex;flex-direction:column;gap:var(--space-1);
-  padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--panel);
+  padding-block:10px; border:1px solid var(--border);border-radius:12px;background:var(--panel);
 }
 .jam-card .jam-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-1)}
-.jam-card .jam-actions{display:flex;gap:var(--space-1);flex-wrap:wrap}
 .jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
 .jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
+.jam-open{
+  position:absolute; inset-inline-start:14px; top:50%; transform:translateY(-50%);
+  width:62px; height:62px; border-radius:16px; font-weight:800;
+  background:#3b82f6; color:#0b1220; border:none; box-shadow:0 8px 18px rgba(59,130,246,.35); cursor:pointer;
+}
+.jam-open:active{ transform:translateY(-50%) scale(.98); }
 
 /* جدول (وضع البطاقات على الجوال) */
 .table{width:100%;border-collapse:collapse}
@@ -144,15 +150,21 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .month-details{ margin-top:10px;padding:10px;border:1px solid var(--border); background:#0e1628;border-radius:12px }
 .month-details .md-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 
-/* قائمة المستلمون كبطاقات ملوّنة */
+/* قائمة المستلمون كبطاقات */
 .md-list{display:flex;flex-direction:column;gap:8px}
 .md-card{
   display:flex; flex-direction:column; gap:4px;
   padding:8px 10px; border:1px solid var(--border);
   border-radius:12px; background:var(--panel);
+  position:relative; overflow:hidden;
+}
+.md-card::before{
+  content:""; position:absolute; inset-inline-start:0; inset-block:0;
+  width:100px; pointer-events:none; opacity:.12;
+  background: linear-gradient(90deg, currentColor, transparent);
 }
 
-/* بطاقات الأعضاء — سطر "الاسم : أحمد" (مضغّط) */
+/* بطاقات الأعضاء — سطر "الاسم : أحمد" (بدون رقم) */
 .member-card{
   display:flex; flex-direction:column; gap:6px;
   padding:10px; border:1px solid var(--border);
@@ -168,7 +180,8 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .mc-chip{ background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:1px 7px; border-radius:999px; font-size:11.5px; white-space:nowrap; }
 .mc-actions{ display:flex; gap:6px; justify-content:center; }
 .member-card .btn{ padding:7px 10px; border-radius:9px; }
-.mc-index{ background:#0b1424; border:1px solid var(--border); color:#cbd5e1; border-radius:8px; padding:0 6px; display:inline-block; font-variant-numeric:tabular-nums; font-size:11.5px; }
+/* إخفاء أي بقايا لفهرس قديم من الكاش */
+.mc-index{ display:none !important; }
 
 /* تنظيف حدود الجدول حول البطاقات */
 .table--cards tbody tr{border:0;background:transparent}
@@ -177,15 +190,3 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 
 /* إبراز أخطاء النماذج */
 .is-invalid{border-color:#f87171 !important;box-shadow:0 0 0 3px rgba(248,113,113,.15) !important;}
-
-/* ألوان ديناميكية لبطاقات المستلمون (يتم تلوين الحد من JS) */
-:root{
-  --tone-0:#22c55e; --tone-1:#60a5fa; --tone-2:#a78bfa;
-  --tone-3:#f472b6; --tone-4:#f59e0b; --tone-5:#2dd4bf;
-}
-.md-card{ position:relative; overflow:hidden; }
-.md-card::before{
-  content:""; position:absolute; inset-inline-start:0; inset-block:0;
-  width:100px; pointer-events:none; opacity:.12;
-  background: linear-gradient(90deg, currentColor, transparent);
-}
