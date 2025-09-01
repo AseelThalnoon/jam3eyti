@@ -1,4 +1,4 @@
-/* v2.1.9 – توحيد أحجام النصوص + بطاقات المستلمون */
+/* v2.2.0 – بطاقات المستلمون ملوّنة + قائمة الجمعيات كـ بطاقات */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -47,9 +47,18 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:#cbd5e1;cursor:pointer;font-size:13px}
 
 .list{display:flex;flex-direction:column;gap:12px}
-.list .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;background:var(--panel);border:1px solid var(--border);border-radius:12px}
-.item .meta{color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
 
+/* بطاقات قائمة الجمعيات */
+.jam-card{
+  display:flex;flex-direction:column;gap:8px;
+  padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--panel);
+}
+.jam-card .jam-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.jam-card .jam-actions{display:flex;gap:8px;flex-wrap:wrap}
+.jam-card .jam-lines{display:flex;flex-direction:column;gap:6px}
+.jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
+
+/* بطاقات الأعضاء */
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border-top:1px solid var(--border);padding:10px;text-align:right;vertical-align:top}
 .table thead th{color:var(--muted);font-weight:600}
@@ -122,9 +131,9 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .month-details{ margin-top:12px;padding:12px;border:1px solid var(--border); background:#0e1628;border-radius:12px }
 .month-details .md-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 
-/* قائمة المستلمون كـ بطاقات */
+/* قائمة المستلمون كبطاقات ملوّنة */
 .md-list{display:flex;flex-direction:column;gap:10px}
-.md-card{ /* إعادة استخدام شكل member-card */
+.md-card{
   display:flex; flex-direction:column; gap:6px;
   padding:10px 12px; border:1px solid var(--border);
   border-radius:12px; background:var(--panel);
