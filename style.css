@@ -1,4 +1,5 @@
-/* v2.3.4 — موحّد تصميم بطاقات الأعضاء والجمعيات مع بطاقات المستلمون + سلوك الزر كما هو في JS */
+/* v2.3.4 — توحيد تصميم بطاقات الأعضاء والجمعيات مع بطاقات المستلمون + تحسين مواضع الأزرار */
+
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -75,10 +76,10 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 /* ——— بطاقات الجمعيات — موحّدة مع تصميم md-card ——— */
 .jam-card{
   position:relative;
-  padding:8px 10px;                /* نفس md-card */
-  display:flex;flex-direction:column;gap:6px; /* تقارب المسافات */
+  padding:8px 10px;
+  display:flex;flex-direction:column;gap:6px;
   border:1px solid var(--border);border-radius:12px;background:var(--panel);
-  overflow:hidden;                 /* لإظهار الـ gradient */
+  overflow:hidden;
 }
 .jam-card::before{
   content:""; position:absolute; inset-inline-end:0; inset-block:0;
@@ -89,7 +90,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
 .jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
 
-/* أزرار بطاقة الجمعية بموضع جانبي كما كانت */
+/* أزرار بطاقة الجمعية */
 .jam-open{
   position:absolute; inset-inline-end:12px; top:12px;
   width:40px; height:40px; border-radius:9px;
@@ -102,6 +103,9 @@ small.hint{color:var(--muted);min-height:16px;display:block}
   background:#334155; color:#e5e7eb; border:1px solid #2b3646;
   cursor:pointer; font-size:16px; display:flex;align-items:center;justify-content:center;
 }
+
+/* إخفاء زر القلم القديم داخل رأس تفاصيل الجمعية */
+.details-header #editBtn{ display:none !important; }
 
 /* ——— بطاقات الأعضاء — موحّدة مع تصميم md-card ——— */
 .member-card{
@@ -130,7 +134,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .btn.icon.delete{ background:#334155; }
 .btn.icon:hover{ filter:brightness(1.06); }
 
-/* باقي الجداول والتفاصيل كما هي */
+/* جدول/بطاقات */
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border-top:1px solid var(--border);padding:8px;text-align:right;vertical-align:top}
 .table thead th{color:var(--muted);font-weight:600}
