@@ -1,4 +1,4 @@
-/* v2.3.5 — كل الوظائف مفعّلة + المودالات كاملة + أزرار بطاقة الجمعية ✏️▶️ */
+/* v2.3.6 — إبقاء التصميم والألوان كما هي + إزالة شارة "أشهر 6" + أزرار البطاقة ترث .btn.icon */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -19,7 +19,6 @@ const state={
 const fmtMoney=n=>Number(n||0).toLocaleString('en-US');
 const fmtInt  =n=>Number(n||0).toLocaleString('en-US');
 function monthLabel(startDate,offset){ const d=new Date(startDate); d.setMonth(d.getMonth()+(offset-1)); return d.toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
-
 const normName = s => (s || '').toString().trim().replace(/\s+/g,' ').toLowerCase();
 
 /* ---------- تخزين آمن ---------- */
@@ -80,7 +79,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   hide($('#details')); hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal')); hide($('#editMemberModal'));
 
   $('#jamiyahForm')?.addEventListener('submit',onCreateJamiyah);
-  $('#search')?.addEventListener('input',e=>{const f=(e.target.value||'').trim(); state.filter=f; renderList();});
+  $('#search')?.addEventListener('input',e=>{state.filter=(e.target.value||'').trim(); renderList();});
 
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ ['payModal','editModal','addMemberModal','editMemberModal','monthDetails'].forEach(id=>hide(document.getElementById(id))); }});
 
@@ -99,8 +98,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 /* ---------- تفاعل عام ---------- */
 document.addEventListener('click',(e)=>{
-  // أزرار بطاقة الجمعية (✏️ / ▶️)
-  const act=e.target.closest('.jam-btn');
+  // أزرار بطاقة الجمعية: نعتمد على data-kind بدل اسم الكلاس
+  const act = e.target.closest('[data-kind]');
   if(act){
     const id=act.dataset.id, kind=act.dataset.kind;
     const j=state.jamiyahs.find(x=>x.id===id); if(!j) return;
@@ -169,23 +168,22 @@ function onCreateJamiyah(e){
   saveAll(); e.target.reset(); toast('تم إنشاء الجمعية'); renderList();
 }
 
-/* ---------- عرض قائمة الجمعيات كبطاقات ---------- */
+/* ---------- قائمة الجمعيات كبطاقات (بدون شارة "أشهر") ---------- */
 function renderList(){
   const list=$('#jamiyahList'), empty=$('#emptyList'), pill=$('#jamiyahCountPill');
   const items=state.jamiyahs.filter(j=>!state.filter||j.name.includes(state.filter)).sort((a,b)=>a.name.localeCompare(b.name));
   list.innerHTML=''; pill.textContent=fmtInt(items.length);
 
   empty.classList.toggle('hidden',items.length>0);
-  const hasBackup = !!readKey(KEY_BACKUP);
-  $('#restoreWrap')?.classList.toggle('hidden', !(items.length===0 && hasBackup));
+  $('#restoreWrap')?.classList.toggle('hidden', !(items.length===0 && !!readKey(KEY_BACKUP)));
 
   items.forEach(j=>{
     const card=document.createElement('div');
     card.className='jam-card';
     card.innerHTML=`
       <div class="jam-actions">
-        <button class="jam-btn edit" data-kind="edit" data-id="${j.id}" title="تعديل">✏️</button>
-        <button class="jam-btn open" data-kind="open" data-id="${j.id}" title="فتح">▶️</button>
+        <button class="btn icon" data-kind="edit" data-id="${j.id}" title="تعديل">✏️</button>
+        <button class="btn icon" data-kind="open" data-id="${j.id}" title="فتح">▶️</button>
       </div>
       <div class="jam-head"><strong>${j.name}</strong></div>
       <div class="jam-lines">
@@ -220,7 +218,7 @@ function openDetails(id){
   renderMembers(j); renderSchedule(j); updateCounters(j);
   setDetailsSectionsVisible(true); show($('#details'));
 
-  // افتراضيًا افتح الأعضاء وأغلق الجدول
+  // افتح الأعضاء واغلق الجدول افتراضيًا
   $('#membersBlock').open=true; $('#scheduleBlock').open=false;
 
   $('#details')?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -270,8 +268,8 @@ function renderMembers(j){
 
         <div class="mc-actions">
           <button class="btn icon" data-action="pay" data-id="${m.id}" title="دفعات">💳</button>
-          <button class="btn icon edit" data-action="edit-member" data-id="${m.id}" title="تعديل">✏️</button>
-          <button class="btn icon delete" data-action="del" data-id="${m.id}" title="حذف">🗑️</button>
+          <button class="btn icon" data-action="edit-member" data-id="${m.id}" title="تعديل">✏️</button>
+          <button class="btn icon" data-action="del" data-id="${m.id}" title="حذف">🗑️</button>
         </div>
       </div>`;
     tr.appendChild(td); body.appendChild(tr);
@@ -384,7 +382,7 @@ function onSaveEditMember(){
   saveAll(); renderMembers(j); renderSchedule(j); hide($('#editMemberModal')); toast('تم حفظ التعديل');
 }
 
-/* ---------- تعديل الجمعية (من زر ✏️ على البطاقة) ---------- */
+/* ---------- تعديل الجمعية (زر ✏️ على البطاقة) ---------- */
 function openEditModal(){
   const j=currentJamiyah(); if(!j) return;
   $('#e-name').value=j.name; $('#e-goal').value=j.goal; $('#e-start').value=j.startDate.slice(0,7); $('#e-duration').value=j.duration;
