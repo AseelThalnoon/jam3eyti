@@ -1,4 +1,4 @@
-/* v2.1.5 */
+/* v2.1.6 (لا تغييرات عن 2.1.5 إلا رقم النسخة) */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -8,8 +8,6 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
-
-/* محاذاة يمين عامة */
 body, table, .member-card, .modal__card { text-align:right; }
 
 .app-bar{padding:16px;background:#0b1220;border-bottom:1px solid var(--border);
