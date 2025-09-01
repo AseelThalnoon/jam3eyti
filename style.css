@@ -1,4 +1,4 @@
-/* v2.1.3 – تصغير وتنسيق بطاقات الأعضاء */
+/* v2.1.4 – محاذاة يمين + إزالة بحث الأعضاء */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -8,6 +8,9 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
+
+/* محاذاة يمين افتراضيّة */
+body, input, select, button, table, .member-card, .subtoolbar, .list, .meta { text-align:right; }
 
 .app-bar{padding:16px;background:#0b1220;border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -57,7 +60,7 @@ small.hint{color:var(--muted);font-size:12px;min-height:16px;display:block}
 @media (max-width:720px){
   .table--cards thead{display:none}
   .table--cards tr{display:block;margin:10px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-  .table--cards td{display:flex;justify-content:space-between;gap:12px;padding:0;border-top:0}
+  .table--cards td{display:flex;justify-content:flex-end;gap:12px;padding:0;border-top:0}
 }
 
 .details-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
@@ -129,10 +132,9 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .jam-started #fabAdd,
 .jam-started button[data-action="del"] { display:none !important; }
 
-/* ===== بطاقات الأعضاء – أصغر ومتناسقة ===== */
+/* ===== بطاقات الأعضاء – أصغر ومتناسقة + يمين ===== */
 .member-card{
   display:grid;
-  /* عمود لليبل ثابت + عمود للقيمة متغير: يضمن المحاذاة في كل البطاقات */
   grid-template-columns: 110px 1fr;
   gap: 6px 12px;
   padding:10px 12px;
@@ -145,38 +147,15 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 @media (max-width:520px){
   .member-card{grid-template-columns: 96px 1fr; padding:9px 10px; gap:6px 10px;}
 }
-
 .mc-label{ color:var(--muted); font-weight:700; font-size:13px; justify-self:end; }
-.mc-value{ color:var(--fg); justify-self:start; font-size:14px; }
+.mc-value{ color:var(--fg); font-size:14px; justify-self:end; }  /* يمين */
 .mc-money{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .mc-month{ white-space:nowrap; }
-
-/* شرائح الحالة */
-.mc-chips{
-  grid-column:1 / -1;
-  display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-start;
-  margin-top:2px;
-}
-.mc-chip{
-  background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d;
-  padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap;
-}
-
-/* أزرار أصغر وفي الوسط */
-.mc-actions{
-  grid-column:1 / -1;
-  display:flex; gap:8px; justify-content:center; margin-top:4px;
-}
+.mc-chips{ grid-column:1 / -1; display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-start; margin-top:2px; }
+.mc-chip{ background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap; }
+.mc-actions{ grid-column:1 / -1; display:flex; gap:8px; justify-content:center; margin-top:4px; }
 .member-card .btn{ padding:8px 12px; border-radius:10px; font-size:13px; }
-
-/* رقم الترتيب */
-.mc-index{
-  background:#0b1424; border:1px solid var(--border); color:#cbd5e1;
-  border-radius:8px; padding:1px 7px; display:inline-block;
-  font-variant-numeric:tabular-nums; font-size:12px;
-}
-
-/* تنظيف حدود الجدول حول البطاقات */
+.mc-index{ background:#0b1424; border:1px solid var(--border); color:#cbd5e1; border-radius:8px; padding:1px 7px; display:inline-block; font-variant-numeric:tabular-nums; font-size:12px; }
 .table--cards tbody tr{border:0;background:transparent}
 .table--cards tbody td{border:0;padding:0}
 .table--cards .member-card + .member-card{margin-top:10px}
