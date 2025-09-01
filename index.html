@@ -6,23 +6,23 @@
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
 
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
-  <link rel="stylesheet" href="style.css?v=2.3.5" />
-  <script src="app.js?v=2.3.5" defer></script>
+  <!-- أيقونة بسيطة خضراء (لا تغيّر الألوان العامة للتطبيق) -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="%2322c55e"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
+
+  <link rel="stylesheet" href="style.css?v=2.3.6" />
+  <script src="app.js?v=2.3.6" defer></script>
 </head>
 <body>
+  <!-- شريط علوي -->
   <header class="app-bar">
     <div class="brand">
-      <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true" width="28" height="28">
-        <defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
-        <circle cx="64" cy="50" r="22" fill="url(#lg)"></circle>
+      <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="24" height="24" aria-hidden="true">
+        <circle cx="64" cy="50" r="22" fill="#22c55e"></circle>
         <path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="#22c55e" stroke-width="8" fill="none" stroke-linecap="round"></path>
       </svg>
       <h1 class="h1">جمعيتي</h1>
     </div>
-    <div class="actions-right">
-      <input id="search" class="search" placeholder="...ابحث عن جمعية بالاسم" />
-    </div>
+    <input id="search" class="search" placeholder="...ابحث عن جمعية بالاسم" />
   </header>
 
   <main class="container stack-4">
@@ -31,35 +31,33 @@
       <details id="createBlock" class="collapsible" open>
         <summary class="caret section-title">إنشاء جمعية جديدة</summary>
         <div class="content">
-          <form id="jamiyahForm" class="stack-2" novalidate>
-            <div class="grid">
-              <label>اسم الجمعية
-                <input required id="j-name" placeholder="مثال: جمعية رمضان" />
-                <span class="error" id="err-j-name"></span>
-              </label>
-              <label>شهر البداية
-                <input required id="j-start" type="month" />
-                <span class="error" id="err-j-start"></span>
-              </label>
-              <label>المدة (أشهر)
-                <input required id="j-duration" type="number" min="1" max="60" value="6" />
-                <span class="error" id="err-j-duration"></span>
-              </label>
-              <label>مبلغ الجمعية · ريال
-                <input required id="j-goal" type="number" min="1" step="1" placeholder="مثال: 30000" />
-                <span class="error" id="err-j-goal"></span>
-              </label>
-            </div>
+          <form id="jamiyahForm" class="grid" novalidate>
+            <label>اسم الجمعية
+              <input id="j-name" required placeholder="مثال: جمعية رمضان" />
+              <span class="error" id="err-j-name"></span>
+            </label>
+            <label>شهر البداية
+              <input id="j-start" type="month" required />
+              <span class="error" id="err-j-start"></span>
+            </label>
+            <label>المدة (أشهر)
+              <input id="j-duration" type="number" min="1" max="60" value="6" required />
+              <span class="error" id="err-j-duration"></span>
+            </label>
+            <label>مبلغ الجمعية · ريال
+              <input id="j-goal" type="number" min="1" step="1" placeholder="مثال: 30000" required />
+              <span class="error" id="err-j-goal"></span>
+            </label>
             <div class="actions">
-              <button type="submit" class="btn primary">إنشاء</button>
-              <button type="reset" class="btn ghost">مسح</button>
+              <button class="btn primary" type="submit">إنشاء</button>
+              <button class="btn ghost" type="reset">مسح</button>
             </div>
           </form>
         </div>
       </details>
     </section>
 
-    <!-- قائمة الجمعيات -->
+    <!-- قائمة الجمعيات كبطاقات -->
     <section class="card stack-3">
       <details id="listBlock" class="collapsible" open>
         <summary class="caret section-title">
@@ -72,49 +70,45 @@
             لا توجد جمعيات.
             <div id="restoreWrap" class="stack-1 hidden" style="margin-top:8px;">
               <button id="restoreBtn" class="btn">استرجاع الجمعيات</button>
-              <small class="hint">وجدنا نسخة احتياطية محلية — اضغط للاسترجاع.</small>
+              <small class="hint">يوجد نسخة احتياطية محلية.</small>
             </div>
           </div>
         </div>
       </details>
     </section>
 
-    <!-- تفاصيل الجمعية -->
+    <!-- تفاصيل جمعية -->
     <section id="details" class="card hidden stack-3" hidden>
-      <div class="details-header stack-1">
-        <div class="stack-0">
-          <div class="title-row">
-            <h2 id="d-title" class="h2"></h2>
-            <!-- مخفي لأن التعديل الآن من بطاقة الجمعية -->
-            <button id="editBtn" class="icon-btn hidden" aria-hidden="true" tabindex="-1">✏️</button>
-          </div>
-          <div class="meta" id="d-meta"></div>
+      <div class="details-header">
+        <div>
+          <h2 id="d-title" class="h2"></h2>
+          <div id="d-meta" class="meta"></div>
         </div>
         <div class="details-ops">
-          <button class="btn secondary" id="exportBtn">تصدير PDF</button>
-          <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">تصدير JSON</button>
+          <button id="exportBtn" class="btn secondary">تصدير PDF</button>
+          <button id="exportJsonBtn" class="btn">تصدير JSON</button>
         </div>
       </div>
 
-      <div class="alert" id="startedAlert" hidden>بدأت الجمعية. لا يمكن إضافة أعضاء جدد أو حذفهم.</div>
+      <div class="alert" id="startedAlert" hidden>بدأت الجمعية. لا يمكن إضافة أو حذف أعضاء.</div>
 
       <!-- الأعضاء -->
       <details id="membersBlock" class="collapsible hidden">
         <summary class="caret section-title members-summary">
           <span class="section-icon">👥</span>
-          <span id="mSummaryText">الأعضاء</span>
+          <span>الأعضاء</span>
           <span class="pill" id="mCountPill">0</span>
           <span class="spacer"></span>
           <button id="addMemberBtn" class="icon-btn" title="إضافة عضو" aria-label="إضافة عضو">＋</button>
         </summary>
         <div class="content">
           <div class="subtoolbar sticky-sub">
-            <select id="mFilter" class="select small" title="فلترة الأعضاء">
+            <select id="mFilter" class="select small">
               <option value="all">الكل</option>
               <option value="overdue">المتأخرون</option>
               <option value="notfull">غير مكتمل الدفع</option>
             </select>
-            <select id="mSort" class="select small" title="ترتيب الأعضاء">
+            <select id="mSort" class="select small">
               <option value="month">ترتيب: بالشهر</option>
               <option value="name">ترتيب: بالاسم</option>
             </select>
@@ -138,7 +132,7 @@
       <details id="scheduleBlock" class="collapsible hidden">
         <summary class="caret section-title">
           <span class="section-icon">🗓️</span>
-          <span id="sSummaryText">الجدول الشهري</span>
+          <span>الجدول الشهري</span>
           <span class="pill" id="sCountPill">0</span>
         </summary>
         <div class="content">
@@ -160,12 +154,14 @@
       </div>
     </section>
 
+    <!-- زر + للجوال -->
     <button id="fabAdd" class="fab" title="إضافة عضو" aria-label="إضافة عضو">＋</button>
   </main>
 
+  <!-- تنبيهات -->
   <div id="toasts" class="toasts"></div>
 
-  <!-- نافذة الدفعات -->
+  <!-- مودال دفعات -->
   <div id="payModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="payModalTitle" hidden>
     <div class="modal__card">
       <div class="modal__head">
@@ -184,7 +180,7 @@
     </div>
   </div>
 
-  <!-- نافذة تعديل الجمعية -->
+  <!-- مودال تعديل الجمعية -->
   <div id="editModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="editModalTitle" hidden>
     <div class="modal__card">
       <div class="modal__head">
@@ -217,7 +213,7 @@
     </div>
   </div>
 
-  <!-- نافذة إضافة عضو -->
+  <!-- مودال إضافة عضو -->
   <div id="addMemberModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="addMemberTitle" hidden>
     <div class="modal__card">
       <div class="modal__head">
@@ -247,7 +243,7 @@
     </div>
   </div>
 
-  <!-- نافذة تعديل عضو -->
+  <!-- مودال تعديل عضو -->
   <div id="editMemberModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="emTitle" hidden>
     <div class="modal__card">
       <div class="modal__head">
@@ -276,6 +272,6 @@
     </div>
   </div>
 
-  <footer class="footer">v2.3.5 · © Aseel Thalnoon</footer>
+  <footer class="footer">v2.3.6 · © Aseel Thalnoon</footer>
 </body>
 </html>
