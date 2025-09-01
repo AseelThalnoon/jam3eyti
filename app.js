@@ -1,4 +1,4 @@
-/* v2.1.8 – تنسيق المستلمون + منع تكرار الأسماء + خطأ المساهمة تحت المبلغ */
+/* v2.1.9 – إصلاح فلاتر الأعضاء + مستلمو الشهر بطاقات مثل الأعضاء */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -107,6 +107,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#jamiyahForm')?.addEventListener('submit',onCreateJamiyah);
   $('#search')?.addEventListener('input',e=>{const f=(e.target.value||'').trim(); state.filter=f; renderList();});
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal')); hide($('#monthDetails')); }});
+
+  /* ⬇️ إصلاح: ربط الفلاتر والترتيب */
+  $('#mFilter')?.addEventListener('change', e=>{
+    state.memberFilter = e.target.value || 'all';
+    const j=currentJamiyah(); if(j) renderMembers(j);
+  });
+  $('#mSort')?.addEventListener('change', e=>{
+    state.memberSort = e.target.value || 'month';
+    const j=currentJamiyah(); if(j) renderMembers(j);
+  });
+
   renderList();
 });
 
@@ -346,7 +357,7 @@ function renderSchedule(j){
       mdTitle.textContent=monthLabel(j.startDate,i);
       if(rec.length){
         const listHtml = rec.map(m => `
-          <div class="md-item">
+          <div class="md-card" style="border-inline-start:4px solid ${colorForMonth(i)}">
             <div class="mc-line">
               <span class="mc-label">الاسم</span><span class="mc-sep">:</span>
               <span class="mc-value">${m.name}</span>
