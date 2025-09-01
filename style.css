@@ -1,30 +1,35 @@
-/* v2.1.6 (لا تغييرات عن 2.1.5 إلا رقم النسخة) */
+/* v2.1.8 – توحيد أحجام النصوص + تحسينات عامة */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
   --accent:#22c55e; --blue:#3b82f6; --danger:#ef4444; --ghost:#0b1424;
   --shadow:0 8px 24px rgba(0,0,0,.35);
 }
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
 body, table, .member-card, .modal__card { text-align:right; }
 
+/* hierarchy */
+.h1{margin:0;font-size:20px;font-weight:800;line-height:1.4}
+.h2{margin:0 0 8px;font-size:16px;font-weight:700;line-height:1.4}
+body, input, select, button, .mc-value, .mc-label, .md-item{font-size:14px;line-height:1.5}
+small.hint, .error, .badge, .pill, .muted, .table thead th{font-size:12px;line-height:1.4}
+
 .app-bar{padding:16px;background:#0b1220;border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{display:flex;align-items:center;gap:12px}
-.h1{margin:0;font-size:18px}
 .container{max-width:980px;margin:16px auto;padding:0 16px}
 .stack-0>*+*{margin-top:4px}.stack-1>*+*{margin-top:8px}.stack-2>*+*{margin-top:12px}.stack-3>*+*{margin-top:16px}.stack-4>*+*{margin-top:24px}
 
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
-.h2{margin:0 0 8px;font-size:16px}
 .title-row{display:flex;align-items:center;gap:8px}
 
-label{display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--muted)}
+label{display:flex;flex-direction:column;gap:8px;color:var(--muted)}
 input,select{padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--fg)}
-small.hint{color:var(--muted);font-size:12px;min-height:16px;display:block}
-.error{color:#fda4af;min-height:16px;font-size:12px;display:block}
+small.hint{color:var(--muted);min-height:16px;display:block}
+.error{color:#fda4af;min-height:16px;display:block}
 .error:empty{display:none}
 
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -34,16 +39,16 @@ small.hint{color:var(--muted);font-size:12px;min-height:16px;display:block}
 .search.small{max-width:280px;padding:8px 10px;border-radius:10px}
 .select.small{padding:8px 10px;border-radius:10px}
 
-.btn{padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:#fff;cursor:pointer;font-weight:600}
+.btn{padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:#fff;cursor:pointer;font-weight:600;font-size:14px}
 .btn.primary{background:var(--accent);color:#08110a;border-color:transparent}
 .btn.secondary{background:#3b82f6;color:#081018;border-color:transparent}
 .btn.danger{background:#ef4444;color:#1b0707;border-color:transparent}
 .btn.ghost{background:#0b1424;color:#cbd5e1}
-.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:#cbd5e1;cursor:pointer}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:#cbd5e1;cursor:pointer;font-size:13px}
 
 .list{display:flex;flex-direction:column;gap:12px}
 .list .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;background:var(--panel);border:1px solid var(--border);border-radius:12px}
-.item .meta{color:var(--muted);font-size:13px;display:flex;gap:8px;flex-wrap:wrap}
+.item .meta{color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
 
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border-top:1px solid var(--border);padding:10px;text-align:right;vertical-align:top}
@@ -58,8 +63,8 @@ small.hint{color:var(--muted);font-size:12px;min-height:16px;display:block}
 }
 
 .details-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.details-header .meta{display:flex;gap:8px;color:var(--muted);font-size:13px;flex-wrap:wrap}
-.badge{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--panel);font-size:12px;color:var(--muted)}
+.details-header .meta{display:flex;gap:8px;color:var(--muted);flex-wrap:wrap}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--muted)}
 .badge.status{color:#a5f3fc;border-color:#164e63;background:#082f49}
 .badge.subtle{background:var(--panel-2);color:#9ca3af}
 
@@ -77,11 +82,11 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .sticky-sub{position:sticky;top:72px;background:#0e1628;padding:8px;border-radius:12px;border:1px solid var(--border);z-index:10}
 
 .empty{text-align:center;color:var(--muted);padding:16px;border:1px dashed var(--border);border-radius:12px;background:#0b1424}
-.pill{background:#0f2d1f;color:#a7f3d0;border:1px solid #14532d;padding:2px 8px;border-radius:999px;font-size:12px}
+.pill{background:#0f2d1f;color:#a7f3d0;border:1px solid #14532d;padding:2px 8px;border-radius:999px}
 
-.footer{text-align:center;color:#94a3b8;padding:32px 0;font-size:13px}
+.footer{text-align:center;color:#94a3b8;padding:32px 0}
 .toasts{position:fixed;inset-inline:12px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:50}
-.toast{background:#0e1628;border:1px solid var(--border);color:var(--fg);padding:12px;border-radius:12px;box-shadow:var(--shadow);font-size:14px}
+.toast{background:#0e1628;border:1px solid var(--border);color:var(--fg);padding:12px;border-radius:12px;box-shadow:var(--shadow)}
 
 .hidden{display:none !important}
 [hidden]{display:none !important}
@@ -117,10 +122,9 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .month-details{ margin-top:12px;padding:12px;border:1px solid var(--border); background:#0e1628;border-radius:12px }
 .month-details .md-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 
-/* بعد البدء */
-.jam-started #addMemberBtn,
-.jam-started #fabAdd,
-.jam-started button[data-action="del"] { display:none !important; }
+/* قائمة المستلمون بتنسيق بطاقات الأعضاء */
+.md-list{display:flex;flex-direction:column;gap:8px}
+.md-item{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
 
 /* بطاقات الأعضاء – سطر "الاسم : أحمد" */
 .member-card{
@@ -131,21 +135,14 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .mc-line{ display:flex; align-items:center; gap:6px; justify-content:flex-start; }
 .mc-label{ color:var(--muted); font-weight:800; font-size:13px; }
 .mc-sep{ color:var(--muted) }
-.mc-value{ color:var(--fg); font-size:14px; }
+.mc-value{ color:var(--fg); }
 .mc-money{ font-variant-numeric:tabular-nums; white-space:nowrap; }
 .mc-month{ white-space:nowrap; }
-
 .mc-chips{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-start; }
-.mc-chip{ background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:2px 8px; border-radius:999px; font-size:11px; white-space:nowrap; }
-
+.mc-chip{ background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:2px 8px; border-radius:999px; font-size:12px; white-space:nowrap; }
 .mc-actions{ display:flex; gap:8px; justify-content:center; }
-.member-card .btn{ padding:8px 12px; border-radius:10px; font-size:13px; }
-
-.mc-index{
-  background:#0b1424; border:1px solid var(--border); color:#cbd5e1;
-  border-radius:8px; padding:1px 7px; display:inline-block;
-  font-variant-numeric:tabular-nums; font-size:12px;
-}
+.member-card .btn{ padding:8px 12px; border-radius:10px; }
+.mc-index{ background:#0b1424; border:1px solid var(--border); color:#cbd5e1; border-radius:8px; padding:1px 7px; display:inline-block; font-variant-numeric:tabular-nums; font-size:12px; }
 
 /* تنظيف حدود الجدول حول البطاقات */
 .table--cards tbody tr{border:0;background:transparent}
@@ -153,7 +150,4 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .table--cards .member-card + .member-card{margin-top:10px}
 
 /* إبراز أخطاء النماذج */
-.is-invalid{
-  border-color:#f87171 !important;
-  box-shadow:0 0 0 3px rgba(248,113,113,.15) !important;
-}
+.is-invalid{border-color:#f87171 !important;box-shadow:0 0 0 3px rgba(248,113,113,.15) !important;}
