@@ -1,4 +1,4 @@
-/* v2.1.9 – إصلاح فلاتر الأعضاء + مستلمو الشهر بطاقات مثل الأعضاء */
+/* v2.2.0 – بطاقات المستلمون بألوان متعددة + قائمة الجمعيات كـ بطاقات */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -18,6 +18,16 @@ const state={
 const fmtMoney=n=>Number(n||0).toLocaleString('en-US');
 const fmtInt  =n=>Number(n||0).toLocaleString('en-US');
 function monthLabel(startDate,offset){ const d=new Date(startDate); d.setMonth(d.getMonth()+(offset-1)); return d.toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
+
+/* لوحة ألوان موحّدة */
+const PALETTE=["#22c55e","#16a34a","#2dd4bf","#60a5fa","#a78bfa","#f472b6","#f59e0b"];
+function colorForMonth(i){ return PALETTE[(i-1)%PALETTE.length]; }
+/* ألوان للبطاقات داخل نفس الشهر (بناءً على ترتيبها) */
+function colorForIndex(idx){ return PALETTE[idx % PALETTE.length]; }
+/* لون بطاقة الجمعية حسب شهر البداية */
+function colorFromStartDate(j){
+  try{ const d=new Date(j.startDate); const mi=d.getMonth(); return PALETTE[mi % PALETTE.length]; }catch{ return PALETTE[0]; }
+}
 
 /* تطبيع اسم للمقارنة (لمنع التكرار) */
 const normName = s => (s || '').toString().trim().replace(/\s+/g,' ').toLowerCase();
@@ -98,7 +108,6 @@ function memberPaidSummary(j,m){ ensurePayments(j,m); let paid=0; m.payments.for
 /* Helpers */
 function monthAssignedTotal(j,month){return j.members.filter(m=>Number(m.month)===Number(month)).reduce((s,m)=>s+Number(m.entitlement||0),0);}
 function maxMonthlyForMonth(j,month){const remaining=Math.max(0,j.goal-monthAssignedTotal(j,month));return Math.floor(remaining/j.duration);}
-function colorForMonth(i){const c=["#22c55e","#16a34a","#2dd4bf","#60a5fa","#a78bfa","#f472b6","#f59e0b"];return c[(i-1)%c.length];}
 function monthStats(j,i){const rec=j.members.filter(m=>Number(m.month)===i);const assigned=rec.reduce((s,m)=>s+Number(m.entitlement||0),0);const remaining=Math.max(0,j.goal-assigned);const pct=j.goal>0?Math.min(100,Math.round((assigned/j.goal)*100)):0;return{rec,assigned,remaining,pct};}
 
 /* تهيئة */
@@ -108,7 +117,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#search')?.addEventListener('input',e=>{const f=(e.target.value||'').trim(); state.filter=f; renderList();});
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal')); hide($('#monthDetails')); }});
 
-  /* ⬇️ إصلاح: ربط الفلاتر والترتيب */
   $('#mFilter')?.addEventListener('change', e=>{
     state.memberFilter = e.target.value || 'all';
     const j=currentJamiyah(); if(j) renderMembers(j);
@@ -185,7 +193,7 @@ function onCreateJamiyah(e){
   saveAll(); e.target.reset(); toast('تم إنشاء الجمعية'); renderList();
 }
 
-/* قائمة الجمعيات */
+/* قائمة الجمعيات — بطاقات */
 function renderList(){
   const list=$('#jamiyahList'), empty=$('#emptyList'), pill=$('#jamiyahCountPill');
   const items=state.jamiyahs.filter(j=>!state.filter||j.name.includes(state.filter)).sort((a,b)=>a.name.localeCompare(b.name));
@@ -202,20 +210,32 @@ function renderList(){
         <button id="restoreBtn" class="btn">استرجاع الجمعيات</button>
         <small class="hint">وجدنا نسخة احتياطية محلية — اضغط للاسترجاع.</small>
       </div>`;
+    return;
   }
 
   items.forEach(j=>{
-    const row=document.createElement('div'); row.className='item';
-    row.innerHTML=`<div>
-        <div><strong>${j.name}</strong></div>
-        <div class="meta stack-0">
-          <span class="badge">تبدأ في ${monthLabel(j.startDate,1)}</span>
-          <span class="badge">المدة: ${fmtInt(j.duration)} شهر</span>
-          <span class="badge">مبلغ الجمعية: ${fmtMoney(j.goal)} ريال</span>
+    const color = colorFromStartDate(j);
+    const card=document.createElement('div');
+    card.className='jam-card';
+    card.style.borderInlineStart=`4px solid ${color}`;
+    card.innerHTML=`
+      <div class="jam-head">
+        <strong>${j.name}</strong>
+        <div class="jam-actions">
+          <button class="btn secondary" data-id="${j.id}">فتح</button>
         </div>
       </div>
-      <button class="btn secondary" data-id="${j.id}">فتح</button>`;
-    list.appendChild(row);
+      <div class="jam-lines">
+        <div class="mc-line"><span class="mc-label">شهر البداية</span><span class="mc-sep">:</span><span class="mc-value">${monthLabel(j.startDate,1)}</span></div>
+        <div class="mc-line"><span class="mc-label">المدة</span><span class="mc-sep">:</span><span class="mc-value">${fmtInt(j.duration)} شهر</span></div>
+        <div class="mc-line"><span class="mc-label">مبلغ الجمعية</span><span class="mc-sep">:</span><span class="mc-value mc-money">${fmtMoney(j.goal)} ريال</span></div>
+      </div>
+      <div class="jam-chips">
+        <span class="mc-chip">أعضاء: ${fmtInt((j.members||[]).length)}</span>
+        <span class="mc-chip">أشهر: ${fmtInt(j.duration)}</span>
+      </div>
+    `;
+    list.appendChild(card);
   });
 
   if(!state.currentId){ hide($('#details')); setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
@@ -356,8 +376,8 @@ function renderSchedule(j){
     tile.addEventListener('click',()=>{
       mdTitle.textContent=monthLabel(j.startDate,i);
       if(rec.length){
-        const listHtml = rec.map(m => `
-          <div class="md-card" style="border-inline-start:4px solid ${colorForMonth(i)}">
+        const listHtml = rec.map((m,idx) => `
+          <div class="md-card" style="border-inline-start:4px solid ${colorForIndex(idx)}">
             <div class="mc-line">
               <span class="mc-label">الاسم</span><span class="mc-sep">:</span>
               <span class="mc-value">${m.name}</span>
