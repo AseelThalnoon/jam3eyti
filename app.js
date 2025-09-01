@@ -1,4 +1,4 @@
-/* v2.3.6 — إبقاء التصميم والألوان كما هي + إزالة شارة "أشهر 6" + أزرار البطاقة ترث .btn.icon */
+/* v2.3.2+p2 — فقط: إزالة شارة "أشهر" من بطاقة الجمعية + توحيد أزرار البطاقة على .btn.icon */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -21,7 +21,7 @@ const fmtInt  =n=>Number(n||0).toLocaleString('en-US');
 function monthLabel(startDate,offset){ const d=new Date(startDate); d.setMonth(d.getMonth()+(offset-1)); return d.toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
 const normName = s => (s || '').toString().trim().replace(/\s+/g,' ').toLowerCase();
 
-/* ---------- تخزين آمن ---------- */
+/* ---------- تخزين ---------- */
 function parseJsonSafe(t){try{return JSON.parse(t);}catch{return null}}
 function readKey(k){const t=localStorage.getItem(k);return t?parseJsonSafe(t):null}
 function loadAllSafe(){
@@ -44,7 +44,7 @@ function saveAll(){
   }catch{}
 }
 
-/* ---------- عام ---------- */
+/* ---------- أدوات ---------- */
 const uid=()=>Math.random().toString(36).slice(2,10);
 function hasStarted(j){const t=new Date().setHours(0,0,0,0);const s=new Date(j.startDate).setHours(0,0,0,0);return t>=s;}
 function currentJamiyah(){return state.jamiyahs.find(x=>x.id===state.currentId);}
@@ -53,11 +53,10 @@ function setError(id,t){const el=$(`#${id}`);if(el)el.textContent=t||'';}
 function monthToFirstDay(m){if(!m)return"";const[y,mm]=m.split('-');if(!y||!mm)return"";return `${y}-${String(mm).padStart(2,'0')}-01`;}
 const show=el=>{if(!el)return;el.classList.remove('hidden');el.removeAttribute('hidden');};
 const hide=el=>{if(!el)return;el.classList.add('hidden');el.setAttribute('hidden','');};
-
 function setDetailsSectionsVisible(on){['membersBlock','scheduleBlock'].forEach(id=>on?show(document.getElementById(id)):hide(document.getElementById(id))); }
 function updateCounters(j){ $('#mCountPill').textContent=fmtInt((j?.members||[]).length); $('#sCountPill').textContent=fmtInt(j?.duration||0); }
 
-/* ---------- حسابات الدفعات ---------- */
+/* ---------- حسابات ---------- */
 function monthsElapsed(j){const s=new Date(j.startDate), n=new Date(); if(n<s) return 0; let m=(n.getFullYear()-s.getFullYear())*12+(n.getMonth()-s.getMonth())+1; return Math.max(0,Math.min(j.duration,m));}
 function ensurePayments(j,m){
   if(!Array.isArray(m.payments)||m.payments.length!==j.duration){
@@ -68,8 +67,6 @@ function ensurePayments(j,m){
 }
 function recalcMemberCounters(j,m){ const paidCount=(m.payments||[]).reduce((s,p)=>s+(p.paid?1:0),0); const remainingCount=Math.max(0,j.duration-paidCount); const overdueCount=(m.payments||[]).slice(0,monthsElapsed(j)).reduce((s,p)=>s+(p.paid?0:1),0); m.paidCount=paidCount; m.remainingCount=remainingCount; m.overdueCount=overdueCount; return {paidCount,remainingCount,overdueCount};}
 function memberPaidSummary(j,m){ ensurePayments(j,m); let paid=0; m.payments.forEach(p=>{if(p.paid)paid+=Number(p.amount||0);}); return {paid};}
-
-/* قيود المبالغ في الشهر */
 function monthAssignedTotal(j,month){return j.members.filter(m=>Number(m.month)===Number(month)).reduce((s,m)=>s+Number(m.entitlement||0),0);}
 function maxMonthlyForMonth(j,month){const remaining=Math.max(0,j.goal-monthAssignedTotal(j,month));return Math.floor(remaining/j.duration);}
 function monthStats(j,i){const rec=j.members.filter(m=>Number(m.month)===i);const assigned=rec.reduce((s,m)=>s+Number(m.entitlement||0),0);const remaining=Math.max(0,j.goal-assigned);const pct=j.goal>0?Math.min(100,Math.round((assigned/j.goal)*100)):0;return{rec,assigned,remaining,pct};}
@@ -81,9 +78,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#jamiyahForm')?.addEventListener('submit',onCreateJamiyah);
   $('#search')?.addEventListener('input',e=>{state.filter=(e.target.value||'').trim(); renderList();});
 
-  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ ['payModal','editModal','addMemberModal','editMemberModal','monthDetails'].forEach(id=>hide(document.getElementById(id))); }});
-
-  // غلق تلقائي بين الأعضاء والجدول
+  // غلق تلقائي بين الأعضاء والجدول (سلوك v2.3.2)
   const dMembers  = document.getElementById('membersBlock');
   const dSchedule = document.getElementById('scheduleBlock');
   dMembers?.addEventListener('toggle', ()=>{ if(dMembers.open) dSchedule.open = false; });
@@ -98,7 +93,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 /* ---------- تفاعل عام ---------- */
 document.addEventListener('click',(e)=>{
-  // أزرار بطاقة الجمعية: نعتمد على data-kind بدل اسم الكلاس
+  // (جديد) أزرار بطاقة الجمعية تعتمد data-kind بدل كلاس قديم
   const act = e.target.closest('[data-kind]');
   if(act){
     const id=act.dataset.id, kind=act.dataset.kind;
@@ -218,7 +213,7 @@ function openDetails(id){
   renderMembers(j); renderSchedule(j); updateCounters(j);
   setDetailsSectionsVisible(true); show($('#details'));
 
-  // افتح الأعضاء واغلق الجدول افتراضيًا
+  // افتراضيًا: افتح الأعضاء واغلق الجدول
   $('#membersBlock').open=true; $('#scheduleBlock').open=false;
 
   $('#details')?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -246,7 +241,7 @@ function renderMembers(j){
 
   empty.classList.toggle('hidden', rows.length!==0);
 
-  rows.forEach((m)=>{
+  rows.forEach((m,i)=>{
     const {paid}=memberPaidSummary(j,m);
     const remainingMoney=Math.max(0, m.entitlement - paid);
 
@@ -304,7 +299,6 @@ function openAddMemberModal(){
   show($('#addMemberModal'));
   $('#am-name')?.focus();
 }
-
 function onAddMemberFromModal(){
   const j = currentJamiyah();
   if(!j) return;
@@ -480,13 +474,13 @@ function savePayModal(){
   recalcMemberCounters(j,m); saveAll(); renderMembers(j); hide($('#payModal')); toast('تم حفظ الدفعات');
 }
 
-/* ---------- حذف/رجوع/تصدير ---------- */
+/* ---------- حذف/رجوع/تصدير/استرجاع ---------- */
 function onDeleteJamiyah(){ const j=currentJamiyah(); if(!j) return;
   if(!confirm(`حذف ${j.name}؟ لا يمكن التراجع.`)) return;
   state.jamiyahs=state.jamiyahs.filter(x=>x.id!==j.id); saveAll(); showList(); renderList(); toast('تم حذف الجمعية'); }
 function showList(){ hide($('#details')); state.currentId=null; setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
 
-function exportPdf(j){
+function exportPdf(j){ /* نفس منطق v2.3.2 */ 
   if(!j) return;
   const css=`<style>@page{size:A4;margin:14mm}body{font-family:-apple-system,Segoe UI,Roboto,Arial,"Noto Naskh Arabic","IBM Plex Sans Arabic",sans-serif;color:#111}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}h2{margin:18px 0 8px;font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}thead th{background:#f3f4f6}tfoot td{font-weight:700;background:#fafafa}.muted{color:#666}</style>`;
   const members=j.members.slice().sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
