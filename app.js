@@ -1,4 +1,4 @@
-/* v2.1.6 – منع تكرار الأسماء + رسائل أخطاء بدون Toast مكرر */
+/* v2.1.8 – تنسيق المستلمون + منع تكرار الأسماء + خطأ المساهمة تحت المبلغ */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -334,7 +334,7 @@ function onSaveEdit(){
 
 /* الجدول الشهري */
 function renderSchedule(j){
-  const grid=$('#scheduleGrid'), details=$('#monthDetails'), mdTitle=$('#md-title'), mdBody=$('#md-body'), autoExpand=$('#schedAutoExpand');
+  const grid=$('#scheduleGrid'), details=$('#monthDetails'), mdTitle=$('#md-title'), mdBody=$('#md-body');
   if(!grid) return; grid.innerHTML=''; hide(details);
   for(let i=1;i<=j.duration;i++){
     const {rec,remaining,pct}=monthStats(j,i);
@@ -344,17 +344,30 @@ function renderSchedule(j){
       <div class="kpis"><span class="badge">مستلمون: ${fmtInt(rec.length)}</span><span class="badge">المتبقّي: ${fmtMoney(remaining)} ريال</span></div>`;
     tile.addEventListener('click',()=>{
       mdTitle.textContent=monthLabel(j.startDate,i);
-      mdBody.innerHTML=rec.length ? rec.map(m=>`<div class="item" style="display:flex;justify-content:space-between;gap:8px;padding:8px;border:1px solid var(--border);border-radius:10px;background:var(--panel)"><div>${m.name}</div><div class="muted">${fmtMoney(m.entitlement)} ريال</div></div>`).join('')
-                                   : `<div class="empty">لا يوجد مستلمون لهذا الشهر.</div>`;
+      if(rec.length){
+        const listHtml = rec.map(m => `
+          <div class="md-item">
+            <div class="mc-line">
+              <span class="mc-label">الاسم</span><span class="mc-sep">:</span>
+              <span class="mc-value">${m.name}</span>
+            </div>
+            <div class="mc-line">
+              <span class="mc-label">الاستحقاق</span><span class="mc-sep">:</span>
+              <span class="mc-value mc-money">${fmtMoney(m.entitlement)} ريال</span>
+            </div>
+          </div>`).join('');
+        mdBody.innerHTML = `<div class="md-list">${listHtml}</div>`;
+      }else{
+        mdBody.innerHTML = `<div class="empty">لا يوجد مستلمون لهذا الشهر.</div>`;
+      }
       show(details); details.scrollIntoView({behavior:'smooth',block:'nearest'});
     });
     grid.appendChild(tile);
-    if(autoExpand?.checked && rec.length){ tile.click(); }
   }
   updateCounters(j);
 }
 
-/* إضافة عضو – يمنع تكرار الاسم ويظهر الأخطاء فقط تحت الحقول */
+/* إضافة عضو – منع تكرار الاسم + خطأ الحد الأعلى تحت المساهمة */
 function openAddMemberModal(){
   const j = currentJamiyah();
   if(!j){ toast('افتح جمعية أولًا'); return; }
@@ -423,10 +436,11 @@ function onAddMemberFromModal(){
     .filter(m => Number(m.month) === month)
     .reduce((s,m)=> s + Number(m.entitlement||0), 0);
   const remainingThisMonth = Math.max(0, j.goal - assignedThisMonth);
+  const maxMonthly = maxMonthlyForMonth(j, month);
 
-  if(entitlement > remainingThisMonth){
-    setFieldError('am-month','err-am-month', `لا يكفي المتبقي في هذا الشهر. المتبقي: ${fmtMoney(remainingThisMonth)} ريال`);
-    $('#am-month')?.focus({ preventScroll:true });
+  if(pay > maxMonthly || entitlement > remainingThisMonth){
+    setFieldError('am-pay','err-am-pay', `المساهمة الشهرية تتجاوز الحد الأعلى: ${fmtMoney(maxMonthly)} ريال`);
+    $('#am-pay')?.focus({ preventScroll:true });
     return;
   }
 
