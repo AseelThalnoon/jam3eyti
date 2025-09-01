@@ -1,7 +1,15 @@
-/* v2.3.4 — زر فتح الجمعية يفتح "الجدول الشهري" مباشرة، وتنسيق البطاقات موحّد في CSS فقط */
+/* v2.3.5 — استبدال الإيموجي بـ SVG ثابت + الحفاظ على سلوك فتح الجدول الشهري من بطاقة الجمعية */
 
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
+
+/* ---------- أيقونات SVG (stroke: currentColor) ---------- */
+const icons = {
+  eye: `<svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" stroke-width="1.8"/></svg>`,
+  edit: `<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4Z" stroke-width="1.8"/><path d="M13 7l4 4" stroke-width="1.8"/></svg>`,
+  trash:`<svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7l1-2h4l1 2" stroke-width="1.8"/></svg>`,
+  card:`<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke-width="1.8"/><path d="M3 10h18" stroke-width="1.8"/></svg>`
+};
 
 const KEY_PRIMARY="jamiyati:data", KEY_V02="jamiyati:v02", KEY_V01="jamiyati:v01", KEY_BACKUP="jamiyati:backup", KEY_AUTOSAVE="jamiyati:autosave";
 
@@ -120,7 +128,7 @@ document.addEventListener('click',(e)=>{
     case 'md-close': hide($('#monthDetails')); return;
   }
 
-  /* ——— زر فتح الجمعية على البطاقة: افتح التفاصيل ثم فعّل "الجدول الشهري" ——— */
+  /* زر فتح الجمعية على البطاقة ⇒ افتح الجدول الشهري */
   const openBtn=e.target.closest('button.jam-open[data-id]');
   if(openBtn){
     openDetails(openBtn.dataset.id);
@@ -200,8 +208,8 @@ function renderList(){
     card.className='jam-card';
     card.style.borderInlineStart=`4px solid ${color}`;
     card.innerHTML=`
-      <button class="jam-open" data-id="${j.id}" title="فتح الجمعية" aria-label="فتح">👁️</button>
-      <button class="jam-edit" data-id="${j.id}" title="تعديل الجمعية" aria-label="تعديل">✏️</button>
+      <button class="jam-open" data-id="${j.id}" title="فتح الجمعية" aria-label="فتح">${icons.eye}</button>
+      <button class="jam-edit" data-id="${j.id}" title="تعديل الجمعية" aria-label="تعديل">${icons.edit}</button>
       <div class="jam-head"><strong>${j.name}</strong></div>
       <div class="jam-lines">
         <div class="mc-line"><span class="mc-label">شهر البداية</span><span class="mc-sep">:</span><span class="mc-value">${monthLabel(j.startDate,1)}</span></div>
@@ -235,7 +243,6 @@ function openDetails(id){
   renderMembers(j); renderSchedule(j); updateCounters(j);
   setDetailsSectionsVisible(true); show($('#details'));
 
-  // الافتراضي: الأعضاء أولًا — يتم قلبه فقط عند الضغط من زر البطاقة في الحدث أعلاه
   const dMembers  = document.getElementById('membersBlock');
   const dSchedule = document.getElementById('scheduleBlock');
   if(dMembers && dSchedule){ dMembers.open = true; dSchedule.open = false; }
@@ -285,9 +292,9 @@ function renderMembers(j){
         </div>
 
         <div class="mc-actions">
-          <button class="btn icon" data-action="pay" data-id="${m.id}" title="دفعات">💳</button>
-          <button class="btn icon edit" data-action="edit-member" data-id="${m.id}" title="تعديل">✏️</button>
-          <button class="btn icon delete" data-action="del" data-id="${m.id}" title="حذف">🗑️</button>
+          <button class="btn icon" data-action="pay" data-id="${m.id}" title="دفعات" aria-label="دفعات">${icons.card}</button>
+          <button class="btn icon" data-action="edit-member" data-id="${m.id}" title="تعديل" aria-label="تعديل">${icons.edit}</button>
+          <button class="btn icon" data-action="del" data-id="${m.id}" title="حذف" aria-label="حذف">${icons.trash}</button>
         </div>
       </div>`;
     tr.appendChild(td); body.appendChild(tr);
