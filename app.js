@@ -1,4 +1,4 @@
-/* v2.2.0 – بطاقات المستلمون بألوان متعددة + قائمة الجمعيات كـ بطاقات */
+/* v2.3.0 — Compact UI + زر فتح داخل بطاقة الجمعية + تناوب الأعضاء/الجدول + تحسينات سابقة */
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
@@ -19,17 +19,13 @@ const fmtMoney=n=>Number(n||0).toLocaleString('en-US');
 const fmtInt  =n=>Number(n||0).toLocaleString('en-US');
 function monthLabel(startDate,offset){ const d=new Date(startDate); d.setMonth(d.getMonth()+(offset-1)); return d.toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
 
-/* لوحة ألوان موحّدة */
+/* لوحة ألوان */
 const PALETTE=["#22c55e","#16a34a","#2dd4bf","#60a5fa","#a78bfa","#f472b6","#f59e0b"];
-function colorForMonth(i){ return PALETTE[(i-1)%PALETTE.length]; }
-/* ألوان للبطاقات داخل نفس الشهر (بناءً على ترتيبها) */
-function colorForIndex(idx){ return PALETTE[idx % PALETTE.length]; }
-/* لون بطاقة الجمعية حسب شهر البداية */
-function colorFromStartDate(j){
-  try{ const d=new Date(j.startDate); const mi=d.getMonth(); return PALETTE[mi % PALETTE.length]; }catch{ return PALETTE[0]; }
-}
+const colorForMonth=i=>PALETTE[(i-1)%PALETTE.length];
+const colorForIndex=idx=>PALETTE[idx%PALETTE.length];
+function colorFromStartDate(j){ try{const d=new Date(j.startDate);return PALETTE[d.getMonth()%PALETTE.length];}catch{return PALETTE[0];} }
 
-/* تطبيع اسم للمقارنة (لمنع التكرار) */
+/* تطبيع اسم */
 const normName = s => (s || '').toString().trim().replace(/\s+/g,' ').toLowerCase();
 
 /* تخزين آمن + ترحيل */
@@ -113,18 +109,23 @@ function monthStats(j,i){const rec=j.members.filter(m=>Number(m.month)===i);cons
 /* تهيئة */
 document.addEventListener('DOMContentLoaded',()=>{
   hide($('#details')); hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal'));
+
+  // إنشاء
   $('#jamiyahForm')?.addEventListener('submit',onCreateJamiyah);
   $('#search')?.addEventListener('input',e=>{const f=(e.target.value||'').trim(); state.filter=f; renderList();});
+
+  // Esc لإغلاق النوافذ
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal')); hide($('#monthDetails')); }});
 
-  $('#mFilter')?.addEventListener('change', e=>{
-    state.memberFilter = e.target.value || 'all';
-    const j=currentJamiyah(); if(j) renderMembers(j);
-  });
-  $('#mSort')?.addEventListener('change', e=>{
-    state.memberSort = e.target.value || 'month';
-    const j=currentJamiyah(); if(j) renderMembers(j);
-  });
+  // فلاتر وترتيب الأعضاء
+  $('#mFilter')?.addEventListener('change', e=>{ state.memberFilter = e.target.value || 'all'; const j=currentJamiyah(); if(j) renderMembers(j); });
+  $('#mSort')?.addEventListener('change', e=>{ state.memberSort = e.target.value || 'month'; const j=currentJamiyah(); if(j) renderMembers(j); });
+
+  // تناوب الأقسام: فتح واحد يقفل الآخر
+  const dMembers  = document.getElementById('membersBlock');
+  const dSchedule = document.getElementById('scheduleBlock');
+  dMembers?.addEventListener('toggle', ()=>{ if(dMembers.open) dSchedule.open = false; });
+  dSchedule?.addEventListener('toggle', ()=>{ if(dSchedule.open) dMembers.open = false; });
 
   renderList();
 });
@@ -156,9 +157,11 @@ document.addEventListener('click',(e)=>{
     case 'md-close': hide($('#monthDetails')); return;
   }
 
-  const openBtn=e.target.closest('button.btn.secondary[data-id]');
+  // زر فتح الجمعية داخل بطاقة الجمعية
+  const openBtn=e.target.closest('button.jam-open[data-id]');
   if(openBtn){ openDetails(openBtn.dataset.id); return; }
 
+  // أزرار دفعات/حذف عضو
   const actBtn=e.target.closest('button[data-action]');
   if(actBtn){
     const action=actBtn.dataset.action, memberId=actBtn.dataset.id;
@@ -219,11 +222,9 @@ function renderList(){
     card.className='jam-card';
     card.style.borderInlineStart=`4px solid ${color}`;
     card.innerHTML=`
+      <button class="jam-open" data-id="${j.id}">فتح</button>
       <div class="jam-head">
         <strong>${j.name}</strong>
-        <div class="jam-actions">
-          <button class="btn secondary" data-id="${j.id}">فتح</button>
-        </div>
       </div>
       <div class="jam-lines">
         <div class="mc-line"><span class="mc-label">شهر البداية</span><span class="mc-sep">:</span><span class="mc-value">${monthLabel(j.startDate,1)}</span></div>
@@ -259,6 +260,11 @@ function openDetails(id){
   populateMonthOptions(j,$('#am-month'));
   renderMembers(j); renderSchedule(j); updateCounters(j);
   setDetailsSectionsVisible(true); show($('#details'));
+  // اجعل الأعضاء مفتوحًا افتراضيًا وأغلق الجدول
+  const dMembers  = document.getElementById('membersBlock');
+  const dSchedule = document.getElementById('scheduleBlock');
+  dMembers.open = true; dSchedule.open = false;
+
   $('#details')?.scrollIntoView({behavior:'smooth',block:'start'});
   saveAll();
 }
@@ -267,7 +273,7 @@ function badge(t){const s=document.createElement('span');s.className='badge';s.t
 /* المتأخرون */
 function computeOverdueMembers(j){ return (j.members||[]).filter(m=>{ensurePayments(j,m);return m.overdueCount>0;}).length; }
 
-/* عرض الأعضاء */
+/* عرض الأعضاء (بدون سطر الرقم) */
 function renderMembers(j){
   const body=$('#memberTableBody'), empty=$('#emptyMembers'); body.innerHTML=''; const list=[...j.members];
   updateCounters(j);
@@ -286,7 +292,7 @@ function renderMembers(j){
 
   empty.classList.toggle('hidden', rows.length!==0);
 
-  rows.forEach((m, idx)=>{
+  rows.forEach((m)=>{
     const {paid}=memberPaidSummary(j,m);
     const remainingMoney=Math.max(0, m.entitlement - paid);
 
@@ -295,7 +301,6 @@ function renderMembers(j){
 
     td.innerHTML = `
       <div class="member-card" style="border-inline-start:4px solid ${colorForMonth(m.month)}">
-        <div class="mc-line"><span class="mc-label">#</span><span class="mc-sep">:</span><span class="mc-value"><span class="mc-index">${fmtInt(idx+1)}</span></span></div>
         <div class="mc-line"><span class="mc-label">الاسم</span><span class="mc-sep">:</span><span class="mc-value">${m.name}</span></div>
         <div class="mc-line"><span class="mc-label">المساهمة</span><span class="mc-sep">:</span><span class="mc-value mc-money">${fmtMoney(m.pay)} ريال</span></div>
         <div class="mc-line"><span class="mc-label">الاستحقاق الكلي</span><span class="mc-sep">:</span><span class="mc-value mc-money">${fmtMoney(m.entitlement)} ريال</span></div>
@@ -398,7 +403,7 @@ function renderSchedule(j){
   updateCounters(j);
 }
 
-/* إضافة عضو – منع تكرار الاسم + خطأ الحد الأعلى تحت المساهمة */
+/* إضافة عضو – منع تكرار الاسم + رسائل خطأ واضحة */
 function openAddMemberModal(){
   const j = currentJamiyah();
   if(!j){ toast('افتح جمعية أولًا'); return; }
