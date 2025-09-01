@@ -1,4 +1,4 @@
-/* v2.1.8 – توحيد أحجام النصوص + تحسينات عامة */
+/* v2.1.9 – توحيد أحجام النصوص + بطاقات المستلمون */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -86,7 +86,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 
 .footer{text-align:center;color:#94a3b8;padding:32px 0}
 .toasts{position:fixed;inset-inline:12px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:50}
-.toast{background:#0e1628;border:1px solid var(--border);color:var(--fg);padding:12px;border-radius:12px;box-shadow:var(--shadow)}
+.toast{background:#0e1628;border:1px solid var(--border);color:#fff;padding:12px;border-radius:12px;box-shadow:var(--shadow)}
 
 .hidden{display:none !important}
 [hidden]{display:none !important}
@@ -122,9 +122,13 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .month-details{ margin-top:12px;padding:12px;border:1px solid var(--border); background:#0e1628;border-radius:12px }
 .month-details .md-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 
-/* قائمة المستلمون بتنسيق بطاقات الأعضاء */
-.md-list{display:flex;flex-direction:column;gap:8px}
-.md-item{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
+/* قائمة المستلمون كـ بطاقات */
+.md-list{display:flex;flex-direction:column;gap:10px}
+.md-card{ /* إعادة استخدام شكل member-card */
+  display:flex; flex-direction:column; gap:6px;
+  padding:10px 12px; border:1px solid var(--border);
+  border-radius:12px; background:var(--panel);
+}
 
 /* بطاقات الأعضاء – سطر "الاسم : أحمد" */
 .member-card{
