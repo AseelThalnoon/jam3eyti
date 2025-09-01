@@ -1,4 +1,4 @@
-/* v2.3.0 — Compact UI + بطاقات الجمعيات/الأعضاء/المستلمون + زر فتح داخل البطاقة */
+/* v2.3.1 — تعديلات: زر فتح يمين وأصغر + أيقونات الأعضاء */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
@@ -10,7 +10,6 @@
 
   --fz-base:13px; --fz-sub:12px; --fz-h1:18px; --fz-h2:15px;
 
-  /* Palette لبطاقات المستلمون */
   --tone-0:#22c55e; --tone-1:#60a5fa; --tone-2:#a78bfa; --tone-3:#f472b6; --tone-4:#f59e0b; --tone-5:#2dd4bf;
 }
 
@@ -60,8 +59,10 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 
 .list{display:flex;flex-direction:column;gap:var(--space-2)}
 
-/* بطاقات الجمعيات كـ Cards + زر فتح داخل البطاقة */
-.jam-card{ position:relative; padding-inline-start:78px;
+/* بطاقات الجمعيات + زر فتح في اليمين وأصغر */
+.jam-card{
+  position:relative;
+  padding-inline-end:72px; /* مساحة للزر في اليمين */
   display:flex;flex-direction:column;gap:var(--space-1);
   padding-block:10px; border:1px solid var(--border);border-radius:12px;background:var(--panel);
 }
@@ -69,13 +70,13 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
 .jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
 .jam-open{
-  position:absolute; inset-inline-start:14px; top:50%; transform:translateY(-50%);
-  width:62px; height:62px; border-radius:16px; font-weight:800;
+  position:absolute; right:14px; top:50%; transform:translateY(-50%);
+  width:52px; height:52px; border-radius:14px; font-weight:800;
   background:#3b82f6; color:#0b1220; border:none; box-shadow:0 8px 18px rgba(59,130,246,.35); cursor:pointer;
 }
 .jam-open:active{ transform:translateY(-50%) scale(.98); }
 
-/* جدول (وضع البطاقات على الجوال) */
+/* جدول (بطاقات على الجوال) */
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border-top:1px solid var(--border);padding:8px;text-align:right;vertical-align:top}
 .table thead th{color:var(--muted);font-weight:600}
@@ -164,7 +165,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
   background: linear-gradient(90deg, currentColor, transparent);
 }
 
-/* بطاقات الأعضاء — سطر "الاسم : أحمد" (بدون رقم) */
+/* بطاقات الأعضاء */
 .member-card{
   display:flex; flex-direction:column; gap:6px;
   padding:10px; border:1px solid var(--border);
@@ -180,8 +181,12 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .mc-chip{ background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:1px 7px; border-radius:999px; font-size:11.5px; white-space:nowrap; }
 .mc-actions{ display:flex; gap:6px; justify-content:center; }
 .member-card .btn{ padding:7px 10px; border-radius:9px; }
-/* إخفاء أي بقايا لفهرس قديم من الكاش */
-.mc-index{ display:none !important; }
+
+/* أزرار أيقونية لبطاقة العضو */
+.btn.icon{
+  width:36px; height:36px; padding:0; border-radius:10px;
+  display:inline-flex; align-items:center; justify-content:center; font-size:16px;
+}
 
 /* تنظيف حدود الجدول حول البطاقات */
 .table--cards tbody tr{border:0;background:transparent}
