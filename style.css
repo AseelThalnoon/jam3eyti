@@ -1,16 +1,14 @@
-/* v2.3.2 — فراغ داخلي أوضح لبطاقات الجمعيات + توحيد لون أيقونات العضو + ترتيب أزرار */
+/* v2.3.3 — بطاقات الجمعيات بأزرار ✏️ + ▶️ — توحيد محاذاة يمين وتناسق نصوص */
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
-  --accent:#22c55e; --blue:#3b82f6; --danger:#ef4444; --ghost:#0b1424;
+  --accent:#22c55e; --blue:#3b82f6; --ghost:#0b1424;
   --shadow:0 6px 18px rgba(0,0,0,.32);
 
-  --space-0:4px;  --space-1:6px;  --space-2:8px;  --space-3:10px;  --space-4:14px;
+  --space-0:4px; --space-1:6px; --space-2:8px; --space-3:10px; --space-4:14px;
   --rad-s:10px; --rad-m:12px; --rad-l:14px;
 
   --fz-base:13px; --fz-sub:12px; --fz-h1:18px; --fz-h2:15px;
-
-  --tone-0:#22c55e; --tone-1:#60a5fa; --tone-2:#a78bfa; --tone-3:#f472b6; --tone-4:#f59e0b; --tone-5:#2dd4bf;
 }
 
 *{box-sizing:border-box}
@@ -59,26 +57,32 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 
 .list{display:flex;flex-direction:column;gap:var(--space-2)}
 
-/* بطاقات الجمعيات — حشوات جانبية أوضح + زر فتح يمين */
+/* بطاقات الجمعيات — محتوى بعيد عن الأطراف + زران أيقونيان يمين */
 .jam-card{
   position:relative;
   padding-block:12px;
-  padding-inline-start:16px;   /* نحرك المحتوى بعيدًا عن طرف البطاقة */
-  padding-inline-end:92px;     /* مساحة لزر الفتح */
+  padding-inline-start:16px;
+  padding-inline-end:96px;   /* مساحة أزرار الأيقونة */
   display:flex;flex-direction:column;gap:8px;
   border:1px solid var(--border);border-radius:12px;background:var(--panel);
 }
 .jam-card .jam-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-1)}
 .jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
 .jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
-.jam-open{
-  position:absolute; inset-inline-end:14px; top:50%; transform:translateY(-50%);
-  width:52px; height:52px; border-radius:14px; font-weight:800;
-  background:#3b82f6; color:#0b1220; border:none; box-shadow:0 8px 18px rgba(59,130,246,.35); cursor:pointer;
-}
-.jam-open:active{ transform:translateY(-50%) scale(.98); }
+.jam-actions{position:absolute; inset-inline-end:14px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:8px;}
+.jam-btn{width:46px;height:46px;border-radius:12px;border:none;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.25); font-size:20px; display:flex; align-items:center; justify-content:center;}
+.jam-btn.edit{background:#334155;color:#e5e7eb} /* ✏️ */
+.jam-btn.open{background:#3b82f6;color:#0b1220}   /* ▶️ */
 
-/* جدول (وضع البطاقات على الجوال) */
+.mc-line{ display:flex; align-items:center; gap:6px; justify-content:flex-start; }
+.mc-label{ color:var(--muted); font-weight:800; font-size:12.5px; }
+.mc-sep{ color:var(--muted) }
+.mc-value{ color:var(--fg); }
+.mc-money{ font-variant-numeric:tabular-nums; white-space:nowrap; }
+.mc-month{ white-space:nowrap; }
+.mc-chip{ background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:1px 7px; border-radius:999px; font-size:11.5px; white-space:nowrap; }
+.pill{background:#0f2d1f;color:#a7f3d0;border:1px solid #14532d;padding:1px 8px;border-radius:999px}
+
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border-top:1px solid var(--border);padding:8px;text-align:right;vertical-align:top}
 .table thead th{color:var(--muted);font-weight:600}
@@ -91,7 +95,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
   .table--cards td{display:flex;justify-content:space-between;gap:var(--space-2);padding:0;border-top:0}
 }
 
-/* رؤوس التفاصيل */
+/* تفاصيل */
 .details-header{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-2);flex-wrap:wrap}
 .details-header .meta{display:flex;gap:6px;color:var(--muted);flex-wrap:wrap}
 .badge{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--muted)}
@@ -167,23 +171,15 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
   background: linear-gradient(270deg, currentColor, transparent);
 }
 
-/* بطاقات الأعضاء — بدون رقم */
+/* بطاقات الأعضاء */
 .member-card{
   display:flex; flex-direction:column; gap:6px;
   padding:10px; border:1px solid var(--border);
   border-radius:12px; background:var(--panel);
 }
-.mc-line{ display:flex; align-items:center; gap:6px; justify-content:flex-start; }
-.mc-label{ color:var(--muted); font-weight:800; font-size:12.5px; }
-.mc-sep{ color:var(--muted) }
-.mc-value{ color:var(--fg); }
-.mc-money{ font-variant-numeric:tabular-nums; white-space:nowrap; }
-.mc-month{ white-space:nowrap; }
 .mc-chips{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-start; }
-.mc-chip{ background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:1px 7px; border-radius:999px; font-size:11.5px; white-space:nowrap; }
 .mc-actions{ display:flex; gap:6px; justify-content:center; }
 .member-card .btn{ padding:7px 10px; border-radius:9px; }
-/* أزرار أيقونية موحّدة اللون */
 .btn.icon{ width:40px; padding:7px 0; display:inline-flex; align-items:center; justify-content:center; font-size:16px; background:#334155; color:#e5e7eb; border-color:#2b3646; }
 .btn.icon.edit{ background:#334155; }
 .btn.icon.delete{ background:#334155; }
@@ -193,6 +189,3 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .table--cards tbody tr{border:0;background:transparent}
 .table--cards tbody td{border:0;padding:0}
 .table--cards .member-card + .member-card{margin-top:8px}
-
-/* إبراز أخطاء النماذج */
-.is-invalid{border-color:#f87171 !important;box-shadow:0 0 0 3px rgba(248,113,113,.15) !important;}
