@@ -1,4 +1,4 @@
-/* v2.4 — توحيد تصميم كل البطاقات + SVG + gradient ثابت */
+/* v2.4.0 — Member card redesign (clean & dense) + unified RTL */
 
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
@@ -6,7 +6,6 @@
   --accent:#22c55e; --blue:#3b82f6; --danger:#ef4444; --ghost:#0b1424;
   --shadow:0 6px 18px rgba(0,0,0,.32);
 
-  --space-0:4px;  --space-1:6px;  --space-2:8px;  --space-3:10px;  --space-4:14px;
   --rad-s:10px; --rad-m:12px; --rad-l:14px;
 
   --fz-base:13px; --fz-sub:12px; --fz-h1:18px; --fz-h2:15px;
@@ -17,38 +16,37 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
-body, table, .modal__card { text-align:right; }
+body, table, .member-card, .modal__card { text-align:right; }
 
 /* عناوين */
 .h1{margin:0;font-size:var(--fz-h1);font-weight:800;line-height:1.4}
-.h2{margin:0 0 var(--space-1);font-size:var(--fz-h2);font-weight:700;line-height:1.4}
+.h2{margin:0 0 8px;font-size:var(--fz-h2);font-weight:700;line-height:1.4}
 body, input, select, button, .mc-value, .mc-label, .md-item{font-size:var(--fz-base);line-height:1.5}
 small.hint, .error, .badge, .pill, .muted, .table thead th{font-size:var(--fz-sub);line-height:1.4}
 
-.app-bar{padding:var(--space-3);background:#0b1220;border-bottom:1px solid var(--border);
-  position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
-.brand{display:flex;align-items:center;gap:var(--space-2)}
-.container{max-width:980px;margin:var(--space-3) auto;padding:0 var(--space-3)}
-.stack-0>*+*{margin-top:var(--space-0)}
-.stack-1>*+*{margin-top:var(--space-1)}
-.stack-2>*+*{margin-top:var(--space-2)}
-.stack-3>*+*{margin-top:var(--space-3)}
-.stack-4>*+*{margin-top:var(--space-4)}
+.app-bar{padding:10px;background:#0b1220;border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.brand{display:flex;align-items:center;gap:8px}
+.container{max-width:980px;margin:10px auto;padding:0 10px}
+.stack-1>*+*{margin-top:6px}
+.stack-2>*+*{margin-top:8px}
+.stack-3>*+*{margin-top:10px}
+.stack-4>*+*{margin-top:14px}
 
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad-l);padding:var(--space-3);box-shadow:var(--shadow)}
-.title-row{display:flex;align-items:center;gap:var(--space-1)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;box-shadow:var(--shadow)}
+.title-row{display:flex;align-items:center;gap:8px}
 
-label{display:flex;flex-direction:column;gap:var(--space-1);color:var(--muted)}
-input,select{padding:9px 10px;border-radius:var(--rad-m);border:1px solid var(--border);background:var(--panel);color:var(--fg)}
+label{display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+input,select{padding:9px 10px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--fg)}
 small.hint{color:var(--muted);min-height:16px;display:block}
 .error{color:#fda4af;min-height:16px;display:block}
 .error:empty{display:none}
+.is-invalid{outline:1px solid #ef4444}
 
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 @media (max-width:640px){.grid{grid-template-columns:1fr}}
 
 .search{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--fg)}
-.search.small{max-width:260px}
 .select.small{padding:7px 9px;border-radius:9px}
 
 .btn{padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:#fff;cursor:pointer;font-weight:600;font-size:var(--fz-base)}
@@ -58,53 +56,66 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .btn.ghost{background:#0b1424;color:#cbd5e1}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:#cbd5e1;cursor:pointer;font-size:12px}
 
-/* ====== البطاقة الموحدة لكل القوائم (أعضاء/جمعيات/مستلمون) ====== */
-.card-unified{
-  position:relative;overflow:hidden;
-  display:flex;flex-direction:column;gap:8px;
-  padding:10px 12px;border:1px solid var(--border);
-  border-radius:12px;background:var(--panel);
-}
-.card-unified>*{position:relative;z-index:1}
-.card-unified::before{ /* gradient موحّد */
-  content:"";position:absolute;inset-inline-end:0;inset-block:0;
-  width:64px;opacity:.08;pointer-events:none;z-index:0;
-  background:linear-gradient(270deg,currentColor,transparent);
-}
-.cu-head{display:flex;align-items:center;gap:8px;justify-content:space-between}
-.cu-title{font-weight:800}
-.cu-badge{background:#0f1a2d;color:#a7f3d0;border:1px solid #14532d;
-  padding:2px 8px;border-radius:999px;font-size:11.5px;white-space:nowrap}
-.cu-meta{display:flex;gap:12px;flex-wrap:wrap}
-.cu-meta .item{display:flex;gap:6px;align-items:center;color:var(--muted)}
-.cu-meta .val{color:var(--fg);font-variant-numeric:tabular-nums;white-space:nowrap}
-.cu-progress{height:6px;border-radius:999px;background:#0b1424;border:1px solid var(--border);overflow:hidden}
-.cu-progress>span{display:block;height:100%;background:var(--accent)}
-.cu-chips{display:flex;gap:6px;flex-wrap:wrap}
-.cu-chip{background:#0f1a2d;color:#a7f3d0;border:1px solid #14532d;
-  padding:2px 8px;border-radius:999px;font-size:11.5px;white-space:nowrap}
-.cu-actions{display:flex;gap:8px;justify-content:flex-end}
-.btn.icon{width:36px;height:36px;border-radius:9px;background:#334155;color:#e5e7eb;border-color:#2b3646}
-.btn.icon svg{width:18px;height:18px;stroke:currentColor}
-.card-unified:hover{box-shadow:0 10px 24px rgba(0,0,0,.24)}
+/* قائمة */
+.list{display:flex;flex-direction:column;gap:10px}
 
-/* خرسانة الفئات القديمة لترابط الكود */
-.member-card{ composes: card-unified; }
-.jam-card   { composes: card-unified; }
-.md-card    { composes: card-unified; }
-
-/* أزرار بطاقة الجمعية (فتح/تعديل) */
+/* ——— بطاقات “المستلمون/الجمعيات” ——— */
+.jam-card,.md-card{
+  position:relative; overflow:hidden;
+  display:flex; flex-direction:column; gap:6px;
+  padding:10px 12px; border:1px solid var(--border);
+  border-radius:12px; background:var(--panel);
+}
+.jam-card>*,.md-card>*{position:relative; z-index:1;}
+.jam-card::before,.md-card::before{
+  content:""; position:absolute; inset-inline-end:0; inset-block:0;
+  width:86px; pointer-events:none; opacity:.10; z-index:0;
+  background: linear-gradient(270deg, currentColor, transparent);
+}
+.jam-card .jam-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
+.jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
 .jam-open,.jam-edit{
-  position:absolute; top:12px;
-  width:36px; height:36px; border-radius:9px;
-  background:#334155; color:#e5e7eb; border:1px solid #2b3646;
-  cursor:pointer; display:flex;align-items:center;justify-content:center;
+  position:absolute; top:12px; width:40px; height:40px; border-radius:9px;
+  background:#334155; color:#e5e7eb; border:1px solid #2b3646; cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
 }
 .jam-open{ inset-inline-end:12px; }
-.jam-edit{ inset-inline-end:54px; }
-.jam-open svg, .jam-edit svg{ width:18px; height:18px; stroke:currentColor; }
+.jam-edit{ inset-inline-end:56px; }
+.jam-open svg,.jam-edit svg{ width:18px; height:18px; stroke:currentColor; }
 
-/* باقي المكوّنات العامة */
+/* ——— بطاقة العضو (تصميم جديد) ——— */
+.member-card{
+  position:relative; overflow:hidden; direction:rtl;
+  display:flex; flex-direction:column; gap:8px;
+  padding:10px 12px; border:1px solid var(--border);
+  border-radius:12px; background:var(--panel);
+}
+.member-card::after{ /* شريط لون جانبي ثابت */
+  content:""; position:absolute; inset-block:8px; inset-inline-end:0;
+  width:4px; border-radius:8px; background:var(--tone-1); opacity:.9;
+}
+.mc-head{display:flex; align-items:center; justify-content:space-between; gap:8px}
+.mc-name{font-weight:800; font-size:14px}
+.mc-badge{font-size:11px; padding:2px 8px; border-radius:999px; background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d}
+
+.mc-grid{display:grid; grid-template-columns:auto 1fr; row-gap:4px; column-gap:8px}
+.mc-label{color:var(--muted); font-weight:700; font-size:12.5px}
+.mc-sep{color:var(--muted)}
+.mc-value{font-variant-numeric:tabular-nums}
+
+.mc-stats{display:flex; gap:6px; flex-wrap:wrap}
+.mc-chip{background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d;
+  padding:2px 8px; border-radius:999px; font-size:11.5px}
+
+.mc-actions{display:flex; gap:8px; justify-content:center; padding-top:4px}
+.btn.icon{width:40px; height:40px; padding:0; border-radius:10px;
+  background:#334155; border-color:#2b3646; color:#e5e7eb}
+.btn.icon:hover{filter:brightness(1.06)}
+.btn.icon svg{width:18px; height:18px; stroke:currentColor}
+.member-card.is-overdue::after{ background:#f59e0b }
+
+/* جدول/بطاقات */
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border-top:1px solid var(--border);padding:8px;text-align:right;vertical-align:top}
 .table thead th{color:var(--muted);font-weight:600}
@@ -113,10 +124,10 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 @media (max-width:720px){
   .table--cards thead{display:none}
   .table--cards tr{display:block;margin:8px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-  .table--cards td{display:flex;justify-content:space-between;gap:var(--space-2);padding:0;border-top:0}
+  .table--cards td{display:flex;justify-content:space-between;gap:8px;padding:0;border-top:0}
 }
 
-.details-header{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-2);flex-wrap:wrap}
+.details-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
 .details-header .meta{display:flex;gap:6px;color:var(--muted);flex-wrap:wrap}
 .badge{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--muted)}
 .badge.status{color:#a5f3fc;border-color:#164e63;background:#082f49}
@@ -135,7 +146,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .subtoolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .sticky-sub{position:sticky;top:64px;background:#0e1628;padding:8px;border-radius:12px;border:1px solid var(--border);z-index:10}
 
-.empty{text-align:center;color:var(--muted);padding:12px;border:1px dashed var(--border);border-radius:12px;background:#0b1424}
+.empty{text-align:center;color:#94a3b8;padding:12px;border:1px dashed var(--border);border-radius:12px;background:#0b1424}
 .pill{background:#0f2d1f;color:#a7f3d0;border:1px solid #14532d;padding:1px 8px;border-radius:999px}
 
 .footer{text-align:center;color:#94a3b8;padding:26px 0}
@@ -174,3 +185,6 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .month-details .md-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 
 .md-list{display:flex;flex-direction:column;gap:8px}
+
+/* إخفاء زر قلم التفاصيل القديم */
+.details-header #editBtn{ display:none !important; }
