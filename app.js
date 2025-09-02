@@ -1,17 +1,18 @@
-/* v2.4 — بطاقات موحدة (أعضاء/جمعيات/مستلمون) — عرض فقط، بدون تغيير المنطق */
+/* v2.4.0 — Clean member-card markup + same logic */
 
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
-/* أيقونات SVG */
+/* ---------- SVG Icons ---------- */
 const icons = {
-  eye: `<svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" stroke-width="1.8"/></svg>`,
-  edit:`<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4Z" stroke-width="1.8"/><path d="M13 7l4 4" stroke-width="1.8"/></svg>`,
-  trash:`<svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7l1-2h4l1 2" stroke-width="1.8"/></svg>`,
-  card:`<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke-width="1.8"/><path d="M3 10h18" stroke-width="1.8"/></svg>`
+  eye: `<svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.8"/></svg>`,
+  edit: `<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" stroke-width="1.8"/><path d="M13 7l4 4" stroke="currentColor" stroke-width="1.8"/></svg>`,
+  trash:`<svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7l1-2h4l1 2" stroke="currentColor" stroke-width="1.8"/></svg>`,
+  card:`<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.8"/></svg>`
 };
 
 const KEY_PRIMARY="jamiyati:data", KEY_V02="jamiyati:v02", KEY_V01="jamiyati:v01", KEY_BACKUP="jamiyati:backup", KEY_AUTOSAVE="jamiyati:autosave";
+
 const state={ jamiyahs: loadAllSafe(), currentId:null, memberSort:"month", memberFilter:"all", payModal:{memberId:null}, editMemberId:null };
 
 const fmtMoney=n=>Number(n||0).toLocaleString('en-US');
@@ -127,19 +128,21 @@ document.addEventListener('click',(e)=>{
     case 'md-close': hide($('#monthDetails')); return;
   }
 
+  // فتح الجمعية من بطاقة القائمة ⇒ افتح الجدول الشهري
   const openBtn=e.target.closest('button.jam-open[data-id]');
   if(openBtn){
     openDetails(openBtn.dataset.id);
     const dMembers  = document.getElementById('membersBlock');
     const dSchedule = document.getElementById('scheduleBlock');
     if(dSchedule && dMembers){
-      dSchedule.open = true;  // يفتح الجدول الشهري
+      dSchedule.open = true;
       dMembers.open  = false;
       dSchedule.scrollIntoView({behavior:'smooth', block:'start'});
     }
     return;
   }
 
+  // تعديل الجمعية من بطاقة القائمة
   const editBtnOnCard = e.target.closest('button.jam-edit[data-id]');
   if(editBtnOnCard){
     state.currentId = editBtnOnCard.dataset.id;
@@ -201,26 +204,20 @@ function renderList(){
   items.forEach(j=>{
     const color = colorFromStartDate(j);
     const card=document.createElement('div');
-    card.className='jam-card card-unified';
+    card.className='jam-card';
     card.style.borderInlineStart=`4px solid ${color}`;
-    card.style.marginInline='6px';  /* إبعاد عن الطرف */
     card.innerHTML=`
-      <button class="jam-open" data-id="${j.id}" title="فتح" aria-label="فتح">${icons.eye}</button>
-      <button class="jam-edit" data-id="${j.id}" title="تعديل" aria-label="تعديل">${icons.edit}</button>
-
-      <div class="cu-head">
-        <div class="cu-title">${j.name}</div>
-        <span class="cu-badge">${monthLabel(j.startDate,1)}</span>
+      <button class="jam-open" data-id="${j.id}" title="فتح الجمعية" aria-label="فتح">${icons.eye}</button>
+      <button class="jam-edit" data-id="${j.id}" title="تعديل الجمعية" aria-label="تعديل">${icons.edit}</button>
+      <div class="jam-head"><strong>${j.name}</strong></div>
+      <div class="jam-lines">
+        <div class="mc-line"><span class="mc-label">شهر البداية</span><span class="mc-sep">:</span><span class="mc-value">${monthLabel(j.startDate,1)}</span></div>
+        <div class="mc-line"><span class="mc-label">المدة</span><span class="mc-sep">:</span><span class="mc-value">${fmtInt(j.duration)} شهر</span></div>
+        <div class="mc-line"><span class="mc-label">مبلغ الجمعية</span><span class="mc-sep">:</span><span class="mc-value">${fmtMoney(j.goal)} ريال</span></div>
       </div>
-
-      <div class="cu-meta">
-        <div class="item"><span>المدة:</span><span class="val">${fmtInt(j.duration)} شهر</span></div>
-        <div class="item"><span>مبلغ الجمعية:</span><span class="val">${fmtMoney(j.goal)} ريال</span></div>
-      </div>
-
-      <div class="cu-chips">
-        <span class="cu-chip">أعضاء: ${fmtInt((j.members||[]).length)}</span>
-        <span class="cu-chip">أشهر: ${fmtInt(j.duration)}</span>
+      <div class="jam-chips">
+        <span class="mc-chip">أعضاء: ${fmtInt((j.members||[]).length)}</span>
+        <span class="mc-chip">أشهر: ${fmtInt(j.duration)}</span>
       </div>`;
     list.appendChild(card);
   });
@@ -256,6 +253,7 @@ function openDetails(id){
 function badge(t){const s=document.createElement('span');s.className='badge';s.textContent=t;return s;}
 function computeOverdueMembers(j){ return (j.members||[]).filter(m=>{ensurePayments(j,m);return m.overdueCount>0;}).length; }
 
+/* ---------- تصميم بطاقات الأعضاء الجديد ---------- */
 function renderMembers(j){
   const body=$('#memberTableBody'), empty=$('#emptyMembers'); body.innerHTML=''; const list=[...j.members];
   updateCounters(j);
@@ -276,33 +274,34 @@ function renderMembers(j){
   rows.forEach((m)=>{
     const {paid}=memberPaidSummary(j,m);
     const remainingMoney=Math.max(0, m.entitlement - paid);
+    const overdue = m.overdueCount>0;
 
     const tr=document.createElement('tr'); tr.dataset.memberId=m.id;
     const td=document.createElement('td'); td.colSpan=7;
 
+    const tone = colorForMonth(m.month);
+
     td.innerHTML = `
-      <div class="member-card card-unified" style="border-inline-start:4px solid ${colorForMonth(m.month)}">
-        <div class="cu-head">
-          <div class="cu-title">${m.name}</div>
-          <span class="cu-badge">${monthLabel(j.startDate,m.month)}</span>
+      <div class="member-card ${overdue?'is-overdue':''}" style="--tone-1:${tone}">
+        <div class="mc-head">
+          <div class="mc-name">${m.name}</div>
+          <span class="mc-badge">${monthLabel(j.startDate,m.month)}</span>
         </div>
 
-        <div class="cu-meta">
-          <div class="item"><span>المساهمة:</span><span class="val">${fmtMoney(m.pay)} ريال</span></div>
-          <div class="item"><span>الاستحقاق الكلي:</span><span class="val">${fmtMoney(m.entitlement)} ريال</span></div>
+        <div class="mc-grid">
+          <div class="mc-label">المساهمة</div><div class="mc-value">${fmtMoney(m.pay)} ريال</div>
+          <div class="mc-label">الاستحقاق الكلي</div><div class="mc-value">${fmtMoney(m.entitlement)} ريال</div>
+          <div class="mc-label">شهر الاستلام</div><div class="mc-value">${monthLabel(j.startDate,m.month)}</div>
         </div>
 
-        <div class="cu-progress">
-          <span style="width:${Math.min(100, Math.round((paid / Math.max(1,m.entitlement))*100))}%"></span>
+        <div class="mc-stats">
+          <span class="mc-chip">مدفوع: ${fmtMoney(paid)} ريال</span>
+          <span class="mc-chip">المتبقي: ${fmtMoney(remainingMoney)} ريال</span>
+          <span class="mc-chip">(${m.paidCount} / ${j.duration})</span>
+          ${overdue?`<span class="mc-chip" style="background:#2b0f14;border-color:#7f1d1d;color:#fecaca">متأخر: ${m.overdueCount}</span>`:''}
         </div>
 
-        <div class="cu-chips">
-          <span class="cu-chip">مدفوع: ${fmtMoney(paid)} ريال</span>
-          <span class="cu-chip">المتبقي: ${fmtMoney(remainingMoney)} ريال</span>
-          <span class="cu-chip">${m.paidCount} / ${j.duration}</span>
-        </div>
-
-        <div class="cu-actions">
+        <div class="mc-actions">
           <button class="btn icon" data-action="pay" data-id="${m.id}" title="دفعات" aria-label="دفعات">${icons.card}</button>
           <button class="btn icon" data-action="edit-member" data-id="${m.id}" title="تعديل" aria-label="تعديل">${icons.edit}</button>
           <button class="btn icon" data-action="del" data-id="${m.id}" title="حذف" aria-label="حذف">${icons.trash}</button>
@@ -369,13 +368,10 @@ function renderSchedule(j){
       mdTitle.textContent=monthLabel(j.startDate,i);
       if(rec.length){
         const listHtml = rec.map((m,idx) => `
-          <div class="md-card card-unified" style="border-inline-start:4px solid ${colorForIndex(idx)}">
-            <div class="cu-head">
-              <div class="cu-title">${m.name}</div>
-              <span class="cu-badge">${monthLabel(j.startDate,i)}</span>
-            </div>
-            <div class="cu-meta">
-              <div class="item"><span>الاستحقاق:</span><span class="val">${fmtMoney(m.entitlement)} ريال</span></div>
+          <div class="md-card" style="border-inline-start:4px solid ${colorForIndex(idx)}">
+            <div class="mc-grid">
+              <div class="mc-label">الاسم</div><div class="mc-value">${m.name}</div>
+              <div class="mc-label">الاستحقاق</div><div class="mc-value">${fmtMoney(m.entitlement)} ريال</div>
             </div>
           </div>`).join('');
         mdBody.innerHTML = `<div class="md-list">${listHtml}</div>`;
@@ -389,23 +385,31 @@ function renderSchedule(j){
   updateCounters(j);
 }
 
-/* ——— (باقي دوال الإضافة/التعديل/الدفع/التصدير كما هي تماماً) ——— */
-function openAddMemberModal(){ const j = currentJamiyah(); if(!j){ toast('افتح جمعية أولًا'); return; } if(hasStarted(j)){ toast('بدأت الجمعية. لا يمكن إضافة أعضاء.'); return; }
+function openAddMemberModal(){
+  const j = currentJamiyah();
+  if(!j){ toast('افتح جمعية أولًا'); return; }
+  if(hasStarted(j)){ toast('بدأت الجمعية. لا يمكن إضافة أعضاء.'); return; }
+
   $('#am-name').value=''; $('#am-pay').value='';
   clearFieldError('am-name','err-am-name'); clearFieldError('am-pay','err-am-pay'); clearFieldError('am-month','err-am-month');
+
   $('#am-hint').textContent=`اختر شهر استلام متاح. مبلغ الجمعية: ${fmtMoney(j.goal)} ريال`;
   populateMonthOptions(j, $('#am-month'));
+
   ['am-name','am-pay','am-month'].forEach(id=>{
     const el=document.getElementById(id);
     const errId = id==='am-name' ? 'err-am-name' : id==='am-pay' ? 'err-am-pay' : 'err-am-month';
     const ev = (id==='am-month') ? 'change' : 'input';
     el?.addEventListener(ev, ()=> clearFieldError(id,errId), { once:false });
   });
-  show($('#addMemberModal')); $('#am-name')?.focus();
+
+  show($('#addMemberModal'));
+  $('#am-name')?.focus();
 }
 
 function onAddMemberFromModal(){
-  const j = currentJamiyah(); if(!j) return;
+  const j = currentJamiyah();
+  if(!j) return;
   if(hasStarted(j)){ toast('بدأت الجمعية. لا يمكن إضافة أعضاء.'); hide($('#addMemberModal')); return; }
 
   clearFieldError('am-name','err-am-name'); clearFieldError('am-pay','err-am-pay'); clearFieldError('am-month','err-am-month');
@@ -457,7 +461,12 @@ function openEditMember(memberId){
   const j=currentJamiyah(); if(!j)return;
   const m=j.members.find(x=>x.id===memberId); if(!m) return;
   state.editMemberId=memberId;
-  $('#em-name').value=m.name; $('#em-pay').value=m.pay; populateMonthOptions(j,$('#em-month')); $('#em-month').value=String(m.month);
+
+  $('#em-name').value=m.name;
+  $('#em-pay').value=m.pay;
+  populateMonthOptions(j,$('#em-month'));
+  $('#em-month').value=String(m.month);
+
   clearFieldError('em-name','err-em-name'); clearFieldError('em-pay','err-em-pay'); clearFieldError('em-month','err-em-month');
   show($('#editMemberModal'));
 }
@@ -480,7 +489,9 @@ function onSaveEditMember(){
   }
 
   if(!Number.isFinite(pay)||pay<=0){ setFieldError('em-pay','err-em-pay','قيمة غير صالحة'); firstInvalid=firstInvalid||$('#em-pay'); }
+
   if(!month||month<1||month>j.duration){ setFieldError('em-month','err-em-month','اختر شهر صحيح'); firstInvalid=firstInvalid||$('#em-month'); }
+
   if(firstInvalid){ firstInvalid.focus({preventScroll:true}); return; }
 
   const entitlement = pay * j.duration;
@@ -538,7 +549,6 @@ function onDeleteJamiyah(){ const j=currentJamiyah(); if(!j) return;
   if(!confirm(`حذف ${j.name}؟ لا يمكن التراجع.`)) return;
   state.jamiyahs=state.jamiyahs.filter(x=>x.id!==j.id); saveAll(); showList(); renderList(); toast('تم حذف الجمعية'); }
 function showList(){ hide($('#details')); state.currentId=null; setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
-
 function exportPdf(j){
   const css=`<style>@page{size:A4;margin:14mm}body{font-family:-apple-system,Segoe UI,Roboto,Arial,"Noto Naskh Arabic","IBM Plex Sans Arabic",sans-serif;color:#111}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}h2{margin:18px 0 8px;font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}thead th{background:#f3f4f6}tfoot td{font-weight:700;background:#fafafa}.muted{color:#666}</style>`;
   const members=j.members.slice().sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
