@@ -1,4 +1,4 @@
-/* v2.4.0 — Clean member-card markup + same logic */
+/* v2.3.6 — SVG icons + member card compact */
 
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
@@ -11,10 +11,12 @@ const icons = {
   card:`<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.8"/></svg>`
 };
 
+/* ---------- Storage & State ---------- */
 const KEY_PRIMARY="jamiyati:data", KEY_V02="jamiyati:v02", KEY_V01="jamiyati:v01", KEY_BACKUP="jamiyati:backup", KEY_AUTOSAVE="jamiyati:autosave";
 
 const state={ jamiyahs: loadAllSafe(), currentId:null, memberSort:"month", memberFilter:"all", payModal:{memberId:null}, editMemberId:null };
 
+/* ---------- Helpers ---------- */
 const fmtMoney=n=>Number(n||0).toLocaleString('en-US');
 const fmtInt  =n=>Number(n||0).toLocaleString('en-US');
 function monthLabel(startDate,offset){ const d=new Date(startDate); d.setMonth(d.getMonth()+(offset-1)); return d.toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
@@ -80,6 +82,7 @@ function monthAssignedTotal(j,month){return j.members.filter(m=>Number(m.month)=
 function maxMonthlyForMonth(j,month){const remaining=Math.max(0,j.goal-monthAssignedTotal(j,month));return Math.floor(remaining/j.duration);}
 function monthStats(j,i){const rec=j.members.filter(m=>Number(m.month)===i);const assigned=rec.reduce((s,m)=>s+Number(m.entitlement||0),0);const remaining=Math.max(0,j.goal-assigned);const pct=j.goal>0?Math.min(100,Math.round((assigned/j.goal)*100)):0;return{rec,assigned,remaining,pct};}
 
+/* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded',()=>{
   hide($('#details')); hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal')); hide($('#editMemberModal'));
 
@@ -99,6 +102,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderList();
 });
 
+/* ---------- Global clicks ---------- */
 document.addEventListener('click',(e)=>{
   const idAttr=(e.target.closest('[id]')||{}).id||'';
   switch(idAttr){
@@ -128,7 +132,7 @@ document.addEventListener('click',(e)=>{
     case 'md-close': hide($('#monthDetails')); return;
   }
 
-  // فتح الجمعية من بطاقة القائمة ⇒ افتح الجدول الشهري
+  /* فتح الجمعية من البطاقة ⇒ افتح الجدول الشهري مباشرة */
   const openBtn=e.target.closest('button.jam-open[data-id]');
   if(openBtn){
     openDetails(openBtn.dataset.id);
@@ -142,10 +146,11 @@ document.addEventListener('click',(e)=>{
     return;
   }
 
-  // تعديل الجمعية من بطاقة القائمة
+  /* تعديل الجمعية من البطاقة */
   const editBtnOnCard = e.target.closest('button.jam-edit[data-id]');
   if(editBtnOnCard){
-    state.currentId = editBtnOnCard.dataset.id;
+    const id = editBtnOnCard.dataset.id;
+    state.currentId = id;
     openEditModal();
     return;
   }
@@ -165,6 +170,7 @@ document.addEventListener('click',(e)=>{
   }
 });
 
+/* ---------- Create / List ---------- */
 function onCreateJamiyah(e){
   e.preventDefault();
   setError('err-j-name');setError('err-j-start');setError('err-j-duration');setError('err-j-goal');
@@ -211,9 +217,9 @@ function renderList(){
       <button class="jam-edit" data-id="${j.id}" title="تعديل الجمعية" aria-label="تعديل">${icons.edit}</button>
       <div class="jam-head"><strong>${j.name}</strong></div>
       <div class="jam-lines">
-        <div class="mc-line"><span class="mc-label">شهر البداية</span><span class="mc-sep">:</span><span class="mc-value">${monthLabel(j.startDate,1)}</span></div>
-        <div class="mc-line"><span class="mc-label">المدة</span><span class="mc-sep">:</span><span class="mc-value">${fmtInt(j.duration)} شهر</span></div>
-        <div class="mc-line"><span class="mc-label">مبلغ الجمعية</span><span class="mc-sep">:</span><span class="mc-value">${fmtMoney(j.goal)} ريال</span></div>
+        <div class="mc-row"><span class="mc-label">شهر البداية</span><span class="mc-sep">:</span><span class="mc-value">${monthLabel(j.startDate,1)}</span></div>
+        <div class="mc-row"><span class="mc-label">المدة</span><span class="mc-sep">:</span><span class="mc-value">${fmtInt(j.duration)} شهر</span></div>
+        <div class="mc-row"><span class="mc-label">مبلغ الجمعية</span><span class="mc-sep">:</span><span class="mc-value">${fmtMoney(j.goal)} ريال</span></div>
       </div>
       <div class="jam-chips">
         <span class="mc-chip">أعضاء: ${fmtInt((j.members||[]).length)}</span>
@@ -253,7 +259,7 @@ function openDetails(id){
 function badge(t){const s=document.createElement('span');s.className='badge';s.textContent=t;return s;}
 function computeOverdueMembers(j){ return (j.members||[]).filter(m=>{ensurePayments(j,m);return m.overdueCount>0;}).length; }
 
-/* ---------- تصميم بطاقات الأعضاء الجديد ---------- */
+/* ---------- Members (التغيير هنا) ---------- */
 function renderMembers(j){
   const body=$('#memberTableBody'), empty=$('#emptyMembers'); body.innerHTML=''; const list=[...j.members];
   updateCounters(j);
@@ -274,31 +280,25 @@ function renderMembers(j){
   rows.forEach((m)=>{
     const {paid}=memberPaidSummary(j,m);
     const remainingMoney=Math.max(0, m.entitlement - paid);
-    const overdue = m.overdueCount>0;
 
     const tr=document.createElement('tr'); tr.dataset.memberId=m.id;
     const td=document.createElement('td'); td.colSpan=7;
 
-    const tone = colorForMonth(m.month);
-
+    /* ——— بطاقة مبسّطة ——— */
     td.innerHTML = `
-      <div class="member-card ${overdue?'is-overdue':''}" style="--tone-1:${tone}">
-        <div class="mc-head">
-          <div class="mc-name">${m.name}</div>
-          <span class="mc-badge">${monthLabel(j.startDate,m.month)}</span>
+      <div class="member-card" style="border-inline-start:3px solid ${colorForMonth(m.month)}">
+        <div class="mc-title">${m.name}</div>
+
+        <div class="mc-rows">
+          <div class="mc-row"><span class="mc-label">المساهمة</span><span class="mc-sep">:</span><span class="mc-value">${fmtMoney(m.pay)} ريال</span></div>
+          <div class="mc-row"><span class="mc-label">الاستحقاق الكلي</span><span class="mc-sep">:</span><span class="mc-value">${fmtMoney(m.entitlement)} ريال</span></div>
+          <div class="mc-row"><span class="mc-label">شهر الاستلام</span><span class="mc-sep">:</span><span class="mc-value mc-month">${monthLabel(j.startDate,m.month)}</span></div>
         </div>
 
-        <div class="mc-grid">
-          <div class="mc-label">المساهمة</div><div class="mc-value">${fmtMoney(m.pay)} ريال</div>
-          <div class="mc-label">الاستحقاق الكلي</div><div class="mc-value">${fmtMoney(m.entitlement)} ريال</div>
-          <div class="mc-label">شهر الاستلام</div><div class="mc-value">${monthLabel(j.startDate,m.month)}</div>
-        </div>
-
-        <div class="mc-stats">
+        <div class="mc-chips">
           <span class="mc-chip">مدفوع: ${fmtMoney(paid)} ريال</span>
-          <span class="mc-chip">المتبقي: ${fmtMoney(remainingMoney)} ريال</span>
+          ${remainingMoney>0?`<span class="mc-chip ${m.overdueCount>0?'warn':''}">المتبقي: ${fmtMoney(remainingMoney)} ريال</span>`:''}
           <span class="mc-chip">(${m.paidCount} / ${j.duration})</span>
-          ${overdue?`<span class="mc-chip" style="background:#2b0f14;border-color:#7f1d1d;color:#fecaca">متأخر: ${m.overdueCount}</span>`:''}
         </div>
 
         <div class="mc-actions">
@@ -311,6 +311,7 @@ function renderMembers(j){
   });
 }
 
+/* ---------- Shared ---------- */
 function populateMonthOptions(j, selectEl){
   if(!selectEl) return;
   const cur=selectEl.value; selectEl.innerHTML='';
@@ -355,6 +356,7 @@ function onSaveEdit(){
   saveAll(); hide($('#editModal')); openDetails(j.id); renderList(); toast('تم حفظ التعديلات');
 }
 
+/* ---------- Schedule ---------- */
 function renderSchedule(j){
   const grid=$('#scheduleGrid'), details=$('#monthDetails'), mdTitle=$('#md-title'), mdBody=$('#md-body');
   if(!grid) return; grid.innerHTML=''; hide(details);
@@ -369,10 +371,8 @@ function renderSchedule(j){
       if(rec.length){
         const listHtml = rec.map((m,idx) => `
           <div class="md-card" style="border-inline-start:4px solid ${colorForIndex(idx)}">
-            <div class="mc-grid">
-              <div class="mc-label">الاسم</div><div class="mc-value">${m.name}</div>
-              <div class="mc-label">الاستحقاق</div><div class="mc-value">${fmtMoney(m.entitlement)} ريال</div>
-            </div>
+            <div class="mc-row"><span class="mc-label">الاسم</span><span class="mc-sep">:</span><span class="mc-value">${m.name}</span></div>
+            <div class="mc-row"><span class="mc-label">الاستحقاق</span><span class="mc-sep">:</span><span class="mc-value">${fmtMoney(m.entitlement)} ريال</span></div>
           </div>`).join('');
         mdBody.innerHTML = `<div class="md-list">${listHtml}</div>`;
       }else{
@@ -385,6 +385,7 @@ function renderSchedule(j){
   updateCounters(j);
 }
 
+/* ---------- Add/Edit Member & Payments (نفس المنطق القديم) ---------- */
 function openAddMemberModal(){
   const j = currentJamiyah();
   if(!j){ toast('افتح جمعية أولًا'); return; }
@@ -507,9 +508,10 @@ function onSaveEditMember(){
   m.name=name; m.pay=pay; m.month=month; m.entitlement=entitlement;
   ensurePayments(j,m);
 
-  saveAll(); renderMembers(j); renderSchedule(j); hide($('#editMemberModal')); toast('تم حفظ التعديلات');
+  saveAll(); renderMembers(j); renderSchedule(j); hide($('#editMemberModal')); toast('تم حفظ التعديل');
 }
 
+/* ---------- Payments ---------- */
 function openPayModal(memberId){
   const j=currentJamiyah(); if(!j) return;
   const m=j.members.find(x=>x.id===memberId); if(!m) return;
@@ -545,10 +547,12 @@ function savePayModal(){
   recalcMemberCounters(j,m); saveAll(); renderMembers(j); hide($('#payModal')); toast('تم حفظ الدفعات');
 }
 
+/* ---------- Delete / Export / Restore ---------- */
 function onDeleteJamiyah(){ const j=currentJamiyah(); if(!j) return;
   if(!confirm(`حذف ${j.name}؟ لا يمكن التراجع.`)) return;
   state.jamiyahs=state.jamiyahs.filter(x=>x.id!==j.id); saveAll(); showList(); renderList(); toast('تم حذف الجمعية'); }
 function showList(){ hide($('#details')); state.currentId=null; setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
+
 function exportPdf(j){
   const css=`<style>@page{size:A4;margin:14mm}body{font-family:-apple-system,Segoe UI,Roboto,Arial,"Noto Naskh Arabic","IBM Plex Sans Arabic",sans-serif;color:#111}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}h2{margin:18px 0 8px;font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}thead th{background:#f3f4f6}tfoot td{font-weight:700;background:#fafafa}.muted{color:#666}</style>`;
   const members=j.members.slice().sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
@@ -572,6 +576,7 @@ function exportPdf(j){
   <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),300);}</script></body></html>`;
   const w=window.open('','_blank'); w.document.open(); w.document.write(html); w.document.close();
 }
+
 function exportJson(){
   const data = safeSerialize(state.jamiyahs)||"[]";
   const blob = new Blob([data],{type:"application/json"});
