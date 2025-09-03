@@ -1,4 +1,4 @@
-/* v2.3.8 — Member cards fixed grid height + perfectly centered actions */
+/* v2.3.9 — Member cards fixed height (no wrap) + perfectly centered actions */
 
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
@@ -19,7 +19,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
 body, table, .member-card, .modal__card { text-align:right; }
 
-/* عناوين وخلافه */
+/* typography */
 .h1{margin:0;font-size:var(--fz-h1);font-weight:800;line-height:1.4}
 .h2{margin:0 0 var(--space-1);font-size:var(--fz-h2);font-weight:700;line-height:1.4}
 body, input, select, button, .mc-value, .mc-label, .md-item{font-size:var(--fz-base);line-height:1.5}
@@ -60,7 +60,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 
 .list{display:flex;flex-direction:column;gap:var(--space-2)}
 
-/* ——— بطاقات المستلمون (مرجع) ——— */
+/* recipient cards */
 .md-card{
   position:relative; overflow:hidden;
   display:flex; flex-direction:column; gap:4px;
@@ -74,7 +74,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
   background: linear-gradient(270deg, currentColor, transparent);
 }
 
-/* ——— بطاقات الجمعيات — موحّدة مع تصميم md-card ——— */
+/* jamiyah list cards */
 .jam-card{
   position:relative; overflow:hidden;
   padding:8px 10px;
@@ -91,7 +91,6 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
 .jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
 
-/* أزرار بطاقة الجمعية (أيقونات فقط) */
 .jam-open,.jam-edit{
   position:absolute; top:12px;
   width:40px; height:40px; border-radius:9px;
@@ -102,10 +101,9 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .jam-edit{ inset-inline-end:56px; }
 .jam-open svg, .jam-edit svg{ width:18px; height:18px; stroke:currentColor; }
 
-/* إخفاء زر القلم القديم داخل رأس التفاصيل */
 .details-header #editBtn{ display:none !important; }
 
-/* ——— بطاقات الأعضاء — شبكة بارتفاع موحّد ——— */
+/* ===== MEMBER CARD (fixed grid, no-wrap) ===== */
 .member-card{
   position:relative;
   border:1px solid var(--border);
@@ -113,16 +111,15 @@ small.hint{color:var(--muted);min-height:16px;display:block}
   background:var(--panel);
   border-inline-start:3px solid var(--tone-1);
 
-  /* شبكة بصفوف ثابتة: عنوان (auto) + معلومات (64px) + حبيبات (28px) + أزرار (44px) */
+  /* grid rows: title(auto) + info(64) + chips(28) + actions(44) */
   display:grid;
-  grid-template-rows: auto 64px 28px 44px;
+  grid-template-rows:auto 64px 28px 44px;
   gap:6px;
   padding:10px 12px;
 
-  height: 168px;        /* الارتفاع النهائي الموحد للبطاقة */
-  min-height:168px;
-  max-height:168px;
-  overflow:hidden;      /* يمنع تمدد البطاقة */
+  height:168px; min-height:168px; max-height:168px;
+  overflow:hidden;                 /* يمنع زيادة الارتفاع */
+  contain:layout;                  /* يثبت التخطيط داخلياً */
 }
 .member-card>*{position:relative; z-index:1;}
 .member-card::before{
@@ -132,14 +129,15 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 }
 @media (max-width:520px){ .member-card::before{display:none} }
 
-/* العنوان */
+/* title */
 .mc-title{
   font-size:14px; font-weight:800; color:var(--fg);
   display:flex; align-items:center; justify-content:space-between;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  min-height:20px;
 }
 
-/* أسطر المعلومات — ارتفاع ثابت داخل صفها */
+/* info rows */
 .mc-rows{
   display:flex; flex-direction:column; gap:2px; justify-content:center;
   min-height:64px; max-height:64px; overflow:hidden;
@@ -150,27 +148,31 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .mc-value{ font-size:13px; color:var(--fg); font-variant-numeric:tabular-nums; }
 .mc-month{ white-space:nowrap; }
 
-/* الحبيبات — صف ثابت */
+/* chips — single line, clipped (no wrap) */
 .mc-chips{
-  display:flex; gap:6px; align-items:center; justify-content:flex-start;
-  min-height:28px; max-height:28px; overflow:hidden;
+  display:flex; align-items:center; justify-content:flex-start; gap:6px;
+  min-height:28px; max-height:28px;
+  flex-wrap:nowrap;                 /* ← منع الالتفاف */
+  overflow:hidden;                  /* ← قصّ الزيادة */
 }
 .mc-chip{
+  flex:0 0 auto;                    /* ← لا تنضغط ولا تتلف */
   padding:2px 8px; border-radius:999px;
   border:1px solid var(--border); background:#0f1a2d; color:#cde3d7;
   font-size:11.5px; white-space:nowrap;
 }
 .mc-chip.warn{ background:#3a1a1a; color:#fecaca; border-color:#7f1d1d; }
 
-/* الأفعال — تمركز تام داخل صفها */
+/* actions — perfectly centered box */
 .mc-actions{
   display:flex; align-items:center; justify-content:center; gap:8px;
-  min-height:44px; max-height:44px; /* صف الأزرار ثابت */
+  min-height:44px; max-height:44px;
+  margin:0;                         /* يمنع اختلافات الارتفاع */
 }
 .btn.icon{ width:34px; height:34px; border-radius:8px; background:#334155; border-color:#2b3646; }
 .btn.icon svg{ width:17px; height:17px; }
 
-/* جدول/بطاقات */
+/* table/cards wrapper */
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border-top:1px solid var(--border);padding:8px;text-align:right;vertical-align:top}
 .table thead th{color:var(--muted);font-weight:600}
@@ -179,11 +181,11 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 @media (max-width:720px){
   .table--cards thead{display:none}
   .table--cards tr{display:block;margin:8px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-  .table--cards td{display:flex;justify-content:space-between;gap:var(--space-2);padding:0;border-top:0}
+  .table--cards td{display:block;padding:0;border-top:0} /* ← لا تجعل td flex حتى لا يؤثر على تمركز البطاقة */
 }
 #memberTableBody tr{ margin:6px 0; }
 
-/* تفاصيل */
+/* details */
 .details-header{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-2);flex-wrap:wrap}
 .details-header .meta{display:flex;gap:6px;color:var(--muted);flex-wrap:wrap}
 .badge{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--muted)}
@@ -200,7 +202,7 @@ summary::-webkit-details-marker{display:none}
 details[open] > summary.caret::before{transform:rotate(0deg)}
 .members-summary .spacer{flex:1}
 
-/* أخرى */
+/* misc */
 .alert{background:#2b0f14;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:10px}
 .subtoolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .sticky-sub{position:sticky;top:64px;background:#0e1628;padding:8px;border-radius:12px;border:1px solid var(--border);z-index:10}
