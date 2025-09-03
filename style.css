@@ -1,4 +1,4 @@
-/* v2.4.1 — Jamiyah card actions vertical right; member actions vertical right; no JS changes */
+/* v2.4.1 — Member & Jamiyah card actions vertical right; no JS logic changes */
 
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
@@ -6,7 +6,7 @@
   --accent:#22c55e; --blue:#3b82f6; --danger:#ef4444; --ghost:#0b1424;
   --shadow:0 6px 18px rgba(0,0,0,.32);
 
-  --space-0:4px;  --space-1:6px;  --space-2:8px;  --space-3:10px;  --space-4:14px;
+  --space-0:4px; --space-1:6px; --space-2:8px; --space-3:10px; --space-4:14px;
   --rad-s:10px; --rad-m:12px; --rad-l:14px;
 
   --fz-base:13px; --fz-sub:12px; --fz-h1:18px; --fz-h2:15px;
@@ -17,9 +17,9 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
-body, table, .modal__card { text-align:right; }
+body, table, .modal__card { text-align:right }
 
-/* عناوين */
+/* عناوين وأساسيات */
 .h1{margin:0;font-size:var(--fz-h1);font-weight:800;line-height:1.4}
 .h2{margin:0 0 var(--space-1);font-size:var(--fz-h2);font-weight:700;line-height:1.4}
 small.hint,.error,.badge,.pill,.muted,.table thead th{font-size:var(--fz-sub);line-height:1.4}
@@ -28,11 +28,8 @@ small.hint,.error,.badge,.pill,.muted,.table thead th{font-size:var(--fz-sub);li
   position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
 .brand{display:flex;align-items:center;gap:var(--space-2)}
 .container{max-width:980px;margin:var(--space-3) auto;padding:0 var(--space-3)}
-.stack-0>*+*{margin-top:var(--space-0)}
-.stack-1>*+*{margin-top:var(--space-1)}
-.stack-2>*+*{margin-top:var(--space-2)}
-.stack-3>*+*{margin-top:var(--space-3)}
-.stack-4>*+*{margin-top:var(--space-4)}
+.stack-0>*+*{margin-top:var(--space-0)} .stack-1>*+*{margin-top:var(--space-1)}
+.stack-2>*+*{margin-top:var(--space-2)} .stack-3>*+*{margin-top:var(--space-3)} .stack-4>*+*{margin-top:var(--space-4)}
 
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad-l);padding:var(--space-3);box-shadow:var(--shadow)}
 .title-row{display:flex;align-items:center;gap:var(--space-1)}
@@ -65,7 +62,7 @@ summary::-webkit-details-marker{display:none}
 details[open] > summary.caret::before{transform:rotate(0deg)}
 .badge{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:#9ca3af}
 
-/* table-as-cards */
+/* جدول كبطاقات */
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border-top:1px solid var(--border);padding:8px;text-align:right;vertical-align:top}
 .table thead th{color:#94a3b8;font-weight:600}
@@ -85,7 +82,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
   border-inline-start:3px solid var(--tone-1);
 
   /* مساحة ثابتة للأزرار العمودية على اليمين */
-  padding:12px 56px 12px 12px;
+  padding:12px 56px 12px 12px;   /* 56px للعمود */
   min-height:160px;
 
   display:flex;
@@ -109,10 +106,10 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .mc-chips{ display:flex; gap:6px; flex-wrap:wrap; }
 .mc-chip{ padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:#0f1a2d; color:#cde3d7; font-size:11.5px; white-space:nowrap; }
 
-/* عمود الأزرار لبطاقة العضو */
+/* ——— أزرار بطاقة العضو: عمود يمين، منتصف البطاقة ——— */
 .mc-actions{
   position:absolute;
-  inset-inline-end:10px;
+  inset-inline-end:10px;  /* يمين */
   top:50%; transform:translateY(-50%);
   display:flex; flex-direction:column; gap:8px;
   align-items:center; justify-content:center;
@@ -124,10 +121,10 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 }
 .btn.icon svg{ width:17px; height:17px; stroke:#e5e7eb }
 
-/* ——— بطاقات الجمعيات ——— */
+/* ——— بطاقة الجمعية ——— */
 .jam-card{
   position:relative; overflow:hidden;
-  padding:12px 56px 12px 12px;     /* مساحة عمود الأزرار على اليمين */
+  padding:12px 56px 12px 12px; /* نفس حيلة المساحة لعمود الأزرار */
   display:flex;flex-direction:column;gap:6px;
   border:1px solid var(--border);border-radius:12px;background:var(--panel);
 }
@@ -141,7 +138,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
 .jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
 
-/* عمود الأزرار لبطاقة الجمعية — نفس ستايل الأعضاء */
+/* ——— أزرار بطاقة الجمعية: نفس ستايل الأعضاء ——— */
 .jam-actions{
   position:absolute;
   inset-inline-end:10px;
@@ -159,7 +156,6 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 /* تفاصيل */
 .details-header{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-2);flex-wrap:wrap}
 .details-header .meta{display:flex;gap:6px;color:#9ca3af;flex-wrap:wrap}
-.details-header #editBtn{ display:none !important; } /* إخفاء القلم القديم بالرأس */
 
 .alert{background:#2b0f14;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:10px}
 .subtoolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
@@ -196,7 +192,6 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .progress{ height:6px;border-radius:999px;background:#0b1424;border:1px solid var(--border);overflow:hidden;margin:6px 0 }
 .progress > span{display:block;height:100%;background:var(--accent)}
 .kpis{display:flex;gap:6px;flex-wrap:wrap}
-.kpis .badge{background:#0f1a2d;color:#a7f3d0;border-color:#14532d}
 .month-details{ margin-top:10px;padding:10px;border:1px solid var(--border); background:#0e1628;border-radius:12px }
 .month-details .md-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 
