@@ -1,4 +1,4 @@
-/* v2.3.6 — SVG icons + member card compact */
+/* v2.4.1 — Jamiyah card actions vertical right; member actions unchanged (CSS only) */
 
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
@@ -23,7 +23,6 @@ function monthLabel(startDate,offset){ const d=new Date(startDate); d.setMonth(d
 
 const PALETTE=["#22c55e","#16a34a","#2dd4bf","#60a5fa","#a78bfa","#f472b6","#f59e0b"];
 const colorForMonth=i=>PALETTE[(i-1)%PALETTE.length];
-const colorForIndex=idx=>PALETTE[idx%PALETTE.length];
 function colorFromStartDate(j){ try{const d=new Date(j.startDate);return PALETTE[d.getMonth()%PALETTE.length];}catch{return PALETTE[0];} }
 
 const normName = s => (s || '').toString().trim().replace(/\s+/g,' ').toLowerCase();
@@ -213,8 +212,14 @@ function renderList(){
     card.className='jam-card';
     card.style.borderInlineStart=`4px solid ${color}`;
     card.innerHTML=`
-      <button class="jam-open" data-id="${j.id}" title="فتح الجمعية" aria-label="فتح">${icons.eye}</button>
-      <button class="jam-edit" data-id="${j.id}" title="تعديل الجمعية" aria-label="تعديل">${icons.edit}</button>
+      <div class="jam-actions">
+        <button class="btn icon jam-open" data-id="${j.id}" title="فتح الجمعية" aria-label="فتح">
+          ${icons.eye}
+        </button>
+        <button class="btn icon jam-edit" data-id="${j.id}" title="تعديل الجمعية" aria-label="تعديل">
+          ${icons.edit}
+        </button>
+      </div>
       <div class="jam-head"><strong>${j.name}</strong></div>
       <div class="jam-lines">
         <div class="mc-row"><span class="mc-label">شهر البداية</span><span class="mc-sep">:</span><span class="mc-value">${monthLabel(j.startDate,1)}</span></div>
@@ -259,7 +264,7 @@ function openDetails(id){
 function badge(t){const s=document.createElement('span');s.className='badge';s.textContent=t;return s;}
 function computeOverdueMembers(j){ return (j.members||[]).filter(m=>{ensurePayments(j,m);return m.overdueCount>0;}).length; }
 
-/* ---------- Members (التغيير هنا) ---------- */
+/* ---------- Members ---------- */
 function renderMembers(j){
   const body=$('#memberTableBody'), empty=$('#emptyMembers'); body.innerHTML=''; const list=[...j.members];
   updateCounters(j);
@@ -284,20 +289,18 @@ function renderMembers(j){
     const tr=document.createElement('tr'); tr.dataset.memberId=m.id;
     const td=document.createElement('td'); td.colSpan=7;
 
-    /* ——— بطاقة مبسّطة ——— */
     td.innerHTML = `
       <div class="member-card" style="border-inline-start:3px solid ${colorForMonth(m.month)}">
-        <div class="mc-title">${m.name}</div>
-
         <div class="mc-rows">
+          <div class="mc-row"><span class="mc-label">الاسم</span><span class="mc-sep">:</span><span class="mc-value">${m.name}</span></div>
           <div class="mc-row"><span class="mc-label">المساهمة</span><span class="mc-sep">:</span><span class="mc-value">${fmtMoney(m.pay)} ريال</span></div>
           <div class="mc-row"><span class="mc-label">الاستحقاق الكلي</span><span class="mc-sep">:</span><span class="mc-value">${fmtMoney(m.entitlement)} ريال</span></div>
-          <div class="mc-row"><span class="mc-label">شهر الاستلام</span><span class="mc-sep">:</span><span class="mc-value mc-month">${monthLabel(j.startDate,m.month)}</span></div>
+          <div class="mc-row"><span class="mc-label">شهر الاستلام</span><span class="mc-sep">:</span><span class="mc-value">${monthLabel(j.startDate,m.month)}</span></div>
         </div>
 
         <div class="mc-chips">
           <span class="mc-chip">مدفوع: ${fmtMoney(paid)} ريال</span>
-          ${remainingMoney>0?`<span class="mc-chip ${m.overdueCount>0?'warn':''}">المتبقي: ${fmtMoney(remainingMoney)} ريال</span>`:''}
+          ${remainingMoney>0?`<span class="mc-chip">المتبقي: ${fmtMoney(remainingMoney)} ريال</span>`:''}
           <span class="mc-chip">(${m.paidCount} / ${j.duration})</span>
         </div>
 
@@ -369,8 +372,8 @@ function renderSchedule(j){
     tile.addEventListener('click',()=>{
       mdTitle.textContent=monthLabel(j.startDate,i);
       if(rec.length){
-        const listHtml = rec.map((m,idx) => `
-          <div class="md-card" style="border-inline-start:4px solid ${colorForIndex(idx)}">
+        const listHtml = rec.map((m) => `
+          <div class="md-card">
             <div class="mc-row"><span class="mc-label">الاسم</span><span class="mc-sep">:</span><span class="mc-value">${m.name}</span></div>
             <div class="mc-row"><span class="mc-label">الاستحقاق</span><span class="mc-sep">:</span><span class="mc-value">${fmtMoney(m.entitlement)} ريال</span></div>
           </div>`).join('');
@@ -385,7 +388,7 @@ function renderSchedule(j){
   updateCounters(j);
 }
 
-/* ---------- Add/Edit Member & Payments (نفس المنطق القديم) ---------- */
+/* ---------- Add/Edit Member & Payments ---------- */
 function openAddMemberModal(){
   const j = currentJamiyah();
   if(!j){ toast('افتح جمعية أولًا'); return; }
