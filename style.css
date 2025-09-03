@@ -1,4 +1,4 @@
-/* v2.3.9 — RTL, fixed member-card height, actions column on right center */
+/* v2.3.9 — RTL + بطاقات أعضاء مقاس ثابت + أزرار عمودية باليمين */
 
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
@@ -11,7 +11,7 @@
 
   --fz-base:13px; --fz-sub:12px; --fz-h1:18px; --fz-h2:15px;
 
-  --tone-1:#60a5fa;
+  --tone-1:#60a5fa; /* خط جانبي للبطاقة */
 }
 
 *{box-sizing:border-box}
@@ -19,46 +19,45 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
 body, table { text-align:right; }
 
-/* Typography */
+/* نصوص */
 .h1{margin:0;font-size:var(--fz-h1);font-weight:800;line-height:1.4}
 .h2{margin:0 0 var(--space-1);font-size:var(--fz-h2);font-weight:700;line-height:1.4}
 body, input, select, button{font-size:var(--fz-base);line-height:1.5}
 small.hint, .badge, .muted{font-size:var(--fz-sub);line-height:1.4}
 
+/* شريط علوي وحاويات */
 .app-bar{padding:var(--space-3);background:#0b1220;border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
 .container{max-width:980px;margin:var(--space-3) auto;padding:0 var(--space-3)}
-
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad-l);padding:var(--space-3);box-shadow:var(--shadow)}
 .title-row{display:flex;align-items:center;gap:var(--space-1)}
-.stack-2>*+*{margin-top:var(--space-2)}
 .stack-3>*+*{margin-top:var(--space-3)}
 
 .search{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--fg)}
 .select.small{padding:7px 9px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--fg)}
-
 .btn{padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:#fff;cursor:pointer;font-weight:600}
 .btn.primary{background:var(--accent);color:#08110a;border-color:transparent}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:#cbd5e1;cursor:pointer}
 
-/* Badges / Pills */
+/* Badges */
 .badge{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:#cbd5e1}
 .badge.subtle{background:var(--panel-2);color:#9ca3af}
 .pill{background:#0f2d1f;color:#a7f3d0;border:1px solid #14532d;padding:1px 8px;border-radius:999px}
 
-/* Sticky sub-toolbar */
+/* شريط فرعي */
 .subtoolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .sticky-sub{position:sticky;top:64px;background:#0e1628;padding:8px;border-radius:12px;border:1px solid var(--border);z-index:10}
 
-/* Table as cards */
+/* جدول كبطاقات */
 .table{width:100%;border-collapse:collapse}
 .table--cards thead{display:none}
 .table--cards tbody{display:flex;flex-direction:column;gap:10px}
 .table--cards tr{display:block;border:1px solid var(--border);border-radius:12px;background:var(--panel);position:relative;overflow:hidden}
+.table--cards td{display:block;padding:0;border-top:0}
 
-/* ===== MEMBER CARD INSIDE TR ===== */
+/* ===== بطاقة العضو داخل الصف ===== */
 .member-card{
-  /* grid rows: title(auto) + info(64) + chips(28) */
+  /* شبكة: عنوان (auto) + معلومات (64) + حبيبات (28) */
   display:grid;
   grid-template-rows:auto 64px 28px;
   gap:6px;
@@ -74,26 +73,26 @@ small.hint, .badge, .muted{font-size:var(--fz-sub);line-height:1.4}
   width:90px; opacity:.08; background:linear-gradient(90deg,transparent,transparent); pointer-events:none;
 }
 
-/* Title */
+/* عنوان البطاقة */
 .mc-title{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* Info rows */
+/* معلومات */
 .mc-rows{display:flex;flex-direction:column;gap:2px;justify-content:center;min-height:64px;max-height:64px;overflow:hidden}
 .mc-row{display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mc-label{color:#9fb0c8;font-weight:700;font-size:12px}
 .mc-sep{color:#9fb0c8}
 .mc-value{font-variant-numeric:tabular-nums}
 
-/* Chips (single line, clipped) */
+/* حبيبات — سطر واحد فقط */
 .mc-chips{display:flex;align-items:center;gap:6px;min-height:28px;max-height:28px;overflow:hidden;flex-wrap:nowrap}
 .mc-chip{flex:0 0 auto;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:#0f1a2d;color:#cde3d7;font-size:11.5px;white-space:nowrap}
 
-/* Actions — vertical column at right center */
+/* أزرار البطاقة — عمودي على الطرف اليمين وفي منتصف الارتفاع */
 .mc-actions{
   position:absolute;
   top:50%;
-  inset-inline-end:8px;            /* يمين */
-  transform:translateY(-50%);      /* في منتصف البطاقة عموديًا */
+  inset-inline-end:8px;
+  transform:translateY(-50%);
   display:flex;
   flex-direction:column;
   gap:8px;
@@ -101,7 +100,7 @@ small.hint, .badge, .muted{font-size:var(--fz-sub);line-height:1.4}
 .btn.icon{width:34px;height:34px;border-radius:8px;background:#334155;border-color:#2b3646;display:flex;align-items:center;justify-content:center}
 .btn.icon svg{width:17px;height:17px}
 
-/* Modal */
+/* نافذة */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:12px;z-index:100}
 .modal__card{width:min(720px,100%);background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;max-height:90vh}
 .modal__head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border)}
