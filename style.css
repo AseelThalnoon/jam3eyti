@@ -1,22 +1,25 @@
-/* v2.4.0 — Member actions vertical right/center; no JS changes */
+/* v2.4.1 — Jamiyah card actions vertical right; member actions vertical right; no JS changes */
 
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
   --card:#0b1220; --panel:#111827; --panel-2:#0e1628; --border:#1f2937;
   --accent:#22c55e; --blue:#3b82f6; --danger:#ef4444; --ghost:#0b1424;
   --shadow:0 6px 18px rgba(0,0,0,.32);
-  --space-0:4px; --space-1:6px; --space-2:8px; --space-3:10px; --space-4:14px;
+
+  --space-0:4px;  --space-1:6px;  --space-2:8px;  --space-3:10px;  --space-4:14px;
   --rad-s:10px; --rad-m:12px; --rad-l:14px;
+
   --fz-base:13px; --fz-sub:12px; --fz-h1:18px; --fz-h2:15px;
+
   --tone-1:#60a5fa;
 }
 
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
-body, table, .modal__card { text-align:right }
+body, table, .modal__card { text-align:right; }
 
-/* basics */
+/* عناوين */
 .h1{margin:0;font-size:var(--fz-h1);font-weight:800;line-height:1.4}
 .h2{margin:0 0 var(--space-1);font-size:var(--fz-h2);font-weight:700;line-height:1.4}
 small.hint,.error,.badge,.pill,.muted,.table thead th{font-size:var(--fz-sub);line-height:1.4}
@@ -25,8 +28,11 @@ small.hint,.error,.badge,.pill,.muted,.table thead th{font-size:var(--fz-sub);li
   position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
 .brand{display:flex;align-items:center;gap:var(--space-2)}
 .container{max-width:980px;margin:var(--space-3) auto;padding:0 var(--space-3)}
-.stack-0>*+*{margin-top:var(--space-0)} .stack-1>*+*{margin-top:var(--space-1)}
-.stack-2>*+*{margin-top:var(--space-2)} .stack-3>*+*{margin-top:var(--space-3)} .stack-4>*+*{margin-top:var(--space-4)}
+.stack-0>*+*{margin-top:var(--space-0)}
+.stack-1>*+*{margin-top:var(--space-1)}
+.stack-2>*+*{margin-top:var(--space-2)}
+.stack-3>*+*{margin-top:var(--space-3)}
+.stack-4>*+*{margin-top:var(--space-4)}
 
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad-l);padding:var(--space-3);box-shadow:var(--shadow)}
 .title-row{display:flex;align-items:center;gap:var(--space-1)}
@@ -70,7 +76,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 }
 #memberTableBody tr{ margin:6px 0; }
 
-/* ——— MEMBER CARD ——— */
+/* ——— بطاقة العضو ——— */
 .member-card{
   position:relative;
   border:1px solid var(--border);
@@ -79,7 +85,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
   border-inline-start:3px solid var(--tone-1);
 
   /* مساحة ثابتة للأزرار العمودية على اليمين */
-  padding:12px 56px 12px 12px;   /* 56px للعمود */
+  padding:12px 56px 12px 12px;
   min-height:160px;
 
   display:flex;
@@ -100,14 +106,13 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .mc-value{ font-size:13px; color:var(--fg); font-variant-numeric:tabular-nums; }
 .mc-month{ white-space:nowrap; }
 
-/* chips */
 .mc-chips{ display:flex; gap:6px; flex-wrap:wrap; }
 .mc-chip{ padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:#0f1a2d; color:#cde3d7; font-size:11.5px; white-space:nowrap; }
 
-/* ——— العمود العمودي للأزرار ——— */
+/* عمود الأزرار لبطاقة العضو */
 .mc-actions{
   position:absolute;
-  inset-inline-end:10px;  /* يمين */
+  inset-inline-end:10px;
   top:50%; transform:translateY(-50%);
   display:flex; flex-direction:column; gap:8px;
   align-items:center; justify-content:center;
@@ -119,9 +124,43 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 }
 .btn.icon svg{ width:17px; height:17px; stroke:#e5e7eb }
 
-/* details + misc */
+/* ——— بطاقات الجمعيات ——— */
+.jam-card{
+  position:relative; overflow:hidden;
+  padding:12px 56px 12px 12px;     /* مساحة عمود الأزرار على اليمين */
+  display:flex;flex-direction:column;gap:6px;
+  border:1px solid var(--border);border-radius:12px;background:var(--panel);
+}
+.jam-card>*{position:relative; z-index:1;}
+.jam-card::before{
+  content:""; position:absolute; inset-inline-end:0; inset-block:0;
+  width:86px; pointer-events:none; opacity:.10; z-index:0;
+  background: linear-gradient(270deg, currentColor, transparent);
+}
+.jam-card .jam-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-1)}
+.jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
+.jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
+
+/* عمود الأزرار لبطاقة الجمعية — نفس ستايل الأعضاء */
+.jam-actions{
+  position:absolute;
+  inset-inline-end:10px;
+  top:50%; transform:translateY(-50%);
+  display:flex; flex-direction:column; gap:8px;
+  align-items:center; justify-content:center;
+}
+.jam-actions .btn.icon{
+  width:34px; height:34px; border-radius:8px;
+  background:#334155; border:1px solid #2b3646;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.jam-actions .btn.icon svg{ width:17px; height:17px; stroke:#e5e7eb }
+
+/* تفاصيل */
 .details-header{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-2);flex-wrap:wrap}
 .details-header .meta{display:flex;gap:6px;color:#9ca3af;flex-wrap:wrap}
+.details-header #editBtn{ display:none !important; } /* إخفاء القلم القديم بالرأس */
+
 .alert{background:#2b0f14;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:10px}
 .subtoolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .sticky-sub{position:sticky;top:64px;background:#0e1628;padding:8px;border-radius:12px;border:1px solid var(--border);z-index:10}
@@ -129,10 +168,11 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .footer{text-align:center;color:#94a3b8;padding:26px 0}
 .toasts{position:fixed;inset-inline:12px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:50}
 .toast{background:#0e1628;border:1px solid var(--border);color:#fff;padding:10px;border-radius:12px;box-shadow:var(--shadow)}
+
 .hidden{display:none !important}
 [hidden]{display:none !important}
 
-/* modal */
+/* Modal */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:12px;z-index:100}
 .modal__card{width:min(720px,100%);background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;max-height:90vh}
 .modal__head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border)}
