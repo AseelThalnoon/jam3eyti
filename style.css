@@ -1,4 +1,4 @@
-/* v2.3.9 — RTL + بطاقات أعضاء مقاس ثابت + أزرار عمودية باليمين */
+/* v2.4.0 — RTL, بطاقات أعضاء ثابتة, أزرار عمودية يمين, ألوان متناسقة */
 
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
@@ -11,7 +11,7 @@
 
   --fz-base:13px; --fz-sub:12px; --fz-h1:18px; --fz-h2:15px;
 
-  --tone-1:#60a5fa; /* خط جانبي للبطاقة */
+  --tone-side:#60a5fa;
 }
 
 *{box-sizing:border-box}
@@ -22,90 +22,144 @@ body, table { text-align:right; }
 /* نصوص */
 .h1{margin:0;font-size:var(--fz-h1);font-weight:800;line-height:1.4}
 .h2{margin:0 0 var(--space-1);font-size:var(--fz-h2);font-weight:700;line-height:1.4}
-body, input, select, button{font-size:var(--fz-base);line-height:1.5}
-small.hint, .badge, .muted{font-size:var(--fz-sub);line-height:1.4}
+small.hint, .error, .badge, .muted{font-size:var(--fz-sub);line-height:1.4}
+.error{color:#fda4af}
+.error:empty{display:none}
 
-/* شريط علوي وحاويات */
+/* شريط علوي */
 .app-bar{padding:var(--space-3);background:#0b1220;border-bottom:1px solid var(--border);
-  position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:var(--space-2)}
+.brand{display:flex;align-items:center;gap:8px}
+.logo{width:28px;height:28px;border-radius:8px;display:inline-grid;place-items:center;background:var(--accent);color:#08110a;font-weight:900}
+
+/* حاويات */
 .container{max-width:980px;margin:var(--space-3) auto;padding:0 var(--space-3)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad-l);padding:var(--space-3);box-shadow:var(--shadow)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad-l);
+  padding:var(--space-3);box-shadow:var(--shadow)}
 .title-row{display:flex;align-items:center;gap:var(--space-1)}
 .stack-3>*+*{margin-top:var(--space-3)}
 
+/* إدخالات */
+label{display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+input,select{padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--fg)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.grid{grid-template-columns:1fr}}
+
 .search{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--fg)}
-.select.small{padding:7px 9px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--fg)}
+
+/* أزرار */
 .btn{padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:#fff;cursor:pointer;font-weight:600}
 .btn.primary{background:var(--accent);color:#08110a;border-color:transparent}
+.btn.secondary{background:var(--blue);color:#081018;border-color:transparent}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:#cbd5e1;cursor:pointer}
+.fab{position:fixed; inset-inline-end:14px; inset-block-end:82px; width:52px; height:52px; border-radius:50%; border:none; cursor:pointer; background:#22c55e; color:#0b1220; font-size:26px; line-height:52px; box-shadow:0 10px 20px rgba(0,0,0,.32); display:none; z-index:60;}
+@media (max-width:768px){ .fab{display:inline-block} }
 
-/* Badges */
+/* شارات وكبسولات */
 .badge{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:#cbd5e1}
 .badge.subtle{background:var(--panel-2);color:#9ca3af}
 .pill{background:#0f2d1f;color:#a7f3d0;border:1px solid #14532d;padding:1px 8px;border-radius:999px}
 
-/* شريط فرعي */
-.subtoolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-.sticky-sub{position:sticky;top:64px;background:#0e1628;padding:8px;border-radius:12px;border:1px solid var(--border);z-index:10}
+/* collapsible */
+.collapsible{border:1px solid var(--border);border-radius:12px;background:#0e1628}
+.collapsible > summary{list-style:none;cursor:pointer;padding:10px;color:#d1d5db;display:flex;align-items:center;gap:8px;border-bottom:1px solid transparent;font-weight:800}
+.collapsible[open] > summary{border-bottom-color:var(--border)}
+.collapsible .content{padding:10px}
+summary::-webkit-details-marker{display:none}
+.caret::before{content:"▸";display:inline-block;transform:rotate(-90deg);transition:transform .15s}
+details[open] > summary.caret::before{transform:rotate(0deg)}
+.members-summary .spacer{flex:1}
 
-/* جدول كبطاقات */
+/* قائمة */
+.list{display:flex;flex-direction:column;gap:10px}
+
+/* بطاقة جمعية */
+.j-card{
+  position:relative; border:1px solid var(--border); border-radius:12px; background:var(--panel);
+  padding:12px; display:flex; flex-direction:column; gap:8px;
+}
+.j-card .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.j-card .title{font-weight:800}
+.j-card .chips{display:flex;gap:6px;flex-wrap:wrap}
+.j-card .open, .j-card .edit{
+  width:34px;height:34px;border-radius:8px;display:inline-grid;place-items:center;background:#334155;border:1px solid #2b3646;color:#e5e7eb;
+}
+.j-card .open svg, .j-card .edit svg{width:18px;height:18px}
+
+/* جدول كبطاقات أعضاء */
 .table{width:100%;border-collapse:collapse}
 .table--cards thead{display:none}
 .table--cards tbody{display:flex;flex-direction:column;gap:10px}
 .table--cards tr{display:block;border:1px solid var(--border);border-radius:12px;background:var(--panel);position:relative;overflow:hidden}
 .table--cards td{display:block;padding:0;border-top:0}
 
-/* ===== بطاقة العضو داخل الصف ===== */
+/* ===== بطاقة العضو ===== */
 .member-card{
-  /* شبكة: عنوان (auto) + معلومات (64) + حبيبات (28) */
+  /* شبكة: عنوان + معلومات + حبيبات */
   display:grid;
   grid-template-rows:auto 64px 28px;
   gap:6px;
   padding:12px 56px 12px 12px;   /* مساحة يمين للأزرار العمودية */
-  border-inline-start:3px solid var(--tone-1);
+  border-inline-start:3px solid var(--tone-side);
 
-  height:148px; min-height:148px; max-height:148px; /* موحّد */
+  height:148px; min-height:148px; max-height:148px;
   overflow:hidden;
 }
-.member-card>*{position:relative; z-index:1;}
-.member-card::before{
-  content:""; position:absolute; inset-block:0; inset-inline-start:0;
-  width:90px; opacity:.08; background:linear-gradient(90deg,transparent,transparent); pointer-events:none;
-}
-
-/* عنوان البطاقة */
 .mc-title{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-/* معلومات */
 .mc-rows{display:flex;flex-direction:column;gap:2px;justify-content:center;min-height:64px;max-height:64px;overflow:hidden}
 .mc-row{display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mc-label{color:#9fb0c8;font-weight:700;font-size:12px}
 .mc-sep{color:#9fb0c8}
 .mc-value{font-variant-numeric:tabular-nums}
-
-/* حبيبات — سطر واحد فقط */
 .mc-chips{display:flex;align-items:center;gap:6px;min-height:28px;max-height:28px;overflow:hidden;flex-wrap:nowrap}
 .mc-chip{flex:0 0 auto;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:#0f1a2d;color:#cde3d7;font-size:11.5px;white-space:nowrap}
 
-/* أزرار البطاقة — عمودي على الطرف اليمين وفي منتصف الارتفاع */
+/* أزرار البطاقة — عمودي يمين وفي منتصف الارتفاع */
 .mc-actions{
   position:absolute;
   top:50%;
   inset-inline-end:8px;
   transform:translateY(-50%);
-  display:flex;
-  flex-direction:column;
-  gap:8px;
+  display:flex;flex-direction:column;gap:8px;
 }
-.btn.icon{width:34px;height:34px;border-radius:8px;background:#334155;border-color:#2b3646;display:flex;align-items:center;justify-content:center}
+.btn.icon{width:34px;height:34px;border-radius:8px;background:#334155;border:1px solid #2b3646;display:flex;align-items:center;justify-content:center}
 .btn.icon svg{width:17px;height:17px}
 
-/* نافذة */
+/* شبكة الأشهر */
+.month-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+@media (max-width:900px){ .month-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:520px){ .month-grid{grid-template-columns:1fr;} }
+.month-tile{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:10px; cursor:pointer; }
+.month-tile .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.progress{ height:6px;border-radius:999px;background:#0b1424;border:1px solid var(--border);overflow:hidden;margin:6px 0 }
+.progress > span{display:block;height:100%;background:var(--accent)}
+.kpis{display:flex;gap:6px;flex-wrap:wrap}
+.kpis .badge{background:#0f1a2d;color:#a7f3d0;border-color:#14532d}
+.month-details{ margin-top:10px;padding:10px;border:1px solid var(--border); background:#0e1628;border-radius:12px }
+.month-details .md-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+
+/* شبكة مدفوعات */
+.pay-grid{display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center}
+.pay-grid .cell{padding:8px;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
+.pay-grid .month{font-weight:700}
+.pay-grid input[type="number"]{width:96px}
+
+/* نافذة ومساعدات */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:12px;z-index:100}
 .modal__card{width:min(720px,100%);background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;max-height:90vh}
 .modal__head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border)}
 .modal__body{padding:10px 12px;overflow:auto}
 .modal__foot{display:flex;gap:8px;justify-content:flex-end;padding:10px 12px;border-top:1px solid var(--border)}
 
+.alert{background:#2b0f14;border:1px solid #7f1d1d;color:#fecaca;padding:8px;border-radius:10px}
+.empty{text-align:center;color:var(--muted);padding:12px;border:1px dashed var(--border);border-radius:12px;background:#0b1424}
+
 .footer{text-align:center;color:#94a3b8;padding:26px 0}
 .hidden{display:none !important}
+
+/* طباعة PDF */
+@media print{
+  .app-bar,.footer,.fab,.modal,.subtoolbar,.icon-btn,.btn{display:none !important}
+  body{background:#fff;color:#000}
+  .card,.collapsible,.j-card,.member-card{border-color:#ccc;box-shadow:none}
+}
