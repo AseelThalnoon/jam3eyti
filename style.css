@@ -1,4 +1,4 @@
-/* v2.3.6 — Member card compact + SVG icons + gradients fixed */
+/* v2.3.7 — Member card fixed height + centered actions, SVG icons, gradients tuned */
 
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
@@ -105,7 +105,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 /* إخفاء زر القلم القديم داخل رأس التفاصيل */
 .details-header #editBtn{ display:none !important; }
 
-/* ——— بطاقات الأعضاء — نسخة مبسّطة ——— */
+/* ——— بطاقات الأعضاء — نسخة مبسّطة وثابتة الارتفاع ——— */
 .member-card{
   position:relative;
   display:flex; flex-direction:column; gap:6px;
@@ -115,6 +115,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
   background:var(--panel);
   box-shadow:none;
   border-inline-start:3px solid var(--tone-1);
+  min-height:160px;              /* ← توحيد ارتفاع البطاقات */
 }
 .member-card>*{position:relative; z-index:1;}
 .member-card::before{
@@ -129,16 +130,23 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 /* العنوان */
 .mc-title{ font-size:14px; font-weight:800; color:var(--fg); display:flex; align-items:center; justify-content:space-between; }
 
-/* الأسطر */
-.mc-rows{ display:flex; flex-direction:column; gap:2px; }
+/* الأسطر — ارتفاع ثابت حتى لا يتبدّل حجم البطاقة */
+.mc-rows{
+  display:flex; flex-direction:column; gap:2px;
+  min-height:64px;               /* مساهمة + استحقاق + شهر الاستلام */
+  justify-content:center;
+}
 .mc-row{ display:flex; gap:6px; align-items:center; white-space:nowrap; }
 .mc-label{ color:var(--muted); font-weight:700; font-size:12px; }
 .mc-sep{ color:var(--muted) }
 .mc-value{ font-size:13px; color:var(--fg); font-variant-numeric:tabular-nums; }
 .mc-month{ white-space:nowrap; }
 
-/* الحبيبات */
-.mc-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
+/* الحبيبات — ارتفاع ثابت */
+.mc-chips{
+  display:flex; flex-wrap:wrap; gap:6px; margin-top:2px;
+  min-height:28px; align-items:center;
+}
 .mc-chip{
   padding:2px 8px; border-radius:999px;
   border:1px solid var(--border); background:#0f1a2d; color:#cde3d7;
@@ -146,8 +154,15 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 }
 .mc-chip.warn{ background:#3a1a1a; color:#fecaca; border-color:#7f1d1d; }
 
-/* الأفعال صغيرة وموحّدة */
-.mc-actions{ display:flex; gap:8px; justify-content:flex-start; margin-top:6px; }
+/* الأفعال — مصفوفة في الوسط دائماً */
+.mc-actions{
+  min-height:40px;
+  display:flex;
+  justify-content:center;        /* وسط أفقي */
+  align-items:center;            /* وسط عمودي */
+  margin-top:6px;
+  gap:8px;
+}
 .btn.icon{ width:34px; height:34px; border-radius:8px; background:#334155; border-color:#2b3646; }
 .btn.icon svg{ width:17px; height:17px; }
 
