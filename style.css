@@ -1,4 +1,4 @@
-/* v2.4 — توحيد تصميم كل البطاقات + SVG + gradient ثابت */
+/* v2.3.5 — SVG icons + gradient خلف المحتوى بدون تداخل مع النص */
 
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
@@ -17,7 +17,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
-body, table, .modal__card { text-align:right; }
+body, table, .member-card, .modal__card { text-align:right; }
 
 /* عناوين */
 .h1{margin:0;font-size:var(--fz-h1);font-weight:800;line-height:1.4}
@@ -58,53 +58,81 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .btn.ghost{background:#0b1424;color:#cbd5e1}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:#cbd5e1;cursor:pointer;font-size:12px}
 
-/* ====== البطاقة الموحدة لكل القوائم (أعضاء/جمعيات/مستلمون) ====== */
-.card-unified{
-  position:relative;overflow:hidden;
-  display:flex;flex-direction:column;gap:8px;
-  padding:10px 12px;border:1px solid var(--border);
-  border-radius:12px;background:var(--panel);
-}
-.card-unified>*{position:relative;z-index:1}
-.card-unified::before{ /* gradient موحّد */
-  content:"";position:absolute;inset-inline-end:0;inset-block:0;
-  width:64px;opacity:.08;pointer-events:none;z-index:0;
-  background:linear-gradient(270deg,currentColor,transparent);
-}
-.cu-head{display:flex;align-items:center;gap:8px;justify-content:space-between}
-.cu-title{font-weight:800}
-.cu-badge{background:#0f1a2d;color:#a7f3d0;border:1px solid #14532d;
-  padding:2px 8px;border-radius:999px;font-size:11.5px;white-space:nowrap}
-.cu-meta{display:flex;gap:12px;flex-wrap:wrap}
-.cu-meta .item{display:flex;gap:6px;align-items:center;color:var(--muted)}
-.cu-meta .val{color:var(--fg);font-variant-numeric:tabular-nums;white-space:nowrap}
-.cu-progress{height:6px;border-radius:999px;background:#0b1424;border:1px solid var(--border);overflow:hidden}
-.cu-progress>span{display:block;height:100%;background:var(--accent)}
-.cu-chips{display:flex;gap:6px;flex-wrap:wrap}
-.cu-chip{background:#0f1a2d;color:#a7f3d0;border:1px solid #14532d;
-  padding:2px 8px;border-radius:999px;font-size:11.5px;white-space:nowrap}
-.cu-actions{display:flex;gap:8px;justify-content:flex-end}
-.btn.icon{width:36px;height:36px;border-radius:9px;background:#334155;color:#e5e7eb;border-color:#2b3646}
-.btn.icon svg{width:18px;height:18px;stroke:currentColor}
-.card-unified:hover{box-shadow:0 10px 24px rgba(0,0,0,.24)}
+.list{display:flex;flex-direction:column;gap:var(--space-2)}
 
-/* خرسانة الفئات القديمة لترابط الكود */
-.member-card{ composes: card-unified; }
-.jam-card   { composes: card-unified; }
-.md-card    { composes: card-unified; }
+/* ——— بطاقات “المستلمون” (مرجع التصميم) ——— */
+.md-card{
+  position:relative; overflow:hidden;
+  display:flex; flex-direction:column; gap:4px;
+  padding:8px 10px; border:1px solid var(--border);
+  border-radius:12px; background:var(--panel);
+}
+.md-card>*{position:relative; z-index:1;}
+.md-card::before{
+  content:""; position:absolute; inset-inline-end:0; inset-block:0;
+  width:86px; pointer-events:none; opacity:.10; z-index:0;
+  background: linear-gradient(270deg, currentColor, transparent);
+}
 
-/* أزرار بطاقة الجمعية (فتح/تعديل) */
+/* ——— بطاقات الجمعيات — موحّدة مع تصميم md-card ——— */
+.jam-card{
+  position:relative; overflow:hidden;
+  padding:8px 10px;
+  display:flex;flex-direction:column;gap:6px;
+  border:1px solid var(--border);border-radius:12px;background:var(--panel);
+}
+.jam-card>*{position:relative; z-index:1;}
+.jam-card::before{
+  content:""; position:absolute; inset-inline-end:0; inset-block:0;
+  width:86px; pointer-events:none; opacity:.10; z-index:0;
+  background: linear-gradient(270deg, currentColor, transparent);
+}
+.jam-card .jam-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-1)}
+.jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
+.jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
+
+/* أزرار بطاقة الجمعية */
 .jam-open,.jam-edit{
   position:absolute; top:12px;
-  width:36px; height:36px; border-radius:9px;
+  width:40px; height:40px; border-radius:9px;
   background:#334155; color:#e5e7eb; border:1px solid #2b3646;
   cursor:pointer; display:flex;align-items:center;justify-content:center;
 }
 .jam-open{ inset-inline-end:12px; }
-.jam-edit{ inset-inline-end:54px; }
+.jam-edit{ inset-inline-end:56px; }
 .jam-open svg, .jam-edit svg{ width:18px; height:18px; stroke:currentColor; }
 
-/* باقي المكوّنات العامة */
+/* إخفاء زر القلم القديم داخل رأس تفاصيل الجمعية */
+.details-header #editBtn{ display:none !important; }
+
+/* ——— بطاقات الأعضاء — موحّدة مع تصميم md-card ——— */
+.member-card{
+  position:relative; overflow:hidden;
+  display:flex; flex-direction:column; gap:6px;
+  padding:8px 10px; border:1px solid var(--border);
+  border-radius:12px; background:var(--panel);
+}
+.member-card>*{position:relative; z-index:1;}
+.member-card::before{
+  content:""; position:absolute; inset-inline-end:0; inset-block:0;
+  width:86px; pointer-events:none; opacity:.10; z-index:0;
+  background: linear-gradient(270deg, currentColor, transparent);
+}
+.mc-line{ display:flex; align-items:center; gap:6px; justify-content:flex-start; }
+.mc-label{ color:var(--muted); font-weight:800; font-size:12.5px; }
+.mc-sep{ color:var(--muted) }
+.mc-value{ color:var(--fg); }
+.mc-money{ font-variant-numeric:tabular-nums; white-space:nowrap; }
+.mc-month{ white-space:nowrap; }
+.mc-chips{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-start; }
+.mc-chip{ background:#0f1a2d; color:#a7f3d0; border:1px solid #14532d; padding:1px 7px; border-radius:999px; font-size:11.5px; white-space:nowrap; }
+.mc-actions{ display:flex; gap:6px; justify-content:center; }
+.member-card .btn{ padding:7px 10px; border-radius:9px; }
+.btn.icon{ width:40px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:#334155; color:#e5e7eb; border-color:#2b3646; }
+.btn.icon:hover{ filter:brightness(1.06); }
+.btn.icon svg{ width:18px; height:18px; stroke:currentColor; }
+
+/* جدول/بطاقات */
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border-top:1px solid var(--border);padding:8px;text-align:right;vertical-align:top}
 .table thead th{color:var(--muted);font-weight:600}
