@@ -8,17 +8,14 @@
 </head>
 <body>
 
-  <!-- شريط علوي -->
+  <!-- الشريط العلوي -->
   <header class="app-bar">
-    <div class="brand">
-      <strong class="h1">جمعيتي</strong>
-    </div>
+    <div class="brand"><strong class="h1">جمعيتي</strong></div>
     <input class="search" type="search" placeholder="...ابحث عن جمعية بالاسم" />
   </header>
 
   <main class="container stack-3">
-
-    <!-- عرض ملخص الجمعية المفتوحة -->
+    <!-- ملخص الجمعية المفتوحة (عرض تجريبي) -->
     <section class="card">
       <div class="kpis">
         <span class="badge subtle">October 2025</span>
@@ -26,36 +23,32 @@
         <span class="badge subtle">مبلغ الجمعية: 30,000 ريال</span>
       </div>
 
-      <div class="stack-2" style="margin-top:10px;">
+      <div class="stack-3" style="margin-top:10px;">
         <div class="title-row">
           <h2 class="h2">الأعضاء</h2>
           <span class="pill">9</span>
         </div>
 
-        <!-- فلاتر مبسطة -->
+        <!-- فلاتر (واجهة فقط) -->
         <div class="subtoolbar sticky-sub">
           <div class="select small">ترتيب: بالشهر</div>
           <div class="select small">الكل</div>
         </div>
 
-        <!-- قائمة الأعضاء كبدائل بطاقات -->
+        <!-- جدول كبطاقات -->
         <table class="table table--cards" id="memberTable">
-          <tbody id="memberTableBody">
-            <!-- تمتلئ عبر JS — أمثلة أولية ثابتة لتشوف الشكل -->
-          </tbody>
+          <tbody id="memberTableBody"><!-- يُملأ من app.js --></tbody>
         </table>
-
       </div>
     </section>
   </main>
 
-  <!-- نافذة مدفوعات (شكل فقط) -->
+  <!-- نافذة دفعات -->
   <div class="modal hidden" id="payModal" aria-hidden="true">
     <div class="modal__card">
       <div class="modal__head">
         <div class="h2">دفعات العضو</div>
-        <button class="icon-btn" id="closePayModal" title="إغلاق" aria-label="إغلاق">
-          <!-- X -->
+        <button class="icon-btn" id="closePayModal" aria-label="إغلاق">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M6 6l12 12M18 6L6 18"/>
           </svg>
@@ -70,6 +63,7 @@
     </div>
   </div>
 
+  <div class="toasts"></div>
   <footer class="footer">v2.3.9 · © Aseel Thalnoon</footer>
 
   <script src="app.js"></script>
