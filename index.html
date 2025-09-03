@@ -7,64 +7,161 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-  <!-- الشريط العلوي -->
+  <!-- شريط علوي -->
   <header class="app-bar">
-    <div class="brand"><strong class="h1">جمعيتي</strong></div>
-    <input class="search" type="search" placeholder="...ابحث عن جمعية بالاسم" />
+    <div class="brand">
+      <span class="logo">ج</span>
+      <strong class="h1">جمعيتي</strong>
+    </div>
+    <input id="searchInput" class="search" type="search" placeholder="...ابحث عن جمعية بالاسم" />
   </header>
 
   <main class="container stack-3">
-    <!-- ملخص الجمعية المفتوحة (عرض تجريبي) -->
-    <section class="card">
-      <div class="kpis">
-        <span class="badge subtle">October 2025</span>
-        <span class="badge subtle">المدة: 6 شهر</span>
-        <span class="badge subtle">مبلغ الجمعية: 30,000 ريال</span>
+
+    <!-- إنشاء جمعية جديدة -->
+    <section class="card stack-3" id="createSection">
+      <div class="h2">إنشاء جمعية جديدة</div>
+      <div class="grid">
+        <label>
+          اسم الجمعية
+          <input id="jamName" type="text" placeholder="مثال: زواج" />
+        </label>
+        <label>
+          مبلغ الجمعية (ريال)
+          <input id="jamAmount" type="number" placeholder="30000" min="1" />
+          <small class="hint">هذا هو سقف الصرف الشهري المتاح للمستلمين.</small>
+        </label>
+        <label>
+          مدة الجمعية (بالشهور)
+          <select id="jamMonths"></select>
+        </label>
+        <label>
+          شهر البداية
+          <select id="jamStartMonth"></select>
+          <small class="hint">دايمًا يبدأ يوم 1 من الشهر.</small>
+        </label>
       </div>
-
-      <div class="stack-3" style="margin-top:10px;">
-        <div class="title-row">
-          <h2 class="h2">الأعضاء</h2>
-          <span class="pill">9</span>
-        </div>
-
-        <!-- فلاتر (واجهة فقط) -->
-        <div class="subtoolbar sticky-sub">
-          <div class="select small">ترتيب: بالشهر</div>
-          <div class="select small">الكل</div>
-        </div>
-
-        <!-- جدول كبطاقات -->
-        <table class="table table--cards" id="memberTable">
-          <tbody id="memberTableBody"><!-- يُملأ من app.js --></tbody>
-        </table>
+      <div class="row">
+        <button id="createBtn" class="btn primary">إنشاء</button>
+        <button id="clearCreate" class="btn">مسح</button>
+        <span id="createErr" class="error"></span>
       </div>
     </section>
+
+    <!-- قائمة الجمعيات -->
+    <section class="card stack-3">
+      <div class="title-row">
+        <div class="h2">الجمعيات</div>
+        <span id="jamCount" class="pill">0</span>
+      </div>
+      <div id="jamList" class="list"></div>
+    </section>
+
+    <!-- تفاصيل الجمعية المفتوحة -->
+    <section id="detailsSection" class="card stack-3 hidden">
+      <div class="details-header">
+        <div class="jam-meta kpis" id="jamMeta"></div>
+        <div class="jam-actions">
+          <button id="exportPdf" class="btn secondary">تصدير PDF</button>
+          <button id="exportJson" class="btn">تصدير JSON</button>
+        </div>
+      </div>
+
+      <!-- تبويبات: أعضاء / جدول شهري -->
+      <details id="membersPanel" class="collapsible" open>
+        <summary class="caret members-summary">
+          <span class="h2">الأعضاء</span>
+          <span class="spacer"></span>
+          <span class="pill" id="memberCount">0</span>
+          <button id="addMemberFab" class="fab" title="إضافة">+</button>
+        </summary>
+
+        <!-- أدوات -->
+        <div class="content">
+          <div class="subtoolbar">
+            <select id="filterPaid" class="select small">
+              <option value="all">الكل</option>
+              <option value="paid">مدفوع بالكامل</option>
+              <option value="unpaid">غير مدفوع</option>
+            </select>
+            <select id="sortMode" class="select small">
+              <option value="byMonth">ترتيب: بالشهر</option>
+              <option value="byName">ترتيب: بالاسم</option>
+            </select>
+          </div>
+
+          <table class="table table--cards" id="memberTable">
+            <tbody id="memberTableBody"></tbody>
+          </table>
+          <div id="membersEmpty" class="empty hidden">لا يوجد أعضاء بعد.</div>
+        </div>
+      </details>
+
+      <details id="schedulePanel" class="collapsible">
+        <summary class="caret"><span class="h2">الجدول الشهري</span></summary>
+        <div class="content">
+          <div id="monthsGrid" class="month-grid"></div>
+          <div id="monthDetails" class="month-details hidden"></div>
+        </div>
+      </details>
+    </section>
   </main>
+
+  <!-- نافذة إضافة/تعديل عضو -->
+  <div class="modal hidden" id="memberModal" aria-hidden="true">
+    <div class="modal__card">
+      <div class="modal__head">
+        <div class="h2" id="memberModalTitle">إضافة عضو</div>
+        <button class="icon-btn" id="closeMemberModal" aria-label="إغلاق">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="grid">
+          <label>اسم العضو
+            <input id="mName" type="text" />
+            <small id="mNameErr" class="error"></small>
+          </label>
+          <label>المساهمة الشهرية (ريال)
+            <input id="mContrib" type="number" min="1" />
+            <small id="mContribErr" class="error"></small>
+          </label>
+          <label>شهر الاستلام
+            <select id="mMonth"></select>
+            <small id="mMonthHint" class="hint"></small>
+          </label>
+        </div>
+        <div id="mGlobalErr" class="alert hidden"></div>
+      </div>
+      <div class="modal__foot">
+        <button id="saveMember" class="btn primary">حفظ</button>
+      </div>
+    </div>
+  </div>
 
   <!-- نافذة دفعات -->
   <div class="modal hidden" id="payModal" aria-hidden="true">
     <div class="modal__card">
       <div class="modal__head">
-        <div class="h2">دفعات العضو</div>
+        <div class="h2" id="payTitle">دفعات العضو</div>
         <button class="icon-btn" id="closePayModal" aria-label="إغلاق">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M6 6l12 12M18 6L6 18"/>
-          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
       </div>
       <div class="modal__body">
-        <div class="alert">عرض تجريبي للمدفوعات…</div>
+        <div id="payGrid" class="pay-grid"></div>
       </div>
       <div class="modal__foot">
-        <button class="btn primary" id="savePayments">حفظ</button>
+        <button id="markAllPaid" class="btn">تحديد كل الأشهر مدفوعة</button>
+        <button id="clearAllMarks" class="btn">مسح كل العلامات</button>
+        <span class="spacer"></span>
+        <button id="savePayments" class="btn primary">حفظ</button>
       </div>
     </div>
   </div>
 
   <div class="toasts"></div>
-  <footer class="footer">v2.3.9 · © Aseel Thalnoon</footer>
+  <footer class="footer">v2.4.0 · © Aseel Thalnoon</footer>
 
   <script src="app.js"></script>
 </body>
