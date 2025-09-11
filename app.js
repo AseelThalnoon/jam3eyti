@@ -88,7 +88,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   $('#jamiyahForm')?.addEventListener('submit',onCreateJamiyah);
   $('#search')?.addEventListener('input',e=>{const f=(e.target.value||'').trim(); state.filter=f; renderList();});
-
+$('#importBtn')?.addEventListener('click', () => $('#importFile')?.click());
+$('#importFile')?.addEventListener('change', onImportJson);
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal')); hide($('#editMemberModal')); hide($('#monthDetails')); }});
 
   $('#mFilter')?.addEventListener('change', e=>{ state.memberFilter = e.target.value || 'all'; const j=currentJamiyah(); if(j) renderMembers(j); });
@@ -585,6 +586,54 @@ function exportJson(){
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   toast('تم تنزيل نسخة JSON احتياطية');
 }
+function onImportJson(e){
+  const input = e.target;
+  const file  = input?.files && input.files[0];
+  const resetInput = () => { if(input) input.value = ''; };
+
+  if(!file){ resetInput(); return; }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result || '[]');
+      if(!Array.isArray(data)){
+        toast('الملف غير صالح: يجب أن يكون JSON لمصفوفة جمعيات');
+        resetInput(); return;
+      }
+
+      // نسخ احتياطي قبل الاستبدال
+      const current = safeSerialize(state.jamiyahs);
+      if(current){ localStorage.setItem(KEY_BACKUP, current); }
+
+      // استبدال البيانات
+      state.jamiyahs = data;
+
+      // تصحيح وسلامة الحقول
+      state.jamiyahs.forEach(j=>{
+        j.members = Array.isArray(j.members) ? j.members : [];
+        j.members.forEach(m=>{
+          if(!Array.isArray(m.payments)) m.payments = [];
+          ensurePayments(j, m);
+        });
+      });
+
+      saveAll();
+      renderList();
+      if(state.jamiyahs.length){ openDetails(state.jamiyahs[0].id); }
+
+      toast('تم الاستيراد بنجاح');
+    }catch(err){
+      console.error(err);
+      toast('تعذّر قراءة الملف. تأكد من صحة JSON');
+    }finally{
+      resetInput();
+    }
+  };
+  reader.onerror = () => { toast('فشل قراءة الملف'); resetInput(); };
+  reader.readAsText(file);
+}
+
 function restoreFromBackup(){
   const backup=readKey(KEY_BACKUP)||(readKey(KEY_AUTOSAVE)||{}).data;
   if(Array.isArray(backup)&&backup.length){
