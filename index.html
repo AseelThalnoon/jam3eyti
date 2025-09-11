@@ -10,9 +10,9 @@
   <link rel="stylesheet" href="style.css?v=2.3.3" />
   <script src="app.js?v=2.3.3" defer></script>
 
-  <!-- تصحيح حجم أزرار الأيقونات فقط -->
+  <!-- تصحيح: تثبيت حجم أزرار الأيقونة (فتح/تعديل الجمعية وغيرها) -->
   <style>
-    /* أي زر أيقونة (سواء استُخدم له .icon-btn أو .btn.icon) */
+    /* زر أيقونة عام */
     .icon-btn,
     .btn.icon{
       width:34px;
@@ -22,17 +22,23 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      border-radius:10px; /* مطابق لأزرارك */
+      border-radius:8px;
     }
-    /* قياس الأيقونة داخل الزر (SVG أو IMG) */
+    /* الأيقونة داخل الزر (SVG/IMG) */
     .icon-btn svg, .btn.icon svg,
     .icon-btn img, .btn.icon img{
       width:18px;
       height:18px;
-      display:block; /* يمنع الفراغات كـ inline */
+      display:block;
     }
-    /* في حال كان هناك قواعد سابقة تكبر الـSVG إلى 100%—نلغيها */
-    .icon-btn svg, .btn.icon svg { max-width:none; max-height:none; }
+    /* مجموعة أزرار بطاقة الجمعية إن كنت تولّدها من JS */
+    .jamiyah-actions{
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+    .jamiyah-actions .icon-btn{ background:#1e293b; } /* نفس ستايلك الداكن */
+    .jamiyah-actions .icon-btn svg{ fill:#3b82f6; }   /* الأزرق المتناسق */
   </style>
 </head>
 <body>
@@ -110,6 +116,7 @@
         <div class="stack-0">
           <div class="title-row">
             <h2 id="d-title" class="h2"></h2>
+            <!-- زر تعديل الجمعية أيقونة صغيرة ثابتة -->
             <button id="editBtn" class="icon-btn" title="تعديل الجمعية" aria-label="تعديل الجمعية">✏️</button>
           </div>
           <div class="meta" id="d-meta"></div>
@@ -117,7 +124,7 @@
         <div class="details-ops">
           <button class="btn secondary" id="exportBtn">تصدير PDF</button>
           <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">تصدير JSON</button>
-          <!-- قد تكون أضفت زر الاستيراد هنا لاحقاً -->
+          <!-- إن كنت أضفت زر الاستيراد سابقاً يبقى هنا -->
           <!-- <button class="btn" id="importBtn" title="استيراد JSON">استيراد</button>
           <input id="importFile" type="file" accept="application/json" hidden /> -->
         </div>
