@@ -58,6 +58,9 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .btn.ghost{background:#0b1424;color:#cbd5e1}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:#cbd5e1;cursor:pointer;font-size:12px}
 
+/* المسافة البسيطة لأيقونة فتح بجانب عدّاد الجمعيات */
+.section-title #importBtn{ margin-inline-start:6px; }
+
 .list{display:flex;flex-direction:column;gap:var(--space-2)}
 
 /* ——— بطاقات المستلمون (مرجع) ——— */
