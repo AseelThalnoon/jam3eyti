@@ -106,21 +106,29 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 .mc-chips{ display:flex; gap:6px; flex-wrap:wrap; }
 .mc-chip{ padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:#0f1a2d; color:#cde3d7; font-size:11.5px; white-space:nowrap; }
 
-/* ——— أزرار بطاقة العضو: عمود يمين، منتصف البطاقة ——— */
-.mc-actions{
-  position:absolute;
-  inset-inline-end:10px;  /* يمين */
-  top:50%; transform:translateY(-50%);
-  display:flex; flex-direction:column; gap:8px;
-  align-items:center; justify-content:center;
+/* ——— أزرار بطاقة العضو: عمود يمين، منتصف البطاقة ——— *//* أزرار فتح وتعديل الجمعية */
+.jamiyah-actions {
+  display: flex;
+  gap: 6px;
 }
-.btn.icon{
-  width:34px; height:34px; border-radius:8px;
-  background:#334155; border:1px solid #2b3646;
-  display:flex; align-items:center; justify-content:center; cursor:pointer;
-}
-.btn.icon svg{ width:17px; height:17px; stroke:#e5e7eb }
 
+.jamiyah-actions .icon-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #1e293b; /* أو نفس لون الخلفية عندك */
+  cursor: pointer;
+}
+
+.jamiyah-actions .icon-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: #3b82f6; /* الأزرق المتناسق */
+}
 /* ——— بطاقة الجمعية ——— */
 .jam-card{
   position:relative; overflow:hidden;
