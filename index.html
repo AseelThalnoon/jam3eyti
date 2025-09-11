@@ -65,14 +65,16 @@
         <summary class="caret section-title">
           <span>الجمعيات</span>
           <span class="pill" id="jamiyahCountPill">0</span>
+          <!-- زر فتح (استيراد) كأيقونة SVG بجانب العداد -->
+          <button id="importBtn" class="icon-btn" title="فتح JSON" aria-label="فتح" style="margin-inline-start:6px;">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+              <path d="M12 3v18M6 12h12" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </button>
+          <input id="importFile" type="file" accept="application/json" hidden />
         </summary>
         <div class="content">
-          <!-- شريط أدوات القائمة: فتح (استيراد) -->
-          <div class="list-ops" style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px;">
-            <button class="btn" id="importBtn" title="فتح JSON">فتح</button>
-            <input id="importFile" type="file" accept="application/json" hidden />
-          </div>
-
+          <!-- (تم حذف شريط الأدوات القديم الذي كان يحتوي زر فتح هنا) -->
           <div id="jamiyahList" class="list"></div>
           <div id="emptyList" class="empty hidden">
             لا توجد جمعيات.
@@ -98,7 +100,7 @@
         <div class="details-ops">
           <button class="btn secondary" id="exportBtn">تصدير PDF</button>
           <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">حفظ</button>
-          <!-- تم نقل زر فتح (الاستيراد) إلى قسم قائمة الجمعيات -->
+          <!-- تم نقل زر فتح (الاستيراد) إلى عنوان قائمة الجمعيات -->
         </div>
       </div>
 
