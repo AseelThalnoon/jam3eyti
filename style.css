@@ -87,7 +87,7 @@ details[open] > summary.caret::before{transform:rotate(0deg)}
 
   display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:3px;
 }
 .member-card::before{
   content:""; position:absolute; inset-inline-end:0; inset-block:0;
