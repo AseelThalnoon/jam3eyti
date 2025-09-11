@@ -67,6 +67,12 @@
           <span class="pill" id="jamiyahCountPill">0</span>
         </summary>
         <div class="content">
+          <!-- شريط أدوات القائمة: فتح (استيراد) -->
+          <div class="list-ops" style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px;">
+            <button class="btn" id="importBtn" title="فتح JSON">فتح</button>
+            <input id="importFile" type="file" accept="application/json" hidden />
+          </div>
+
           <div id="jamiyahList" class="list"></div>
           <div id="emptyList" class="empty hidden">
             لا توجد جمعيات.
@@ -92,8 +98,7 @@
         <div class="details-ops">
           <button class="btn secondary" id="exportBtn">تصدير PDF</button>
           <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">حفظ</button>
-          <button class="btn" id="importBtn" title="فتح JSON">فتح</button>
-          <input id="importFile" type="file" accept="application/json" hidden />
+          <!-- تم نقل زر فتح (الاستيراد) إلى قسم قائمة الجمعيات -->
         </div>
       </div>
 
