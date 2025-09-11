@@ -10,35 +10,20 @@
   <link rel="stylesheet" href="style.css?v=2.3.3" />
   <script src="app.js?v=2.3.3" defer></script>
 
-  <!-- تصحيح: تثبيت حجم أزرار الأيقونة (فتح/تعديل الجمعية وغيرها) -->
+  <!-- ضبط حجم أزرار الأيقونات فقط (فتح/تعديل الجمعية وغيرها) -->
   <style>
-    /* زر أيقونة عام */
-    .icon-btn,
-    .btn.icon{
-      width:34px;
-      height:34px;
-      padding:0;
-      line-height:0;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
+    .icon-btn, .btn.icon{
+      width:36px; height:36px;
+      padding:0; line-height:0;
+      display:inline-flex; align-items:center; justify-content:center;
       border-radius:8px;
     }
-    /* الأيقونة داخل الزر (SVG/IMG) */
     .icon-btn svg, .btn.icon svg,
     .icon-btn img, .btn.icon img{
-      width:18px;
-      height:18px;
-      display:block;
+      width:18px; height:18px; display:block;
     }
-    /* مجموعة أزرار بطاقة الجمعية إن كنت تولّدها من JS */
-    .jamiyah-actions{
-      display:flex;
-      gap:6px;
-      align-items:center;
-    }
-    .jamiyah-actions .icon-btn{ background:#1e293b; } /* نفس ستايلك الداكن */
-    .jamiyah-actions .icon-btn svg{ fill:#3b82f6; }   /* الأزرق المتناسق */
+    /* لو فيه مجموعة أزرار داخل بطاقة الجمعية */
+    .jamiyah-actions{ display:flex; gap:6px; align-items:center; }
   </style>
 </head>
 <body>
@@ -116,7 +101,7 @@
         <div class="stack-0">
           <div class="title-row">
             <h2 id="d-title" class="h2"></h2>
-            <!-- زر تعديل الجمعية أيقونة صغيرة ثابتة -->
+            <!-- تأكد أن هذا الزر يبقى أيقونة صغيرة -->
             <button id="editBtn" class="icon-btn" title="تعديل الجمعية" aria-label="تعديل الجمعية">✏️</button>
           </div>
           <div class="meta" id="d-meta"></div>
@@ -124,9 +109,9 @@
         <div class="details-ops">
           <button class="btn secondary" id="exportBtn">تصدير PDF</button>
           <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">تصدير JSON</button>
-          <!-- إن كنت أضفت زر الاستيراد سابقاً يبقى هنا -->
-          <!-- <button class="btn" id="importBtn" title="استيراد JSON">استيراد</button>
-          <input id="importFile" type="file" accept="application/json" hidden /> -->
+          <!-- زر الاستيراد ظاهر -->
+          <button class="btn" id="importBtn" title="استيراد JSON">استيراد</button>
+          <input id="importFile" type="file" accept="application/json" hidden />
         </div>
       </div>
 
