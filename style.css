@@ -234,27 +234,49 @@ input:focus, select:focus {
   color: #94a3b8;
 }
 
-/* --- إضافة: تثبيت حجم أزرار الأيقونات (فتح/تعديل الجمعية وغيرها) --- */
-.icon-btn, .btn.icon {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  line-height: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
+/* ——— فقط: أزرار فتح/تعديل الجمعية بحجم ثابت وصغير ——— */
+.jam-card .jam-actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
 }
 
-.icon-btn svg, .btn.icon svg,
-.icon-btn img, .btn.icon img {
-  width: 18px;
-  height: 18px;
-  display: block;
+.jam-card .jam-actions .btn.icon,
+.jam-card .jam-actions .icon-btn{
+  width:34px;
+  height:34px;
+  padding:0;
+  line-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
 }
 
-.jamiyah-actions {
-  display: flex;
-  gap: 6px;
-  align-items: center;
+.jam-card .jam-actions .btn.icon svg,
+.jam-card .jam-actions .icon-btn svg,
+.jam-card .jam-actions .btn.icon img,
+.jam-card .jam-actions .icon-btn img{
+  width:18px;
+  height:18px;
+  display:block;
+}
+
+/* زر تعديل الجمعية في تفاصيل الجمعية */
+#editBtn.icon-btn{
+  width:34px;
+  height:34px;
+  padding:0;
+  line-height:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+}
+
+#editBtn.icon-btn svg,
+#editBtn.icon-btn img{
+  width:18px;
+  height:18px;
+  display:block;
 }
