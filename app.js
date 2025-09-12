@@ -80,8 +80,7 @@ function recalcMemberCounters(j,m){ const paidCount=(m.payments||[]).reduce((s,p
 function memberPaidSummary(j,m){ ensurePayments(j,m); let paid=0; m.payments.forEach(p=>{if(p.paid)paid+=Number(p.amount||0);}); return {paid};}
 function monthAssignedTotal(j,month){return j.members.filter(m=>Number(m.month)===Number(month)).reduce((s,m)=>s+Number(m.entitlement||0),0);}
 function maxMonthlyForMonth(j,month){const remaining=Math.max(0,j.goal-monthAssignedTotal(j,month));return Math.floor(remaining/j.duration);}
-
-/* --- جديد: حساب الحد الأعلى الشهري مع استثناء عضو معيّن (للوضع أثناء التعديل) --- */
+/* استبعاد عضو معيّن (يُستخدم أثناء تعديل عضو) */
 function maxMonthlyForMonthExcluding(j, month, excludeId){
   const assigned = j.members
     .filter(m => m.id !== excludeId && Number(m.month) === Number(month))
@@ -119,6 +118,7 @@ document.addEventListener('click',(e)=>{
     case 'restoreBtn': restoreFromBackup(); return;
     case 'exportBtn':  exportPdf(currentJamiyah()); return;
     case 'exportJsonBtn': exportJson(); return;
+    case 'importBtn':  openImportPicker(); return; /* ✅ استيراد */
     case 'deleteJamiyah': onDeleteJamiyah(); return;
     case 'backBtn': showList(); return;
 
@@ -323,7 +323,6 @@ function renderMembers(j){
 }
 
 /* ---------- Shared ---------- */
-/* تعديل: إضافة excludeId ودعم إبقاء شهر العضو الحالي متاحًا */
 function populateMonthOptions(j, selectEl, excludeId=null){
   if(!selectEl) return;
   const cur=selectEl.value; selectEl.innerHTML='';
@@ -335,16 +334,14 @@ function populateMonthOptions(j, selectEl, excludeId=null){
 
     const o=document.createElement('option');
     o.value=i; o.textContent=`${monthLabel(j.startDate,i)} · الحد الأعلى الشهري: ${fmtMoney(max)} ريال${max<=0?' · ممتلئ':''}`;
-
     if(max<=0) o.disabled=true;
 
     if(excludeId){
       const editing = j.members.find(x=>x.id===excludeId);
       if(editing && Number(editing.month)===i){
-        o.disabled=false; // لا تغلق شهر العضو الحالي أثناء تعديله
+        o.disabled=false; // أبقِ شهر العضو الحالي متاحًا أثناء التعديل
       }
     }
-
     selectEl.appendChild(o);
   }
   if(cur && Number(cur)>=1 && Number(cur)<=j.duration) selectEl.value=cur;
@@ -499,7 +496,6 @@ function openEditMember(memberId){
   show($('#editMemberModal'));
 }
 
-/* التحقق بسقف يستثني العضو الجاري تعديله */
 function onSaveEditMember(){
   const j=currentJamiyah(); if(!j)return;
   const m=j.members.find(x=>x.id===state.editMemberId); if(!m)return;
@@ -588,7 +584,7 @@ function onDeleteJamiyah(){ const j=currentJamiyah(); if(!j) return;
   state.jamiyahs=state.jamiyahs.filter(x=>x.id!==j.id); saveAll(); showList(); renderList(); toast('تم حذف الجمعية'); }
 function showList(){ hide($('#details')); state.currentId=null; setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
 
-/* --- تم التعديل هنا: تنزيل ملف HTML جاهز للطباعة بدل نافذة الطباعة --- */
+/* --- تصدير: تنزيل ملف HTML جاهز للطباعة بدل نافذة الطباعة --- */
 function exportPdf(j){
   const css=`<style>@page{size:A4;margin:14mm}body{font-family:-apple-system,Segoe UI,Roboto,Arial,"Noto Naskh Arabic","IBM Plex Sans Arabic",sans-serif;color:#111}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}h2{margin:18px 0 8px;font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}thead th{background:#f3f4f6}tfoot td{font-weight:700;background:#fafafa}.muted{color:#666}</style>`;
   const members=j.members.slice().sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
@@ -624,6 +620,57 @@ function exportPdf(j){
   a.remove();
   URL.revokeObjectURL(url);
   toast('تم تنزيل التقرير. افتحه واطبعه كـ PDF من المتصفح.');
+}
+
+/* --- استيراد (فتح) --- */
+function openImportPicker(){
+  const inp = document.getElementById('importFile');
+  if(!inp){ toast('لا يوجد عنصر ملف للاستيراد'); return; }
+  inp.value = '';
+  inp.removeEventListener('change', onImportFileChange);
+  inp.addEventListener('change', onImportFileChange, { once:true });
+  inp.click();
+}
+function onImportFileChange(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file){ return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result || '[]');
+      if(!Array.isArray(data)) throw new Error('bad json');
+      const cleaned = data.map(j => {
+        const id = (j.id && typeof j.id === 'string') ? j.id : uid();
+        const startDate = j.startDate || j.start || j['start_date'] || '';
+        const duration  = Number(j.duration || 0);
+        const goal      = Number(j.goal || 0);
+        const name      = (j.name || '').toString().trim();
+        const members = Array.isArray(j.members) ? j.members.map(m => {
+          const mid = (m.id && typeof m.id === 'string') ? m.id : uid();
+          const pay = Number(m.pay || 0);
+          const month = Number(m.month || 1);
+          const entitlement = Number.isFinite(m.entitlement) ? Number(m.entitlement) : pay * duration;
+          const payments = Array.isArray(m.payments) ? m.payments : [];
+          return { id: mid, name: (m.name||'').toString(), pay, month, entitlement, payments };
+        }) : [];
+        return { id, name, startDate, duration, goal, members, createdAt: j.createdAt || Date.now() };
+      });
+
+      if(!cleaned.length){ toast('الملف لا يحتوي جمعيات'); return; }
+
+      state.jamiyahs = cleaned;
+      state.jamiyahs.forEach(j => (j.members||[]).forEach(m => ensurePayments(j,m)));
+      saveAll();
+      renderList();
+      if(state.jamiyahs[0]) openDetails(state.jamiyahs[0].id);
+      toast('تم فتح الملف بنجاح');
+    }catch(err){
+      console.error(err);
+      toast('ملف غير صالح. تأكد من صيغة JSON.');
+    }
+  };
+  reader.onerror = () => toast('تعذّر قراءة الملف');
+  reader.readAsText(file, 'utf-8');
 }
 
 function exportJson(){
