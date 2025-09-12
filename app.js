@@ -1,4 +1,4 @@
-/* v2.3.6 — SVG icons + member card compact */
+/* v2.3.6 — Member card compact + SVG icons + gradients fixed */
 
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
@@ -80,6 +80,16 @@ function recalcMemberCounters(j,m){ const paidCount=(m.payments||[]).reduce((s,p
 function memberPaidSummary(j,m){ ensurePayments(j,m); let paid=0; m.payments.forEach(p=>{if(p.paid)paid+=Number(p.amount||0);}); return {paid};}
 function monthAssignedTotal(j,month){return j.members.filter(m=>Number(m.month)===Number(month)).reduce((s,m)=>s+Number(m.entitlement||0),0);}
 function maxMonthlyForMonth(j,month){const remaining=Math.max(0,j.goal-monthAssignedTotal(j,month));return Math.floor(remaining/j.duration);}
+
+/* --- جديد: حساب الحد الأعلى الشهري مع استثناء عضو معيّن (للوضع أثناء التعديل) --- */
+function maxMonthlyForMonthExcluding(j, month, excludeId){
+  const assigned = j.members
+    .filter(m => m.id !== excludeId && Number(m.month) === Number(month))
+    .reduce((s,m)=> s + Number(m.entitlement||0), 0);
+  const remaining = Math.max(0, j.goal - assigned);
+  return Math.floor(remaining / j.duration);
+}
+
 function monthStats(j,i){const rec=j.members.filter(m=>Number(m.month)===i);const assigned=rec.reduce((s,m)=>s+Number(m.entitlement||0),0);const remaining=Math.max(0,j.goal-assigned);const pct=j.goal>0?Math.min(100,Math.round((assigned/j.goal)*100)):0;return{rec,assigned,remaining,pct};}
 
 /* ---------- Init ---------- */
@@ -98,9 +108,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   const dSchedule = document.getElementById('scheduleBlock');
   dMembers?.addEventListener('toggle', ()=>{ if(dMembers.open) dSchedule.open = false; });
   dSchedule?.addEventListener('toggle', ()=>{ if(dSchedule.open) dMembers.open = false; });
-
-  // <-- جديد: ربط الاستيراد (فتح)
-  $('#importFile')?.addEventListener('change', onImportJson);
 
   renderList();
 });
@@ -133,9 +140,6 @@ document.addEventListener('click',(e)=>{
     case 'paySave': savePayModal(); return;
 
     case 'md-close': hide($('#monthDetails')); return;
-
-    // <-- جديد: زر "فتح" يطلق اختيار الملف
-    case 'importBtn': $('#importFile')?.click(); return;
   }
 
   /* فتح الجمعية من البطاقة ⇒ افتح الجدول الشهري مباشرة */
@@ -217,6 +221,7 @@ function renderList(){
     const color = colorFromStartDate(j);
     const card=document.createElement('div');
     card.className='jam-card';
+    card.style.color = color; // لإظهار التدرّج الخفيف على الحافة اليمنى
     card.style.borderInlineStart=`4px solid ${color}`;
     card.innerHTML=`
       <button class="jam-open" data-id="${j.id}" title="فتح الجمعية" aria-label="فتح">${icons.eye}</button>
@@ -265,7 +270,7 @@ function openDetails(id){
 function badge(t){const s=document.createElement('span');s.className='badge';s.textContent=t;return s;}
 function computeOverdueMembers(j){ return (j.members||[]).filter(m=>{ensurePayments(j,m);return m.overdueCount>0;}).length; }
 
-/* ---------- Members (التغيير هنا) ---------- */
+/* ---------- Members ---------- */
 function renderMembers(j){
   const body=$('#memberTableBody'), empty=$('#emptyMembers'); body.innerHTML=''; const list=[...j.members];
   updateCounters(j);
@@ -318,14 +323,28 @@ function renderMembers(j){
 }
 
 /* ---------- Shared ---------- */
-function populateMonthOptions(j, selectEl){
+/* تعديل: إضافة excludeId ودعم إبقاء شهر العضو الحالي متاحًا */
+function populateMonthOptions(j, selectEl, excludeId=null){
   if(!selectEl) return;
   const cur=selectEl.value; selectEl.innerHTML='';
+
   for(let i=1;i<=j.duration;i++){
-    const max=maxMonthlyForMonth(j,i);
+    const max = excludeId
+      ? maxMonthlyForMonthExcluding(j,i,excludeId)
+      : maxMonthlyForMonth(j,i);
+
     const o=document.createElement('option');
     o.value=i; o.textContent=`${monthLabel(j.startDate,i)} · الحد الأعلى الشهري: ${fmtMoney(max)} ريال${max<=0?' · ممتلئ':''}`;
+
     if(max<=0) o.disabled=true;
+
+    if(excludeId){
+      const editing = j.members.find(x=>x.id===excludeId);
+      if(editing && Number(editing.month)===i){
+        o.disabled=false; // لا تغلق شهر العضو الحالي أثناء تعديله
+      }
+    }
+
     selectEl.appendChild(o);
   }
   if(cur && Number(cur)>=1 && Number(cur)<=j.duration) selectEl.value=cur;
@@ -391,7 +410,7 @@ function renderSchedule(j){
   updateCounters(j);
 }
 
-/* ---------- Add/Edit Member & Payments (نفس المنطق القديم) ---------- */
+/* ---------- Add/Edit Member & Payments ---------- */
 function openAddMemberModal(){
   const j = currentJamiyah();
   if(!j){ toast('افتح جمعية أولًا'); return; }
@@ -471,50 +490,40 @@ function openEditMember(memberId){
 
   $('#em-name').value=m.name;
   $('#em-pay').value=m.pay;
-  populateMonthOptions(j,$('#em-month'));
+
+  /* تعديل: تمرير excludeId حتى لا تُحسب مساهمة العضو ضمن امتلاء شهره */
+  populateMonthOptions(j,$('#em-month'), memberId);
   $('#em-month').value=String(m.month);
 
   clearFieldError('em-name','err-em-name'); clearFieldError('em-pay','err-em-pay'); clearFieldError('em-month','err-em-month');
   show($('#editMemberModal'));
 }
+
+/* استبدال كامل: التحقق بسقف يستثني العضو الجاري تعديله */
 function onSaveEditMember(){
   const j=currentJamiyah(); if(!j)return;
   const m=j.members.find(x=>x.id===state.editMemberId); if(!m)return;
 
-  clearFieldError('em-name','err-em-name');
-  clearFieldError('em-pay','err-em-pay');
-  clearFieldError('em-month','err-em-month');
+  clearFieldError('em-name','err-em-name'); clearFieldError('em-pay','err-em-pay'); clearFieldError('em-month','err-em-month');
 
-  const name  = $('#em-name').value.trim();
-  const pay   = Number($('#em-pay').value||0);
-  const month = Number($('#em-month').value||0);
+  const name = $('#em-name').value.trim();
+  const pay  = Number($('#em-pay').value||0);
+  const month= Number($('#em-month').value||0);
 
   let firstInvalid=null;
 
-  if(!name){
-    setFieldError('em-name','err-em-name','حقل مطلوب');
-    firstInvalid=firstInvalid||$('#em-name');
-  } else {
+  if(!name){ setFieldError('em-name','err-em-name','حقل مطلوب'); firstInvalid=firstInvalid||$('#em-name'); }
+  else {
     const exists = j.members.some(x=>x.id!==m.id && normName(x.name)===normName(name));
-    if(exists){
-      setFieldError('em-name','err-em-name','الاسم مستخدم');
-      firstInvalid=firstInvalid||$('#em-name');
-    }
+    if(exists){ setFieldError('em-name','err-em-name','الاسم مستخدم'); firstInvalid=firstInvalid||$('#em-name'); }
   }
 
-  if(!Number.isFinite(pay)||pay<=0){
-    setFieldError('em-pay','err-em-pay','قيمة غير صالحة');
-    firstInvalid=firstInvalid||$('#em-pay');
-  }
+  if(!Number.isFinite(pay)||pay<=0){ setFieldError('em-pay','err-em-pay','قيمة غير صالحة'); firstInvalid=firstInvalid||$('#em-pay'); }
 
-  if(!month||month<1||month>j.duration){
-    setFieldError('em-month','err-em-month','اختر شهر صحيح');
-    firstInvalid=firstInvalid||$('#em-month');
-  }
+  if(!month||month<1||month>j.duration){ setFieldError('em-month','err-em-month','اختر شهر صحيح'); firstInvalid=firstInvalid||$('#em-month'); }
 
   if(firstInvalid){ firstInvalid.focus({preventScroll:true}); return; }
 
-  // --- التعديل هنا: استثناء العضو الجاري تعديله من حساب سعة الشهر ---
   const entitlement = pay * j.duration;
 
   // إجمالي الاستحقاقات في هذا الشهر باستثناء هذا العضو
@@ -522,31 +531,14 @@ function onSaveEditMember(){
     .filter(x => x.id !== m.id && Number(x.month) === month)
     .reduce((s, x) => s + Number(x.entitlement || 0), 0);
 
-  // السعة المتبقية في هذا الشهر بعد استثناء نفس العضو
   const remainingThisMonth = Math.max(0, j.goal - assignedThisMonth);
-
-  // السقف الشهري الجديد مشتق من السعة المتبقية مقسوماً على مدة الجمعية
   const maxMonthly = Math.floor(remainingThisMonth / j.duration);
 
-  if (pay > maxMonthly || entitlement > remainingThisMonth){
+  if(pay > maxMonthly || entitlement > remainingThisMonth){
     setFieldError('em-pay','err-em-pay', `المساهمة الشهرية تتجاوز الحد الأعلى: ${fmtMoney(maxMonthly)} ريال`);
     $('#em-pay')?.focus({preventScroll:true});
     return;
   }
-  // --- نهاية التعديل ---
-
-  m.name = name;
-  m.pay  = pay;
-  m.month = month;
-  m.entitlement = entitlement;
-  ensurePayments(j,m);
-
-  saveAll();
-  renderMembers(j);
-  renderSchedule(j);
-  hide($('#editMemberModal'));
-  toast('تم حفظ التعديل');
-}
 
   m.name=name; m.pay=pay; m.month=month; m.entitlement=entitlement;
   ensurePayments(j,m);
@@ -628,7 +620,6 @@ function exportJson(){
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   toast('تم تنزيل نسخة JSON احتياطية');
 }
-
 function restoreFromBackup(){
   const backup=readKey(KEY_BACKUP)||(readKey(KEY_AUTOSAVE)||{}).data;
   if(Array.isArray(backup)&&backup.length){
@@ -636,58 +627,4 @@ function restoreFromBackup(){
     $('#restoreWrap')?.classList.add('hidden'); toast('تم الاسترجاع من النسخة الاحتياطية');
     renderList(); if(state.jamiyahs[0]) openDetails(state.jamiyahs[0].id);
   }else{ toast('لا توجد نسخة احتياطية صالحة'); }
-}
-
-/* ---------- NEW: Import JSON (فتح) ---------- */
-function onImportJson(e){
-  const input = e.target;
-  const file  = input?.files && input.files[0];
-  const reset = () => { if (input) input.value = ''; };
-
-  if (!file) { reset(); return; }
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const data = parseJsonSafe(reader.result || '[]');
-      if (!Array.isArray(data)) { toast('ملف غير صالح'); reset(); return; }
-
-      // نسخ احتياطي قبل الاستبدال
-      const current = safeSerialize(state.jamiyahs) || '[]';
-      localStorage.setItem(KEY_BACKUP, current);
-
-      // استبدال + تصحيح البنية
-      state.jamiyahs = data.map(j => ({
-        id: j.id || uid(),
-        name: String(j.name || '').trim(),
-        startDate: j.startDate || j.start || '',
-        duration: Number(j.duration || 0),
-        goal: Number(j.goal || 0),
-        members: Array.isArray(j.members) ? j.members.map(m => ({
-          id: m.id || uid(),
-          name: String(m.name || '').trim(),
-          pay: Number(m.pay || 0),
-          month: Number(m.month || 1),
-          entitlement: Number.isFinite(m.entitlement) ? Number(m.entitlement) : Number(m.pay || 0) * Number(j.duration || 0),
-          payments: Array.isArray(m.payments) ? m.payments : []
-        })) : []
-      }));
-
-      // تأكيد دفعات وحسابات كل عضو
-      state.jamiyahs.forEach(j => j.members.forEach(m => ensurePayments(j, m)));
-
-      saveAll();
-      renderList();
-      if (state.jamiyahs.length) openDetails(state.jamiyahs[0].id);
-
-      toast('تم الفتح (استيراد JSON)');
-    } catch (err) {
-      console.error(err);
-      toast('تعذّر قراءة الملف');
-    } finally {
-      reset();
-    }
-  };
-  reader.onerror = () => { toast('فشل قراءة الملف'); reset(); };
-  reader.readAsText(file);
 }
