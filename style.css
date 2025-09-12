@@ -146,7 +146,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 }
 .mc-chip.warn{ background:#3a1a1a; color:#fecaca; border-color:#7f1d1d; }
 
-/* الأفعال صغيرة وموحّدة */
+/* أزرار الأعضاء */
 .mc-actions{ display:flex; gap:8px; justify-content:flex-start; margin-top:6px; }
 
 /* ✅ زر الأيقونة في بطاقات الأعضاء — توسيط مضبوط */
