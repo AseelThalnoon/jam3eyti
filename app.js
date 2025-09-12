@@ -1,4 +1,4 @@
-/* v2.3.6 — SVG icons + member card compact + open by card click */
+/* v2.3.7 — Normalize Arabic digits + open-by-card + SVG icons + member card compact */
 
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
@@ -27,6 +27,13 @@ const colorForIndex=idx=>PALETTE[idx%PALETTE.length];
 function colorFromStartDate(j){ try{const d=new Date(j.startDate);return PALETTE[d.getMonth()%PALETTE.length];}catch{return PALETTE[0];} }
 
 const normName = s => (s || '').toString().trim().replace(/\s+/g,' ').toLowerCase();
+
+/* تحويل الأرقام العربية إلى إنجليزية قبل أي parse */
+function normalizeDigits(str){
+  if(typeof str!=="string") str = String(str ?? "");
+  // احسب كل رقم عربي إلى ما يقابله
+  return str.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+}
 
 function parseJsonSafe(t){try{return JSON.parse(t);}catch{return null}}
 function readKey(k){const t=localStorage.getItem(k);return t?parseJsonSafe(t):null}
@@ -59,7 +66,12 @@ function hasStarted(j){const t=new Date().setHours(0,0,0,0);const s=new Date(j.s
 function currentJamiyah(){return state.jamiyahs.find(x=>x.id===state.currentId);}
 function toast(msg){const b=$('#toasts');const el=document.createElement('div');el.className='toast';el.textContent=msg;b.appendChild(el);setTimeout(()=>el.remove(),2200);}
 function setError(id,t){const el=$(`#${id}`);if(el)el.textContent=t||'';}
-function monthToFirstDay(m){if(!m)return"";const[y,mm]=m.split('-');if(!y||!mm)return"";return `${y}-${String(mm).padStart(2,'0')}-01`;}
+function monthToFirstDay(m){
+  if(!m)return"";
+  const nm = normalizeDigits(m);
+  const[y,mm]=nm.split('-'); if(!y||!mm)return"";
+  return `${y}-${String(mm).padStart(2,'0')}-01`;
+}
 const show=el=>{if(!el)return;el.classList.remove('hidden');el.removeAttribute('hidden');};
 const hide=el=>{if(!el)return;el.classList.add('hidden');el.setAttribute('hidden','');};
 function setDetailsSectionsVisible(on){['membersBlock','scheduleBlock'].forEach(id=>on?show(document.getElementById(id)):hide(document.getElementById(id))); }
@@ -165,14 +177,20 @@ document.addEventListener('click',(e)=>{
 function onCreateJamiyah(e){
   e.preventDefault();
   setError('err-j-name');setError('err-j-start');setError('err-j-duration');setError('err-j-goal');
-  const name=$('#j-name').value.trim(), startMonth=$('#j-start').value;
-  const duration=parseInt($('#j-duration').value), goal=parseInt($('#j-goal').value);
+
+  const name = ($('#j-name').value||'').trim();
+  const startMonthRaw = $('#j-start').value;              // قد تكون أرقام عربية
+  const startMonth = normalizeDigits(startMonthRaw);
+  const duration = parseInt(normalizeDigits($('#j-duration').value));
+  const goal     = parseInt(normalizeDigits($('#j-goal').value));
+
   let ok=true;
   if(!name){setError('err-j-name','حقل مطلوب');ok=false;}
   if(!startMonth){setError('err-j-start','حقل مطلوب');ok=false;}
   if(!duration||duration<1){setError('err-j-duration','الحد الأدنى 1');ok=false;}
   if(!goal||goal<=0){setError('err-j-goal','أكبر من 0');ok=false;}
   if(!ok)return;
+
   const startDate=monthToFirstDay(startMonth);
   if(state.jamiyahs.some(j=>j.name===name)){setError('err-j-name','الاسم مستخدم مسبقًا');return;}
   state.jamiyahs.push({id:uid(),name,startDate,duration,goal,members:[],createdAt:Date.now()});
@@ -322,15 +340,24 @@ function populateMonthOptions(j, selectEl){
 }
 
 function openEditModal(){ const j=currentJamiyah(); if(!j) return;
-  $('#e-name').value=j.name; $('#e-goal').value=j.goal; $('#e-start').value=j.startDate.slice(0,7); $('#e-duration').value=j.duration;
+  $('#e-name').value=j.name;
+  $('#e-goal').value=j.goal;
+  $('#e-start').value=j.startDate.slice(0,7);
+  $('#e-duration').value=j.duration;
+
   const started=hasStarted(j); $('#e-start').disabled=started; $('#e-duration').disabled=started;
   setError('err-e-name'); setError('err-e-goal'); show($('#editModal'));
 }
 function onSaveEdit(){
   const j=currentJamiyah(); if(!j) return;
   setError('err-e-name'); setError('err-e-goal');
-  const newName=$('#e-name').value.trim(), newGoal=parseInt($('#e-goal').value);
-  const startMonth=$('#e-start').value, newDuration=parseInt($('#e-duration').value);
+
+  const newName = ($('#e-name').value||'').trim();
+  const newGoal = parseInt(normalizeDigits($('#e-goal').value));
+  const startMonthRaw = $('#e-start').value;
+  const startMonth = normalizeDigits(startMonthRaw);
+  const newDuration = parseInt(normalizeDigits($('#e-duration').value));
+
   const started=hasStarted(j);
   if(!newName){setError('err-e-name','حقل مطلوب');return;}
   if(state.jamiyahs.some(x=>x.id!==j.id && x.name===newName)){setError('err-e-name','الاسم مستخدم مسبقًا');return;}
@@ -413,8 +440,8 @@ function onAddMemberFromModal(){
 
   const rawName = ($('#am-name')?.value || '');
   const name    = rawName.trim();
-  const pay     = Number($('#am-pay')?.value || 0);
-  const month   = Number($('#am-month')?.value || 0);
+  const pay     = Number(normalizeDigits($('#am-pay')?.value || 0));
+  const month   = Number(normalizeDigits($('#am-month')?.value || 0));
 
   let firstInvalid = null;
 
@@ -473,9 +500,9 @@ function onSaveEditMember(){
 
   clearFieldError('em-name','err-em-name'); clearFieldError('em-pay','err-em-pay'); clearFieldError('em-month','err-em-month');
 
-  const name = $('#em-name').value.trim();
-  const pay  = Number($('#em-pay').value||0);
-  const month= Number($('#em-month').value||0);
+  const name = ($('#em-name').value||'').trim();
+  const pay  = Number(normalizeDigits($('#em-pay').value||0));
+  const month= Number(normalizeDigits($('#em-month').value||0));
 
   let firstInvalid=null;
 
@@ -543,7 +570,8 @@ function savePayModal(){
   const checks=$$('#payModalBody input[type="checkbox"][data-k="paid"]');
   const amounts=$$('#payModalBody input[type="number"][data-k="amount"]');
   const paidMap={}, amountMap={}; checks.forEach(cb=>paidMap[parseInt(cb.dataset.i)]=cb.checked);
-  amounts.forEach(inp=>amountMap[parseInt(inp.dataset.i)]=Number(inp.value||0));
+  // طبّع الأرقام العربية في مبالغ الدفعات قبل Number()
+  amounts.forEach(inp=>amountMap[parseInt(inp.dataset.i)]=Number(normalizeDigits(inp.value||0)));
   m.payments=m.payments.map(p=>{const newPaid=!!paidMap[p.i]; const newAmount=Number(amountMap[p.i]||0);
     return {i:p.i,paid:newPaid,amount:newAmount,paidAt:newPaid?(p.paid?p.paidAt||now:now):null};});
   recalcMemberCounters(j,m); saveAll(); renderMembers(j); hide($('#payModal')); toast('تم حفظ الدفعات');
@@ -578,11 +606,11 @@ function exportPdf(j){
   <table><thead><tr><th>الشهر</th><th>المستلمون</th></tr></thead><tbody>${sched}</tbody></table>
   </body></html>`;
 
-  // تنزيل ملف PDF بدل الطباعة
+  // تنزيل ملف HTML (قابل للطباعة PDF يدوياً) بدلاً من نافذة الطباعة المباشرة
   const blob = new Blob([html], {type:'text/html'});
   const url = URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url; a.download=`${j.name}-schedule.html`; // HTML قابل للطباعة/التحويل لـ PDF
+  a.href=url; a.download=`${j.name}-schedule.html`;
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
   toast('تم حفظ ملف التصدير (HTML)');
