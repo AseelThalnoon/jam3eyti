@@ -481,35 +481,72 @@ function onSaveEditMember(){
   const j=currentJamiyah(); if(!j)return;
   const m=j.members.find(x=>x.id===state.editMemberId); if(!m)return;
 
-  clearFieldError('em-name','err-em-name'); clearFieldError('em-pay','err-em-pay'); clearFieldError('em-month','err-em-month');
+  clearFieldError('em-name','err-em-name');
+  clearFieldError('em-pay','err-em-pay');
+  clearFieldError('em-month','err-em-month');
 
-  const name = $('#em-name').value.trim();
-  const pay  = Number($('#em-pay').value||0);
-  const month= Number($('#em-month').value||0);
+  const name  = $('#em-name').value.trim();
+  const pay   = Number($('#em-pay').value||0);
+  const month = Number($('#em-month').value||0);
 
   let firstInvalid=null;
 
-  if(!name){ setFieldError('em-name','err-em-name','حقل مطلوب'); firstInvalid=firstInvalid||$('#em-name'); }
-  else {
+  if(!name){
+    setFieldError('em-name','err-em-name','حقل مطلوب');
+    firstInvalid=firstInvalid||$('#em-name');
+  } else {
     const exists = j.members.some(x=>x.id!==m.id && normName(x.name)===normName(name));
-    if(exists){ setFieldError('em-name','err-em-name','الاسم مستخدم'); firstInvalid=firstInvalid||$('#em-name'); }
+    if(exists){
+      setFieldError('em-name','err-em-name','الاسم مستخدم');
+      firstInvalid=firstInvalid||$('#em-name');
+    }
   }
 
-  if(!Number.isFinite(pay)||pay<=0){ setFieldError('em-pay','err-em-pay','قيمة غير صالحة'); firstInvalid=firstInvalid||$('#em-pay'); }
+  if(!Number.isFinite(pay)||pay<=0){
+    setFieldError('em-pay','err-em-pay','قيمة غير صالحة');
+    firstInvalid=firstInvalid||$('#em-pay');
+  }
 
-  if(!month||month<1||month>j.duration){ setFieldError('em-month','err-em-month','اختر شهر صحيح'); firstInvalid=firstInvalid||$('#em-month'); }
+  if(!month||month<1||month>j.duration){
+    setFieldError('em-month','err-em-month','اختر شهر صحيح');
+    firstInvalid=firstInvalid||$('#em-month');
+  }
 
   if(firstInvalid){ firstInvalid.focus({preventScroll:true}); return; }
 
+  // --- التعديل هنا: استثناء العضو الجاري تعديله من حساب سعة الشهر ---
   const entitlement = pay * j.duration;
-  const assignedThisMonth = j.members.filter(x => x.id!==m.id && Number(x.month)===month).reduce((s,x)=>s+Number(x.entitlement||0),0);
+
+  // إجمالي الاستحقاقات في هذا الشهر باستثناء هذا العضو
+  const assignedThisMonth = j.members
+    .filter(x => x.id !== m.id && Number(x.month) === month)
+    .reduce((s, x) => s + Number(x.entitlement || 0), 0);
+
+  // السعة المتبقية في هذا الشهر بعد استثناء نفس العضو
   const remainingThisMonth = Math.max(0, j.goal - assignedThisMonth);
-  const maxMonthly = maxMonthlyForMonth(j, month);
-  if(pay > maxMonthly || entitlement > remainingThisMonth){
+
+  // السقف الشهري الجديد مشتق من السعة المتبقية مقسوماً على مدة الجمعية
+  const maxMonthly = Math.floor(remainingThisMonth / j.duration);
+
+  if (pay > maxMonthly || entitlement > remainingThisMonth){
     setFieldError('em-pay','err-em-pay', `المساهمة الشهرية تتجاوز الحد الأعلى: ${fmtMoney(maxMonthly)} ريال`);
     $('#em-pay')?.focus({preventScroll:true});
     return;
   }
+  // --- نهاية التعديل ---
+
+  m.name = name;
+  m.pay  = pay;
+  m.month = month;
+  m.entitlement = entitlement;
+  ensurePayments(j,m);
+
+  saveAll();
+  renderMembers(j);
+  renderSchedule(j);
+  hide($('#editMemberModal'));
+  toast('تم حفظ التعديل');
+}
 
   m.name=name; m.pay=pay; m.month=month; m.entitlement=entitlement;
   ensurePayments(j,m);
