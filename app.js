@@ -1,4 +1,4 @@
-/* v2.3.7 — Normalize Arabic digits + open-by-card + SVG icons + member card compact */
+/* v2.3.8 — Arabic digits live-normalization + robust numeric parsing */
 
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
@@ -6,14 +6,13 @@ const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 /* ---------- SVG Icons ---------- */
 const icons = {
   eye: `<svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.8"/></svg>`,
-  edit: `<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" stroke-width="1.8"/><path d="M13 7l4 4" stroke="currentColor" stroke-width="1.8"/></svg>`,
+  edit:`<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" stroke-width="1.8"/><path d="M13 7l4 4" stroke="currentColor" stroke-width="1.8"/></svg>`,
   trash:`<svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7l1-2h4l1 2" stroke="currentColor" stroke-width="1.8"/></svg>`,
   card:`<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.8"/></svg>`
 };
 
 /* ---------- Storage & State ---------- */
 const KEY_PRIMARY="jamiyati:data", KEY_V02="jamiyati:v02", KEY_V01="jamiyati:v01", KEY_BACKUP="jamiyati:backup", KEY_AUTOSAVE="jamiyati:autosave";
-
 const state={ jamiyahs: loadAllSafe(), currentId:null, memberSort:"month", memberFilter:"all", payModal:{memberId:null}, editMemberId:null };
 
 /* ---------- Helpers ---------- */
@@ -28,13 +27,38 @@ function colorFromStartDate(j){ try{const d=new Date(j.startDate);return PALETTE
 
 const normName = s => (s || '').toString().trim().replace(/\s+/g,' ').toLowerCase();
 
-/* تحويل الأرقام العربية إلى إنجليزية قبل أي parse */
+/* ====== دعم الأرقام العربية ====== */
+// 1) تحويل الأرقام العربية إلى إنجليزية
 function normalizeDigits(str){
   if(typeof str!=="string") str = String(str ?? "");
-  // احسب كل رقم عربي إلى ما يقابله
   return str.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
 }
+// 2) تنظيف رقم: يحوّل الأرقام + يحذف الفواصل العربية/الإنجليزية والمسافات
+function normalizeNumberString(str){
+  let s = normalizeDigits(str);
+  // U+066B = Arabic decimal separator, U+066C = Arabic thousands separator
+  s = s.replace(/[\u066B\u066C,\s]/g,'');
+  return s;
+}
+// 3) ربط الحقول لتطبيع المدخلات أثناء الكتابة (خصوصًا type=number و type=month)
+function bindLiveDigitNormalization(){
+  document.addEventListener('input',(e)=>{
+    const t = e.target;
+    if(!(t instanceof HTMLInputElement)) return;
+    if(t.type==='number'){
+      const cur = t.value;
+      const norm = normalizeNumberString(cur);
+      if(cur!==norm) t.value = norm;
+    }else if(t.type==='month'){
+      // month = yyyy-mm (قد تُكتب بأرقام عربية)
+      const cur = t.value;
+      const norm = normalizeDigits(cur);
+      if(cur!==norm) t.value = norm;
+    }
+  }, {passive:true});
+}
 
+/* ---------- JSON & Storage ---------- */
 function parseJsonSafe(t){try{return JSON.parse(t);}catch{return null}}
 function readKey(k){const t=localStorage.getItem(k);return t?parseJsonSafe(t):null}
 function migrateV01toV02(old){return (old||[]).map(j=>({...j,goal:Number(j.goal||0),members:(j.members||[]).map(m=>({...m,entitlement:Number.isFinite(m.entitlement)?Number(m.entitlement):Number(m.pay||0)*Number(j.duration||0)}))}))}
@@ -69,7 +93,7 @@ function setError(id,t){const el=$(`#${id}`);if(el)el.textContent=t||'';}
 function monthToFirstDay(m){
   if(!m)return"";
   const nm = normalizeDigits(m);
-  const[y,mm]=nm.split('-'); if(!y||!mm)return"";
+  const [y,mm]=nm.split('-'); if(!y||!mm) return "";
   return `${y}-${String(mm).padStart(2,'0')}-01`;
 }
 const show=el=>{if(!el)return;el.classList.remove('hidden');el.removeAttribute('hidden');};
@@ -98,10 +122,12 @@ function monthStats(j,i){const rec=j.members.filter(m=>Number(m.month)===i);cons
 document.addEventListener('DOMContentLoaded',()=>{
   hide($('#details')); hide($('#payModal')); hide($('#editModal')); hide($('#addMemberModal')); hide($('#editMemberModal'));
 
+  bindLiveDigitNormalization(); // ← أهم خطوة: التطبيع أثناء الكتابة
+
   $('#jamiyahForm')?.addEventListener('submit',onCreateJamiyah);
   $('#search')?.addEventListener('input',e=>{const f=(e.target.value||'').trim(); state.filter=f; renderList();});
 
-  // Import trigger
+  // استيراد
   $('#importBtn')?.addEventListener('click',()=>$('#importFile')?.click());
   $('#importFile')?.addEventListener('change', handleImportFile);
 
@@ -148,7 +174,7 @@ document.addEventListener('click',(e)=>{
     case 'md-close': hide($('#monthDetails')); return;
   }
 
-  /* تعديل الجمعية من زر البطاقة */
+  // زر تعديل الجمعية في البطاقة
   const editBtnOnCard = e.target.closest('button.jam-edit[data-id]');
   if(editBtnOnCard){
     const id = editBtnOnCard.dataset.id;
@@ -157,7 +183,7 @@ document.addEventListener('click',(e)=>{
     return;
   }
 
-  /* أفعال بطاقات الأعضاء */
+  // أزرار بطاقة العضو
   const actBtn=e.target.closest('button[data-action]');
   if(actBtn){
     const action=actBtn.dataset.action, memberId=actBtn.dataset.id;
@@ -179,10 +205,9 @@ function onCreateJamiyah(e){
   setError('err-j-name');setError('err-j-start');setError('err-j-duration');setError('err-j-goal');
 
   const name = ($('#j-name').value||'').trim();
-  const startMonthRaw = $('#j-start').value;              // قد تكون أرقام عربية
-  const startMonth = normalizeDigits(startMonthRaw);
-  const duration = parseInt(normalizeDigits($('#j-duration').value));
-  const goal     = parseInt(normalizeDigits($('#j-goal').value));
+  const startMonth = normalizeDigits($('#j-start').value);
+  const duration = parseInt(normalizeNumberString($('#j-duration').value),10);
+  const goal     = parseInt(normalizeNumberString($('#j-goal').value),10);
 
   let ok=true;
   if(!name){setError('err-j-name','حقل مطلوب');ok=false;}
@@ -234,7 +259,7 @@ function renderList(){
         <span class="mc-chip">أشهر: ${fmtInt(j.duration)}</span>
       </div>`;
 
-    // فتح الجمعية عند الضغط على البطاقة كاملة (تجاهل زر التعديل)
+    // فتح الجمعية بالضغط على البطاقة (مع تجاهل زر التعديل)
     card.addEventListener('click',(ev)=>{
       if(ev.target.closest('.jam-edit')) return;
       openDetails(j.id);
@@ -340,11 +365,7 @@ function populateMonthOptions(j, selectEl){
 }
 
 function openEditModal(){ const j=currentJamiyah(); if(!j) return;
-  $('#e-name').value=j.name;
-  $('#e-goal').value=j.goal;
-  $('#e-start').value=j.startDate.slice(0,7);
-  $('#e-duration').value=j.duration;
-
+  $('#e-name').value=j.name; $('#e-goal').value=j.goal; $('#e-start').value=j.startDate.slice(0,7); $('#e-duration').value=j.duration;
   const started=hasStarted(j); $('#e-start').disabled=started; $('#e-duration').disabled=started;
   setError('err-e-name'); setError('err-e-goal'); show($('#editModal'));
 }
@@ -353,10 +374,9 @@ function onSaveEdit(){
   setError('err-e-name'); setError('err-e-goal');
 
   const newName = ($('#e-name').value||'').trim();
-  const newGoal = parseInt(normalizeDigits($('#e-goal').value));
-  const startMonthRaw = $('#e-start').value;
-  const startMonth = normalizeDigits(startMonthRaw);
-  const newDuration = parseInt(normalizeDigits($('#e-duration').value));
+  const newGoal = parseInt(normalizeNumberString($('#e-goal').value),10);
+  const startMonth = normalizeDigits($('#e-start').value);
+  const newDuration = parseInt(normalizeNumberString($('#e-duration').value),10);
 
   const started=hasStarted(j);
   if(!newName){setError('err-e-name','حقل مطلوب');return;}
@@ -440,8 +460,8 @@ function onAddMemberFromModal(){
 
   const rawName = ($('#am-name')?.value || '');
   const name    = rawName.trim();
-  const pay     = Number(normalizeDigits($('#am-pay')?.value || 0));
-  const month   = Number(normalizeDigits($('#am-month')?.value || 0));
+  const pay     = Number(normalizeNumberString($('#am-pay')?.value || 0));
+  const month   = Number(normalizeNumberString($('#am-month')?.value || 0));
 
   let firstInvalid = null;
 
@@ -501,8 +521,8 @@ function onSaveEditMember(){
   clearFieldError('em-name','err-em-name'); clearFieldError('em-pay','err-em-pay'); clearFieldError('em-month','err-em-month');
 
   const name = ($('#em-name').value||'').trim();
-  const pay  = Number(normalizeDigits($('#em-pay').value||0));
-  const month= Number(normalizeDigits($('#em-month').value||0));
+  const pay  = Number(normalizeNumberString($('#em-pay').value||0));
+  const month= Number(normalizeNumberString($('#em-month').value||0));
 
   let firstInvalid=null;
 
@@ -569,9 +589,8 @@ function savePayModal(){
   ensurePayments(j,m); const now=new Date().toISOString();
   const checks=$$('#payModalBody input[type="checkbox"][data-k="paid"]');
   const amounts=$$('#payModalBody input[type="number"][data-k="amount"]');
-  const paidMap={}, amountMap={}; checks.forEach(cb=>paidMap[parseInt(cb.dataset.i)]=cb.checked);
-  // طبّع الأرقام العربية في مبالغ الدفعات قبل Number()
-  amounts.forEach(inp=>amountMap[parseInt(inp.dataset.i)]=Number(normalizeDigits(inp.value||0)));
+  const paidMap={}, amountMap={}; checks.forEach(cb=>paidMap[parseInt(cb.dataset.i,10)]=cb.checked);
+  amounts.forEach(inp=>amountMap[parseInt(inp.dataset.i,10)]=Number(normalizeNumberString(inp.value||0)));
   m.payments=m.payments.map(p=>{const newPaid=!!paidMap[p.i]; const newAmount=Number(amountMap[p.i]||0);
     return {i:p.i,paid:newPaid,amount:newAmount,paidAt:newPaid?(p.paid?p.paidAt||now:now):null};});
   recalcMemberCounters(j,m); saveAll(); renderMembers(j); hide($('#payModal')); toast('تم حفظ الدفعات');
@@ -606,7 +625,6 @@ function exportPdf(j){
   <table><thead><tr><th>الشهر</th><th>المستلمون</th></tr></thead><tbody>${sched}</tbody></table>
   </body></html>`;
 
-  // تنزيل ملف HTML (قابل للطباعة PDF يدوياً) بدلاً من نافذة الطباعة المباشرة
   const blob = new Blob([html], {type:'text/html'});
   const url = URL.createObjectURL(blob);
   const a=document.createElement('a');
