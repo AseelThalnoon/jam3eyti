@@ -1,9 +1,9 @@
-/* v2.3.7 — keep UX, restore inline import button next to count */
+/* v2.3.8 — open jamiyah by clicking the card (no jam-open button) */
 
 const $  = (s,p=document)=>p.querySelector(s);
 const $$ = (s,p=document)=>[...p.querySelectorAll(s)];
 
-/* ---------- SVG Icons (موجودة مسبقًا وقد تُستخدم في البطاقات) ---------- */
+/* ---------- SVG Icons ---------- */
 const icons = {
   eye: `<svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.8"/></svg>`,
   edit: `<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" stroke-width="1.8"/><path d="M13 7l4 4" stroke="currentColor" stroke-width="1.8"/></svg>`,
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#jamiyahForm')?.addEventListener('submit',onCreateJamiyah);
   $('#search')?.addEventListener('input',e=>{const f=(e.target.value||'').trim(); state.filter=f; renderList();});
 
-  /* الاستيراد: الزر داخل التفاصيل + الزر بجانب عداد الجمعيات يستخدمان نفس مُدخل الملف */
+  // استيراد: زر داخل التفاصيل + زر بجانب عداد الجمعيات
   $('#importBtn')?.addEventListener('click', () => $('#importFile')?.click());
   $('#importInlineBtn')?.addEventListener('click', () => $('#importFile')?.click());
   $('#importFile')?.addEventListener('change', onImportFilePicked);
@@ -136,10 +136,18 @@ document.addEventListener('click',(e)=>{
     case 'md-close': hide($('#monthDetails')); return;
   }
 
-  /* فتح الجمعية من البطاقة ⇒ افتح الجدول الشهري مباشرة */
-  const openBtn=e.target.closest('button.jam-open[data-id]');
-  if(openBtn){
-    openDetails(openBtn.dataset.id);
+  // فتح الجمعية بالضغط على البطاقة نفسها (مع تجاهل الضغط على زر التعديل داخلها)
+  const editBtnOnCard = e.target.closest('button.jam-edit[data-id]');
+  if(editBtnOnCard){
+    const id = editBtnOnCard.dataset.id;
+    state.currentId = id;
+    openEditModal();
+    return;
+  }
+
+  const cardEl = e.target.closest('.jam-card[data-id]');
+  if(cardEl){
+    openDetails(cardEl.dataset.id);
     const dMembers  = document.getElementById('membersBlock');
     const dSchedule = document.getElementById('scheduleBlock');
     if(dSchedule && dMembers){
@@ -150,15 +158,7 @@ document.addEventListener('click',(e)=>{
     return;
   }
 
-  /* تعديل الجمعية من البطاقة */
-  const editBtnOnCard = e.target.closest('button.jam-edit[data-id]');
-  if(editBtnOnCard){
-    const id = editBtnOnCard.dataset.id;
-    state.currentId = id;
-    openEditModal();
-    return;
-  }
-
+  // أزرار بطاقة العضو
   const actBtn=e.target.closest('button[data-action]');
   if(actBtn){
     const action=actBtn.dataset.action, memberId=actBtn.dataset.id;
@@ -215,9 +215,13 @@ function renderList(){
     const color = colorFromStartDate(j);
     const card=document.createElement('div');
     card.className='jam-card';
+    card.dataset.id = j.id;
     card.style.borderInlineStart=`4px solid ${color}`;
+    card.setAttribute('role','button');
+    card.tabIndex = 0;
+
     card.innerHTML=`
-      <button class="jam-open" data-id="${j.id}" title="فتح الجمعية" aria-label="فتح">${icons.eye}</button>
+      <!-- لا يوجد زر jam-open بعد الآن -->
       <button class="jam-edit" data-id="${j.id}" title="تعديل الجمعية" aria-label="تعديل">${icons.edit}</button>
       <div class="jam-head"><strong>${j.name}</strong></div>
       <div class="jam-lines">
@@ -229,6 +233,15 @@ function renderList(){
         <span class="mc-chip">أعضاء: ${fmtInt((j.members||[]).length)}</span>
         <span class="mc-chip">أشهر: ${fmtInt(j.duration)}</span>
       </div>`;
+
+    // دعم فتح بالكيبورد (Enter / Space) بدون لمس أي شيء آخر
+    card.addEventListener('keydown', (ev)=>{
+      if(ev.key==='Enter' || ev.key===' '){
+        ev.preventDefault();
+        card.click();
+      }
+    });
+
     list.appendChild(card);
   });
 
@@ -500,7 +513,7 @@ function onSaveEditMember(){
 
   const entitlement = pay * j.duration;
 
-  // إعادة احتساب السقف الشهري للشهر المحدد باستثناء العضو نفسه
+  // احتساب سقف الشهر باستثناء العضو نفسه (يسمح بتقليل مساهمته حتى لو الشهر ممتلئ سابقًا)
   const assignedThisMonth = j.members
     .filter(x => x.id!==m.id && Number(x.month)===month)
     .reduce((s,x)=>s+Number(x.entitlement||0),0);
@@ -583,7 +596,7 @@ function exportPdf(j){
   <h2>الجدول الشهري</h2>
   <table><thead><tr><th>الشهر</th><th>المستلمون</th></tr></thead><tbody>${sched}</tbody></table></body></html>`;
 
-  /* تنزيل كملف HTML بدلاً من فتح الطابعة */
+  // تنزيل كملف HTML (لا نفتح نافذة الطباعة)
   const blob=new Blob([html],{type:'text/html'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -602,7 +615,7 @@ function exportJson(){
   toast('تم تنزيل نسخة JSON احتياطية');
 }
 
-/* استيراد من ملف JSON — يُستخدم لكل من زر التفاصيل وزر العداد */
+/* استيراد من ملف JSON */
 function onImportFilePicked(e){
   const file=e.target.files?.[0];
   if(!file){ return; }
