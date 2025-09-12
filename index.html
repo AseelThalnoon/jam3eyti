@@ -6,21 +6,18 @@
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
 
-  <!-- iOS Home Screen Icon -->
-  <link rel="apple-touch-icon" href="logo.png">
-  <meta name="apple-mobile-web-app-title" content="جمعيتي">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-  <!-- Favicon -->
+  <!-- شعار التطبيق كأيقونة للموقع -->
   <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
 
+  <!-- ملفات الستايل والسكربت (نفس الإصدارات لديك) -->
   <link rel="stylesheet" href="style.css?v=2.3.6" />
   <script src="app.js?v=2.3.6" defer></script>
 </head>
 <body>
   <header class="app-bar">
     <div class="brand">
+      <!-- شعار جمعيتي: صورة PNG بدلاً من SVG القديم -->
       <img src="logo.png" alt="شعار جمعيتي" class="logo-img" />
       <h1 class="h1">جمعيتي</h1>
     </div>
@@ -89,15 +86,14 @@
         <div class="stack-0">
           <div class="title-row">
             <h2 id="d-title" class="h2"></h2>
-            <!-- قد يكون مخفي بالـ CSS، أتركه كما هو -->
+            <!-- زر تعديل أعلى التفاصيل يبقى كما هو (قد يكون مخفياً بالـ CSS حسب نسختك) -->
             <button id="editBtn" class="icon-btn" title="تعديل الجمعية" aria-label="تعديل الجمعية">✏️</button>
           </div>
           <div class="meta" id="d-meta"></div>
         </div>
         <div class="details-ops">
-          <!-- حفظ = تصدير PDF / فتح = استيراد JSON -->
-          <button class="btn secondary" id="exportBtn">حفظ</button>
-          <button class="btn" id="importBtn" title="فتح جمعية">فتح</button>
+          <button class="btn secondary" id="exportBtn">تصدير PDF</button>
+          <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">تصدير JSON</button>
         </div>
       </div>
 
@@ -282,8 +278,5 @@
   </div>
 
   <footer class="footer">v2.3.6 · © Aseel Thalnoon</footer>
-
-  <!-- ✅ مُدخل ملف للاستيراد (مخفي) -->
-  <input id="importFile" type="file" accept="application/json" hidden>
 </body>
 </html>
