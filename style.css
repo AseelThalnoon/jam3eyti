@@ -60,7 +60,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 
 .list{display:flex;flex-direction:column;gap:var(--space-2)}
 
-/* ——— بطاقات المستلمون (مرجع) ——— */
+/* ——— بطاقات المستلمون ——— */
 .md-card{
   position:relative; overflow:hidden;
   display:flex; flex-direction:column; gap:4px;
@@ -74,13 +74,12 @@ small.hint{color:var(--muted);min-height:16px;display:block}
   background: linear-gradient(270deg, currentColor, transparent);
 }
 
-/* ——— بطاقات الجمعيات — موحّدة مع تصميم md-card ——— */
+/* ——— بطاقات الجمعيات ——— */
 .jam-card{
   position:relative; overflow:hidden;
   padding:8px 10px;
   display:flex;flex-direction:column;gap:6px;
   border:1px solid var(--border);border-radius:12px;background:var(--panel);
-  cursor:pointer;
 }
 .jam-card>*{position:relative; z-index:1;}
 .jam-card::before{
@@ -92,7 +91,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
 .jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
 
-/* زر تعديل بطاقة الجمعية فقط — في يمين البطاقة بمنتصفها عموديًا */
+/* زر تعديل بطاقة الجمعية */
 .jam-edit{
   position:absolute;
   inset-inline-end:12px;
@@ -113,7 +112,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 /* إخفاء زر القلم القديم داخل رأس التفاصيل */
 .details-header #editBtn{ display:none !important; }
 
-/* ——— بطاقات الأعضاء — نسخة مبسّطة ——— */
+/* ——— بطاقات الأعضاء ——— */
 .member-card{
   position:relative;
   display:flex; flex-direction:column; gap:6px;
@@ -154,28 +153,23 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 }
 .mc-chip.warn{ background:#3a1a1a; color:#fecaca; border-color:#7f1d1d; }
 
-
+/* الأفعال داخل بطاقة العضو — وسط الإطار */
 .mc-actions{
   display:flex;
   gap:8px;
-  justify-content:flex-start;   /* يخليها تبدأ من اليمين (RTL) */
-  align-items:center;           /* يخليها متوسطة داخل الإطار */
+  justify-content:flex-start;
+  align-items:center;
   margin-top:6px;
-  min-height:40px;              /* يعطي ارتفاع كافي لتتوسط */
+  min-height:40px;
 }
-
 .btn.icon{
   width:34px; height:34px;
   border-radius:8px;
   background:#334155; border-color:#2b3646;
   display:flex; align-items:center; justify-content:center;
-  vertical-align:middle;        /* توسيط إضافي */
+  vertical-align:middle;
 }
-.btn.icon svg{
-  width:17px; height:17px;
-  display:block;                /* يمنع أي فراغ داخلي */
-}
-
+.btn.icon svg{ width:17px; height:17px; display:block; }
 
 /* جدول/بطاقات */
 .table{width:100%;border-collapse:collapse}
