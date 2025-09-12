@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
 
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color="%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="%2322c55e"/><stop offset="1" stop-color"%2316a34a"/></linearGradient></defs><rect width="128" height="128" rx="22" fill="%230b1220"/><circle cx="64" cy="50" r="22" fill="url(%23g)"/><path d="M24 98c8-16 26-26 40-26s32 10 40 26" stroke="%2322c55e" stroke-width="8" fill="none" stroke-linecap="round"/></svg>' />
   <link rel="stylesheet" href="style.css?v=2.3.3" />
   <script src="app.js?v=2.3.3" defer></script>
 </head>
@@ -65,16 +65,18 @@
         <summary class="caret section-title">
           <span>الجمعيات</span>
           <span class="pill" id="jamiyahCountPill">0</span>
-          <!-- زر فتح (استيراد) كأيقونة SVG بجانب العداد -->
+          <!-- زر فتح (استيراد) كأيقونة مجلد + سهم للداخل -->
           <button id="importBtn" class="icon-btn" title="فتح JSON" aria-label="فتح" style="margin-inline-start:6px;">
             <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
-              <path d="M12 3v18M6 12h12" stroke="currentColor" stroke-width="2" />
+              <!-- مجلد -->
+              <path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              <!-- سهم للداخل (استيراد) -->
+              <path d="M12 5v6m0 0l-3-3m3 3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
           <input id="importFile" type="file" accept="application/json" hidden />
         </summary>
         <div class="content">
-          <!-- (تم حذف شريط الأدوات القديم الذي كان يحتوي زر فتح هنا) -->
           <div id="jamiyahList" class="list"></div>
           <div id="emptyList" class="empty hidden">
             لا توجد جمعيات.
@@ -100,7 +102,7 @@
         <div class="details-ops">
           <button class="btn secondary" id="exportBtn">تصدير PDF</button>
           <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">حفظ</button>
-          <!-- تم نقل زر فتح (الاستيراد) إلى عنوان قائمة الجمعيات -->
+          <!-- زر الاستيراد موجود في عنوان قائمة الجمعيات -->
         </div>
       </div>
 
