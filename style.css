@@ -163,13 +163,13 @@ small.hint{color:var(--muted);min-height:16px;display:block}
   min-height:40px;
 }
 .btn.icon{
-  width:34px; height:34px;
-  border-radius:8px;
+  width:40px; height:40px;
+  border-radius:10px;
   background:#334155; border-color:#2b3646;
   display:flex; align-items:center; justify-content:center;
   vertical-align:middle;
 }
-.btn.icon svg{ width:17px; height:17px; display:block; }
+.btn.icon svg{ width:20px; height:20px; display:block; }
 
 /* جدول/بطاقات */
 .table{width:100%;border-collapse:collapse}
