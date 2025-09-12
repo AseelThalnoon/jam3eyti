@@ -154,9 +154,26 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 }
 .mc-chip.warn{ background:#3a1a1a; color:#fecaca; border-color:#7f1d1d; }
 
-/* الأفعال صغيرة وموحّدة */
-.mc-actions{ display:flex; gap:8px; justify-content:flex-start; margin-top:6px; }
-.btn.icon{ width:34px; height:34px; border-radius:8px; background:#334155; border-color:#2b3646; }
+
+/* الأفعال داخل بطاقة العضو — وسط الإطار المخصّص */
+.mc-actions{
+  display:flex;
+  gap:8px;
+  justify-content:center;   /* توسيط أفقي */
+  align-items:center;       /* توسيط عمودي داخل ارتفاعها */
+  min-height:42px;          /* إطار واضح لاحتواء الأزرار (أزرار 34px) */
+  margin-top:6px;
+  width:100%;
+  text-align:center;
+}
+
+/* تأكيد توسيط محتوى الأزرار نفسها */
+.btn.icon{
+  width:34px; height:34px;
+  border-radius:8px;
+  background:#334155; border-color:#2b3646;
+  display:flex; align-items:center; justify-content:center;
+}
 .btn.icon svg{ width:17px; height:17px; }
 
 /* جدول/بطاقات */
