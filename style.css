@@ -80,6 +80,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
   padding:8px 10px;
   display:flex;flex-direction:column;gap:6px;
   border:1px solid var(--border);border-radius:12px;background:var(--panel);
+  cursor:pointer;
 }
 .jam-card>*{position:relative; z-index:1;}
 .jam-card::before{
@@ -91,11 +92,12 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
 .jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
 
-/* أزرار بطاقة الجمعية (رأسيّة فوق بعض) */
-.jam-open,
+/* زر تعديل بطاقة الجمعية فقط — في يمين البطاقة بمنتصفها عموديًا */
 .jam-edit{
   position:absolute;
   inset-inline-end:12px;
+  top:50%;
+  transform:translateY(-50%);
   width:36px; height:36px;
   border-radius:9px;
   background:#334155;
@@ -106,9 +108,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
   align-items:center;
   justify-content:center;
 }
-.jam-open{ top:12px; }
-.jam-edit{ top:56px; }
-.jam-open svg, .jam-edit svg{ width:18px; height:18px; stroke:currentColor; }
+.jam-edit svg{ width:18px; height:18px; stroke:currentColor; }
 
 /* إخفاء زر القلم القديم داخل رأس التفاصيل */
 .details-header #editBtn{ display:none !important; }
