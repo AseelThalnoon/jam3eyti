@@ -221,7 +221,7 @@ function renderList(){
     const color = colorFromStartDate(j);
     const card=document.createElement('div');
     card.className='jam-card';
-    card.style.color = color; // لإظهار التدرّج الخفيف على الحافة اليمنى
+    card.style.color = color;
     card.style.borderInlineStart=`4px solid ${color}`;
     card.innerHTML=`
       <button class="jam-open" data-id="${j.id}" title="فتح الجمعية" aria-label="فتح">${icons.eye}</button>
@@ -491,7 +491,7 @@ function openEditMember(memberId){
   $('#em-name').value=m.name;
   $('#em-pay').value=m.pay;
 
-  /* تعديل: تمرير excludeId حتى لا تُحسب مساهمة العضو ضمن امتلاء شهره */
+  /* تمرير excludeId حتى لا تُحسب مساهمة العضو ضمن امتلاء شهره */
   populateMonthOptions(j,$('#em-month'), memberId);
   $('#em-month').value=String(m.month);
 
@@ -499,7 +499,7 @@ function openEditMember(memberId){
   show($('#editMemberModal'));
 }
 
-/* استبدال كامل: التحقق بسقف يستثني العضو الجاري تعديله */
+/* التحقق بسقف يستثني العضو الجاري تعديله */
 function onSaveEditMember(){
   const j=currentJamiyah(); if(!j)return;
   const m=j.members.find(x=>x.id===state.editMemberId); if(!m)return;
@@ -588,6 +588,7 @@ function onDeleteJamiyah(){ const j=currentJamiyah(); if(!j) return;
   state.jamiyahs=state.jamiyahs.filter(x=>x.id!==j.id); saveAll(); showList(); renderList(); toast('تم حذف الجمعية'); }
 function showList(){ hide($('#details')); state.currentId=null; setDetailsSectionsVisible(false); $('#fabAdd').disabled=true; }
 
+/* --- تم التعديل هنا: تنزيل ملف HTML جاهز للطباعة بدل نافذة الطباعة --- */
 function exportPdf(j){
   const css=`<style>@page{size:A4;margin:14mm}body{font-family:-apple-system,Segoe UI,Roboto,Arial,"Noto Naskh Arabic","IBM Plex Sans Arabic",sans-serif;color:#111}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}h2{margin:18px 0 8px;font-size:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:right;font-size:12px;vertical-align:top}thead th{background:#f3f4f6}tfoot td{font-weight:700;background:#fafafa}.muted{color:#666}</style>`;
   const members=j.members.slice().sort((a,b)=>a.month-b.month||a.name.localeCompare(b.name));
@@ -599,7 +600,10 @@ function exportPdf(j){
     const txt=rec.length?rec.map(r=>`${r.name} (${fmtMoney(r.entitlement)} ريال)`).join('، '):'—';
     return `<tr><td>${monthLabel(j.startDate,i)}</td><td>${txt}</td></tr>`;
   }).join('');
-  const html=`<html dir="rtl" lang="ar"><head><meta charset="utf-8" /><title>${j.name}</title>${css}</head><body>
+  const html=`<!doctype html>
+<html dir="rtl" lang="ar">
+<head><meta charset="utf-8" /><title>${j.name}</title>${css}</head>
+<body>
   <header><h1>جمعيتي</h1><div>${new Date().toLocaleDateString('en-GB')}</div></header>
   <div class="meta">${monthLabel(j.startDate,1)} · المدة: ${fmtInt(j.duration)} شهر · مبلغ الجمعية: ${fmtMoney(j.goal)} ريال</div>
   <h2>الأعضاء</h2>
@@ -608,8 +612,18 @@ function exportPdf(j){
   <tfoot><tr><td colspan="2">الإجمالي</td><td>${fmtMoney(totPay)} ريال</td><td>${fmtMoney(totEnt)} ريال</td><td colspan="2"></td></tr></tfoot></table>
   <h2>الجدول الشهري</h2>
   <table><thead><tr><th>الشهر</th><th>المستلمون</th></tr></thead><tbody>${sched}</tbody></table>
-  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),300);}</script></body></html>`;
-  const w=window.open('','_blank'); w.document.open(); w.document.write(html); w.document.close();
+</body></html>`;
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const clean = (j.name || 'jamiyati').replace(/[\\/:*?"<>|]+/g,'-').slice(0,80);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${clean}-report.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast('تم تنزيل التقرير. افتحه واطبعه كـ PDF من المتصفح.');
 }
 
 function exportJson(){
