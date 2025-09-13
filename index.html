@@ -63,6 +63,14 @@
         <summary class="caret section-title">
           <span>الجمعيات</span>
           <span class="pill" id="jamiyahCountPill">0</span>
+          <!-- زر الاستيراد بجانب العداد -->
+          <button id="importInlineBtn" class="icon-btn" title="فتح (استيراد)">
+            <!-- أيقونة مجلد + سهم للداخل -->
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+              <path d="M4 7h5l2 2h9v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7Z" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 12v6m0 0l-3-3m3 3l3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </summary>
         <div class="content">
           <div id="jamiyahList" class="list"></div>
@@ -83,6 +91,7 @@
         <div class="stack-0">
           <div class="title-row">
             <h2 id="d-title" class="h2"></h2>
+            <!-- مخفي بالستايل كما هو -->
             <button id="editBtn" class="icon-btn" title="تعديل الجمعية" aria-label="تعديل الجمعية">✏️</button>
           </div>
           <div class="meta" id="d-meta"></div>
@@ -162,8 +171,10 @@
 
   <div id="toasts" class="toasts"></div>
 
-  <!-- النوافذ (دفعات، تعديل جمعية، إضافة عضو، تعديل عضو) -->
-  <!-- تبقى مثل النسخة السابقة بدون تغيير -->
+  <!-- مُدخل ملف مخفي للاستيراد (يُستخدم لكل من الزرين) -->
+  <input id="importFile" type="file" accept="application/json" class="hidden" />
+
+  <!-- النوافذ الأخرى كما هي في نسختك الحالية -->
 
   <footer class="footer">v2.3.7 · © Aseel Thalnoon</footer>
 </body>
