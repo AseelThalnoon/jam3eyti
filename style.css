@@ -1,4 +1,4 @@
-/* v2.3.7 — Member card compact + SVG icons + gradients fixed + logo image */
+/* v2.3.8 — إضافة قسم ترحيبي + اعتماد logo.PNG */
 
 :root{
   --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8;
@@ -19,15 +19,6 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","IBM Plex Sans Arabic",Arial,sans-serif}
 body, table, .member-card, .modal__card { text-align:right; }
 
-/* شعار التطبيق */
-.brand .logo{
-  width:28px;
-  height:28px;
-  display:block;
-  object-fit:contain;
-  border-radius:6px; /* بإمكانك إزالته إذا تبغاه مربع */
-}
-
 /* عناوين */
 .h1{margin:0;font-size:var(--fz-h1);font-weight:800;line-height:1.4}
 .h2{margin:0 0 var(--space-1);font-size:var(--fz-h2);font-weight:700;line-height:1.4}
@@ -37,6 +28,7 @@ small.hint, .error, .badge, .pill, .muted, .table thead th{font-size:var(--fz-su
 .app-bar{padding:var(--space-3);background:#0b1220;border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
 .brand{display:flex;align-items:center;gap:var(--space-2)}
+.brand .logo{width:28px;height:28px;display:block;object-fit:contain;border-radius:6px}
 .container{max-width:980px;margin:var(--space-3) auto;padding:0 var(--space-3)}
 .stack-0>*+*{margin-top:var(--space-0)}
 .stack-1>*+*{margin-top:var(--space-1)}
@@ -69,6 +61,34 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 
 .list{display:flex;flex-direction:column;gap:var(--space-2)}
 
+/* ================= HERO ================= */
+.hero{
+  text-align:center;
+  padding:30px 20px;
+  background:var(--panel-2);
+  border-radius:var(--rad-l);
+}
+.hero-logo{
+  width:120px;
+  height:120px;
+  object-fit:contain;
+  margin-bottom:14px;
+  border-radius:12px;
+  background:#0b1220;
+  border:1px solid var(--border);
+  padding:8px;
+}
+.hero-text{
+  margin:6px 0;
+  color:var(--muted);
+  font-size:var(--fz-base);
+  line-height:1.6;
+}
+.hero-text.highlight{
+  color:var(--fg);
+  font-weight:600;
+}
+
 /* ——— بطاقات المستلمون (مرجع) ——— */
 .md-card{
   position:relative; overflow:hidden;
@@ -89,6 +109,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
   padding:8px 10px;
   display:flex;flex-direction:column;gap:6px;
   border:1px solid var(--border);border-radius:12px;background:var(--panel);
+  cursor:pointer; /* الضغط على البطاقة لفتح الجمعية */
 }
 .jam-card>*{position:relative; z-index:1;}
 .jam-card::before{
@@ -100,20 +121,7 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 .jam-card .jam-lines{display:flex;flex-direction:column;gap:4px}
 .jam-card .jam-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}
 
-/* زر تعديل بطاقة الجمعية */
-.jam-edit{
-  position:absolute;
-  inset-inline-end:12px;
-  top:50%;
-  transform:translateY(-50%);
-  width:36px; height:36px;
-  border-radius:9px;
-  background:#334155; color:#e5e7eb; border:1px solid #2b3646;
-  cursor:pointer; display:flex;align-items:center;justify-content:center;
-}
-.jam-edit svg{ width:18px; height:18px; stroke:currentColor; }
-
-/* إخفاء زر القلم القديم داخل رأس التفاصيل */
+/* زر القلم القديم داخل التفاصيل (يُخفى عند الحاجة) */
 .details-header #editBtn{ display:none !important; }
 
 /* ——— بطاقات الأعضاء — نسخة مبسّطة ——— */
@@ -157,24 +165,10 @@ small.hint{color:var(--muted);min-height:16px;display:block}
 }
 .mc-chip.warn{ background:#3a1a1a; color:#fecaca; border-color:#7f1d1d; }
 
-/* الأفعال داخل بطاقة العضو */
-.mc-actions{
-  display:flex;
-  gap:8px;
-  justify-content:flex-start;
-  align-items:center;
-  margin-top:6px;
-  min-height:42px;
-  width:100%;
-}
-.btn.icon{
-  width:40px; height:40px;
-  border-radius:10px;
-  background:#334155; border-color:#2b3646;
-  display:flex; align-items:center; justify-content:center;
-  vertical-align:middle;
-}
-.btn.icon svg{ width:20px; height:20px; display:block; }
+/* أزرار بطاقات الأعضاء */
+.mc-actions{ display:flex; gap:8px; justify-content:flex-start; margin-top:6px; }
+.btn.icon{ width:36px; height:36px; border-radius:8px; background:#334155; border-color:#2b3646; }
+.btn.icon svg{ width:18px; height:18px; }
 
 /* جدول/بطاقات */
 .table{width:100%;border-collapse:collapse}
