@@ -6,16 +6,16 @@
   <meta name="theme-color" content="#0b1220" />
   <title>جمعيتي</title>
 
-  <!-- Favicon يفضَّل الشعار من الملف المحلي -->
-  <link rel="icon" type="image/png" href="./logo.png?v=2" />
+  <!-- الشعار الرسمي: logo.PNG (حسّاس لحالة الأحرف على GitHub Pages) -->
+  <link rel="icon" type="image/png" href="./logo.PNG?v=3" />
   <link rel="stylesheet" href="style.css?v=2.3.7" />
-  <script src="app.js?v=2.3.7" defer></script>
+  <script src="app.js?v=2.3.8" defer></script>
 </head>
 <body>
   <header class="app-bar">
     <div class="brand">
-      <!-- الشعار في الهيدر: يستخدم logo.png مع fallback داخلي -->
-      <img class="logo" src="./logo.png?v=2" alt="شعار جمعيتي" width="28" height="28"
+      <!-- الشعار في الهيدر -->
+      <img class="logo" src="./logo.PNG?v=3" alt="شعار جمعيتي" width="28" height="28"
            onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><defs><linearGradient id=%22g%22 x1=%220%22 x2=%221%22><stop stop-color=%22%2322c55e%22/><stop offset=%221%22 stop-color=%22%2316a34a%22/></linearGradient></defs><rect width=%22128%22 height=%22128%22 rx=%2222%22 fill=%22%230b1220%22/><circle cx=%2264%22 cy=%2250%22 r=%2222%22 fill=%22url(%23g)%22/><path d=%22M24 98c8-16 26-26 40-26s32 10 40 26%22 stroke=%22%2322c55e%22 stroke-width=%228%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>';">
       <h1 class="h1">جمعيتي</h1>
     </div>
@@ -32,7 +32,8 @@
               onclick="this.closest('.hero').classList.add('hidden')">✖</button>
 
       <div class="hero-head">
-        <img class="hero-logo" src="./logo.png?v=2" alt="شعار جمعيتي" width="96" height="96"
+        <!-- الشعار الكبير في الهيرو -->
+        <img class="hero-logo" src="./logo.PNG?v=3" alt="شعار جمعيتي" width="96" height="96"
              onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><defs><linearGradient id=%22g%22 x1=%220%22 x2=%221%22><stop stop-color=%22%2322c55e%22/><stop offset=%221%22 stop-color=%22%2316a34a%22/></linearGradient></defs><rect width=%22128%22 height=%22128%22 rx=%2222%22 fill=%22%230b1220%22/><circle cx=%2264%22 cy=%2250%22 r=%2222%22 fill=%22url(%23g)%22/><path d=%22M24 98c8-16 26-26 40-26s32 10 40 26%22 stroke=%22%2322c55e%22 stroke-width=%228%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>';">
         <div class="hero-copy">
           <h2 class="hero-title">إدارة الجمعيات ببساطة ووضوح</h2>
@@ -137,7 +138,6 @@
         <div class="details-ops">
           <button class="btn secondary" id="exportBtn">حفظ</button>
           <button class="btn" id="exportJsonBtn" title="حفظ نسخة JSON">حفظ JSON</button>
-          <!-- مخفي: ملف الاستيراد المستخدم من زر “فتح” المجاور لعداد الجمعيات في نسخ سابقة -->
           <input id="importFile" type="file" accept="application/json" class="hidden" />
         </div>
       </div>
